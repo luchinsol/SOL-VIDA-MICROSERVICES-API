@@ -142,5 +142,6 @@ app.listen(PORT, () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
 });
 
+
 export default redisClient;
 
