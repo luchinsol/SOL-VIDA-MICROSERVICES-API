@@ -2,6 +2,7 @@ import axios from 'axios';
 import redisClient from '../index.js';
 
 const URLcliente = 'http://localhost:4002/api/v1/cliente';
+const URLuser = 'http://localhost:4004/api/v1/user';
 
 export const getClientesControllerGW = async (req, res) => {
     const cacheKey = 'clientes_cache'
@@ -79,4 +80,24 @@ export const getClientesControllerIdGW = async (req,res) => {
         res.status(500).json({error:error.message})
     }
 
+}
+
+export const postClienteControllerGW = async (req,res) => {
+    try {
+        const response = req.body
+        console.log(response,"<--------------data POST api gw")
+
+        const resultado = await axios.post(URLcliente,response)
+        console.log(resultado,"<------------micro cliente API GW")
+        if(resultado && resultado.data){
+            res.status(201).json(resultado.data)
+        }
+        else{
+            res.status(401).json({message:'Invalid input data'})
+        }
+        
+    } catch (error) {
+        console.log("----ERROR API GW")
+        res.status(500).json({error:error.message})
+    }
 }

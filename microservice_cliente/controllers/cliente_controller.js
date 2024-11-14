@@ -30,3 +30,19 @@ export const getClienteControllerId = async (req,res) => {
         res.status(500).json({error:error.message})
     }
 }
+
+export const postClienteController = async (req,res) => {
+    try {
+        const resultado = req.body
+        const response = await modelCliente.postCliente(resultado)
+        console.log("response controller CLIENTE",response)
+        if(response){
+            res.status(201).json(response)
+        }
+        else{
+            res.status(401).json({message:'Invalid input data'})
+        }
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}

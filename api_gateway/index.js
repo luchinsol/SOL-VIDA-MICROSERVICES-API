@@ -63,6 +63,7 @@ app.listen(3000,function(){
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import morgan from 'morgan'; // Importa Morgan
+import cors from 'cors';
 
 // routes
 import routerGWCliente from './routes/gw_cliente_route.js';
@@ -102,7 +103,9 @@ async function connectRedis() {
 connectRedis();
 
 const app = express();
+
 const SECRET_KEY = 'aguasol'; // Usa la misma clave que en el microservicio de autenticación
+app.use(cors())
 app.use(express.json());
 
 // Usa Morgan para registrar las solicitudes
@@ -110,7 +113,7 @@ app.use(morgan('combined'));
 
 // Middleware para verificar el token
 function verificarToken(req, res, next) {
-    if (req.path === '/apigw/v1/login') {
+    if (req.path === '/apigw/v1/login' || req.path === '/apigw/v1/user') {
         return next();
     }
     
