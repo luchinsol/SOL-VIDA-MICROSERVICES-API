@@ -1,8 +1,5 @@
 import { db_pool } from "../cliente_config.js"
 
-const URLuser = 'http://localhost:4004/api/v1/user';
-
-
 const modelCliente = {
     getCliente: async () => {
         try {
@@ -24,21 +21,17 @@ const modelCliente = {
     },
     postCliente: async (cliente) => {
         try {
+            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+            let CODE = '';
 
-
-            const userExist = await axios.post(`${URLuser}`, {
-                nickname: cliente.nickname
-            })
-
-            const userExistResponse = userExist.data
-
-
-            // Verifica si el usuario ya existe según la respuesta de `existUser`
-            if (userExistResponse.message === 'User exist!') {
-                return { message: 'Already exist' };
-            } else {
-                // Si el usuario no existe, procede a crear el nuevo cliente
-                const resultado = await db_pool.one(`
+                for (let i = 0; i < 5; i++) {
+                    const randomIndex = Math.floor(Math.random() * characters.length);
+                    CODE += characters.charAt(randomIndex);
+                }
+            
+            
+            
+            const resultado = await db_pool.one(`
                 INSERT INTO public.cliente (
                     usuario_id, nombre, apellidos, direccion, telefono, email, distrito, ruc, fecha_nacimiento,
                     fecha_creacion_cuenta, sexo, dni, codigo, calificacion, saldo_beneficios, direccion_empresa,
@@ -47,26 +40,41 @@ const modelCliente = {
                     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
                 ) RETURNING *
             `, [
-                    cliente.usuario_id, cliente.nombre, cliente.apellidos, cliente.direccion, cliente.telefono,
-                    cliente.email, cliente.distrito, cliente.ruc, cliente.fecha_nacimiento, cliente.fecha_creacion_cuenta,
-                    cliente.sexo, cliente.dni, cliente.codigo, cliente.calificacion, cliente.saldo_beneficios,
-                    cliente.direccion_empresa, cliente.suscripcion, cliente.nombre_empresa, cliente.frecuencia,
-                    cliente.quiereretirar, cliente.medio_retiro, cliente.banco_retiro, cliente.numero_cuenta
-                ]);
+                cliente.usuario_id, cliente.nombre, cliente.apellidos, cliente.direccion, cliente.telefono,
+                cliente.email, cliente.distrito, cliente.ruc, cliente.fecha_nacimiento, cliente.fecha_creacion_cuenta,
+                cliente.sexo, cliente.dni, CODE, cliente.calificacion, cliente.saldo_beneficios,
+                cliente.direccion_empresa, cliente.suscripcion, cliente.nombre_empresa, cliente.frecuencia,
+                cliente.quiereretirar, cliente.medio_retiro, cliente.banco_retiro, cliente.numero_cuenta
+            ]);
 
-                return resultado;
-            }
-
-
-
-
-
-
+            return resultado;
 
         } catch (error) {
             throw new Error(`Error query post ${error}`)
         }
     },
+    putCliente: async (id, cliente) => {
+        try {
+            const resultado = await db_pool.one(`
+                UPDATE public.cliente SET nombre = $1, apellidos = $2, telefono = $3,
+                email = $4 WHERE id = $5`, [
+                cliente.nombre, cliente.apellidos, cliente.telefono, cliente.email, id
+            ])
+            return resultado
+        } catch (error) {
+            throw new Error(`Error query put ${error}`)
+        }
+    },
+    deleteCliente: async (id) => {
+        try {
+            const resultado = db_pool.one(`DELETE FROM public.cliente WHERE id = $1`,
+                [id]
+            )
+            return resultado
+        } catch (error) {
+            throw new Error(`Error query delete ${error}`)
+        }
+    }
 
 }
 

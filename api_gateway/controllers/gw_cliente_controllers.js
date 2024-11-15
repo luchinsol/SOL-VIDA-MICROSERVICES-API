@@ -93,7 +93,7 @@ export const postClienteControllerGW = async (req,res) => {
             res.status(201).json(resultado.data)
         }
         else{
-            res.status(401).json({message:'Invalid input data'})
+            res.status(400).json({message:'Invalid input data'})
         }
         
     } catch (error) {
