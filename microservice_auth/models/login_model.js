@@ -11,21 +11,41 @@ const modelAuth = {
             const existsUser = await db_pool.oneOrNone(`SELECT * FROM public.usuario WHERE nickname = $1`,[
                 credenciales.nickname
             ])
-            if(existsUser){
+            if(existsUser!=null){
                 // CLIENTE
                 if(existsUser.rol_id === 4){
-                    if(existsUser && bcrypt.compare(credenciales.contrasena,existsUser.contrasena)){
-                        
+                    console.log("CONTRASENA ----<")
+                    console.log(existsUser.contrasena)
+                    console.log("...... ? ........")
+                    console.log(existsUser && await bcrypt.compare(credenciales.contrasena,existsUser.contrasena))
+                    if(existsUser && await bcrypt.compare(credenciales.contrasena,existsUser.contrasena)){
+                        const tokenUser = jwt.sign({user:existsUser},SECRET_KEY)
+                        return {existsUser,tokenUser}
                     }
-                    return existsUser
+                    else{
+                        return {message:'Invalid credentials!'}
+                    }
+                    
                 }
                 // CONDUCTOR
                 else if(existsUser.rol_id === 5){
-                    return existsUser
+                    if(existsUser && await bcrypt.compare(credenciales.contrasena,existsUser.contrasena)){
+                        const tokenUser = jwt.sign({user:existsUser},SECRET_KEY)
+                        return {existsUser,tokenUser}
+                    }
+                    else{
+                        return {message:'Invalid credentials!'}
+                    }
                 }
                 // EMPLEADO
                 else if(existsUser.rol_id === 2){
-
+                    if(existsUser && await bcrypt.compare(credenciales.contrasena,existsUser.contrasena)){
+                        const tokenUser = jwt.sign({user:existsUser},SECRET_KEY)
+                        return {existsUser,tokenUser}
+                    }
+                    else{
+                        return {message:'Invalid credentials!'}
+                    }
                 }
                 else{
                     return { message : 'Roule not authorized!'}
@@ -36,7 +56,7 @@ const modelAuth = {
             }
             
         } catch (error) {
-            
+            throw new Error(`Error query login ${error}`)
         }
     },
     existUser: async (credenciales) => {

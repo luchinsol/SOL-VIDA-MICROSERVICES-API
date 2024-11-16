@@ -6,11 +6,14 @@ export const loginController = async (req,res) => {
         //console.log(credenciales)
         const resultado = await modelAuth.Login(credenciales)
        
-        if(resultado){
+        if(resultado.existsUser){
             res.status(201).json(resultado)
         }
+        else if(resultado.message === 'Invalid credentials!'){
+            res.status(400).json({message:resultado.message})
+        }
         else{
-            res.status(400).json({message:'Not Found'})
+            res.status(404).json({message:'Not Found'})
         }
     } catch (error) {
         res.status(500).json({error:error.message})
