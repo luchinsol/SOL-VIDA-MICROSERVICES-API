@@ -1,4 +1,4 @@
-create table ventas.almacen(
+create table public.almacen(
 	id serial primary key,
 	nombre varchar(200),
     latitud float,
@@ -7,4 +7,4 @@ create table ventas.almacen(
 	departamento varchar(200),
 	provincia varchar(200),
     direccion varchar(300)
-);
+);  

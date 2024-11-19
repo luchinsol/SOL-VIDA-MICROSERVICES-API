@@ -4,6 +4,6 @@ create table public.vehiculo(
 	modelo varchar(200),  
 	marca varchar(200),
     color varchar(100),
-    foto_vehiculo: varchar(300),
+    foto_vehiculo varchar(300),
 	conductor_id int
 );
