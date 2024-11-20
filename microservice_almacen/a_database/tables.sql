@@ -6,5 +6,5 @@ create table public.almacen(
     horario varchar(200),
 	departamento varchar(200),
 	provincia varchar(200),
-    direccion varchar(300)
+    direccion varchar(300) 
 );  
