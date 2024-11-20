@@ -3,6 +3,8 @@ import axios from 'axios';
 
 const URLlogin = 'http://localhost:4004/api/v1/login';
 
+const URLuser = 'http://localhost:4004/api/v1/user';
+
 export const postLoginController = async (req, res) => {
     try {
         const credenciales = req.body;
@@ -18,3 +20,21 @@ export const postLoginController = async (req, res) => {
         res.status(500).send('Error fetching clients');
     }
 };
+
+export const postUserExistController = async (req,res) => {
+    try {
+        console.log("........dentro del exist user GW")
+        const credenciales  = req.body
+        const response = await axios.post(URLuser,credenciales)
+        const userExist = response.data
+        if(userExist.message == 'User exist!'){
+            res.status(201).json({message:response.data.message})
+        }
+        else if(userExist.message == 'User new'){
+            res.status(201).json({message:response.data.message})
+        }
+    } catch (error) {
+        res.status(500).send('Error fetching clients');
+
+    }
+}

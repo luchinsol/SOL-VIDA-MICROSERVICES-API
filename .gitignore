@@ -1,5 +1,6 @@
 # Ignorar los node_modules en cada API
-api_cliente/node_modules/
+#api_cliente/node_modules/
+microservice_cliente/node_modules/
 api_gateway/node_modules/
-api_pedido_detalle/node_modules/
-api_signin/node_modules/
+microservice_pedido/node_modules/
+microservice_auth/node_modules/
