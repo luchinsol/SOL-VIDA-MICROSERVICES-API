@@ -1,6 +1,6 @@
 import axios from 'axios';
 import redisClient from '../index.js';
-const URLpedido = 'http://localhost:5000/api/v1/pedido';
+const URLpedido = 'http://microservice_pedido:5000/api/v1/pedido';//'http://localhost:5000/api/v1/pedido';
 
 
 export const getPedidosControllerGW = async (req, res) => {
