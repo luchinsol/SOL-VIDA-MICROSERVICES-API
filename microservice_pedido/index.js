@@ -8,7 +8,7 @@ import routerPedido from "./routes/pedido_route.js";
 
 const app_micro_pedido = express()
 
-const PORT = 4001
+const PORT = 5001
 
 app_micro_pedido.use(cors())
 app_micro_pedido.use(morgan('combined'))
