@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api-gateway:
     build: ./api-gateway
@@ -12,21 +10,21 @@ services:
     networks:
       - microservices_network
 
-  service1:
+  microservice_auth:
     build: ./microservice_auth
     ports:
       - "4004:5000"
     networks:
       - microservices_network
 
-  service2:
+  microservice_cliente:
     build: ./microservice_cliente
     ports:
       - "4002:5000"
     networks:
       - microservices_network
 
-  service3:
+  microservice_pedido:
     build: ./microservice_pedido
     ports:
       - "4001:5000"
