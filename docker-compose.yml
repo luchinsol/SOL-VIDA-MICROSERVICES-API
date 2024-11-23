@@ -4,9 +4,21 @@ services:
     ports:
       - "8080:8080"
     depends_on:
+      - redis
       - microservice_auth
       - microservice_cliente
       - microservice_pedido
+    networks:
+      - microservices_network
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  redis:
+    image: redis:7.0
+    container_name: redis
+    ports:
+      - "6379:6379"
     networks:
       - microservices_network
 
