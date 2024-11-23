@@ -8,7 +8,7 @@ services:
     depends_on:
       - microservice_auth
       - microservice_cliente
-      - microservice_pago
+      - microservice_pedido
     networks:
       - microservices_network
 
@@ -27,7 +27,7 @@ services:
       - microservices_network
 
   service3:
-    build: ./microservice_pago
+    build: ./microservice_pedido
     ports:
       - "4001:5000"
     networks:
