@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - microservice_auth
+      - microservice_cliente
+      - microservice_pago
+    networks:
+      - microservices_network
+
+  service1:
+    build: ./microservice_auth
+    ports:
+      - "4004:5000"
+    networks:
+      - microservices_network
+
+  service2:
+    build: ./microservice_cliente
+    ports:
+      - "4002:5000"
+    networks:
+      - microservices_network
+
+  service3:
+    build: ./microservice_pago
+    ports:
+      - "4001:5000"
+    networks:
+      - microservices_network
+
+networks:
+  microservices_network:
+    driver: bridge

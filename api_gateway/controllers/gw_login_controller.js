@@ -1,9 +1,9 @@
 // gw_login_controller.js
 import axios from 'axios';
 
-const URLlogin = 'http://localhost:4004/api/v1/login';
+const URLlogin = 'http://localhost:5000/api/v1/login';
 
-const URLuser = 'http://localhost:4004/api/v1/user';
+const URLuser = 'http://localhost:5000/api/v1/user';
 
 export const postLoginController = async (req, res) => {
     try {

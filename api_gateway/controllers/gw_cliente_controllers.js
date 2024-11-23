@@ -1,8 +1,8 @@
 import axios from 'axios';
 import redisClient from '../index.js';
 
-const URLcliente = 'http://localhost:4002/api/v1/cliente';
-const URLuser = 'http://localhost:4004/api/v1/user';
+const URLcliente = 'http://localhost:5000/api/v1/cliente';
+const URLuser = 'http://localhost:5000/api/v1/user';
 
 export const getClientesControllerGW = async (req, res) => {
     const cacheKey = 'clientes_cache'
