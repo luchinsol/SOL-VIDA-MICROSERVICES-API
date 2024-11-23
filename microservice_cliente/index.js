@@ -7,7 +7,7 @@ import routerCliente from "./routes/cliente_route.js";
 
 const app_micro_cliente = express()
 
-const PORT = 4002
+const PORT = 5002
 
 app_micro_cliente.use(cors())
 app_micro_cliente.use(morgan('combined'))

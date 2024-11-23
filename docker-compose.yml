@@ -2,7 +2,7 @@ services:
   api_gateway:
     build: ./api_gateway
     ports:
-      - "8080:8080"
+      - "8082:3000"
     depends_on:
       - redis
       - microservice_auth
@@ -25,21 +25,21 @@ services:
   microservice_auth:
     build: ./microservice_auth
     ports:
-      - "4004:5000"
+      - "5004:5000"
     networks:
       - microservices_network
 
   microservice_cliente:
     build: ./microservice_cliente
     ports:
-      - "4002:5000"
+      - "5002:5000"
     networks:
       - microservices_network
 
   microservice_pedido:
     build: ./microservice_pedido
     ports:
-      - "4001:5000"
+      - "5001:5000"
     networks:
       - microservices_network
 
