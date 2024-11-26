@@ -69,6 +69,7 @@ import cors from 'cors';
 import routerGWCliente from './routes/gw_cliente_route.js';
 import routerGWPedido from './routes/gw_pedido_route.js';
 import routerGWLogin from './routes/gw_login_route.js';
+import routerGWConductor from './routes/gw_conductor_route.js'
 
 import { createClient } from 'redis';
 
@@ -139,6 +140,7 @@ function verificarToken(req, res, next) {
 // ROUTES GW
 app.use(verificarToken, routerGWCliente);
 app.use(verificarToken, routerGWPedido);
+app.use(verificarToken, routerGWConductor);
 app.use(routerGWLogin);
 
 const PORT = 3000;

@@ -101,3 +101,40 @@ export const postClienteControllerGW = async (req,res) => {
         res.status(500).json({error:error.message})
     }
 }
+
+
+export const putClienteControllerGW = async (req,res) => {
+    try {
+        const {id}= req.params
+        console.log(id,"....id")
+        console.log(`${URLcliente}/${id}`)
+        const response = await axios.put(`${URLcliente}/${id}`,req.body)
+        console.log(response.data,"<--------------data POST api gw")
+        if(response){
+            res.status(201).json(resultado.data)
+        }
+        else{
+            res.status(400).json({message:'Invalid input data'})
+        }
+        
+    } catch (error) {
+        res.status(500).send('Error Modificar Cliente')
+    }
+}
+
+export const deleteClienteControllerGW = async (req, res) => {
+    try {
+        const { id }= req.params
+        console.log(id,".....id")
+        console.log(`${URLcliente}/${id}`)
+        const response = await axios.delete(`${URLcliente}/${id}`);
+        console.log(response.data,"---------conductores id")
+        if (response) {
+            res.status(201).json(response.data);
+        } else {
+            res.status(400).json({ message: 'Invalid input data' });
+        }
+    } catch (error) {
+        res.status(500).send('Error creating order');
+    }
+};  
