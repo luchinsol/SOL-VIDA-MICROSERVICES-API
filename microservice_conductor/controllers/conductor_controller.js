@@ -71,7 +71,7 @@ export const deleteUserConductores = async (req, res) => {
             res.status(200).json(resultado)
         }
         else {
-            res.status(404).json({ message: 'Not Found' })
+            res.status(204).json({ message: 'Not Found' })
         }
 
     } catch (error) {

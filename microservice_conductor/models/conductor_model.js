@@ -45,15 +45,6 @@ const modelUserConductor = {
     createUserConductor: async (conductor) => {
 
         try {
-            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
-            let CODE = '';
-
-                for (let i = 0; i < 5; i++) {
-                    const randomIndex = Math.floor(Math.random() * characters.length);
-                    CODE += characters.charAt(randomIndex);
-                }
-            
-            
             
             const resultado = await db_pool.one(`
                 INSERT INTO public.conductor (
