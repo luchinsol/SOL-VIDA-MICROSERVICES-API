@@ -12,6 +12,8 @@ create table public.conductor(
     foto_otros varchar(300),
     valoración float,
     latitud float,
-    longitud float
+    longitud float,
+    estado_registro varchar(50),
+    estado_trabajo varchar(50)
 );	
 
