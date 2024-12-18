@@ -11,6 +11,15 @@ const modelUbicacion = {
         }
     },
 
+    getUbicacionId : async(id) => {
+        try {
+            const ubicaciones = await db_pool.any('SELECT * FROM public.ubicacion WHERE id = $1',[id])
+            return ubicaciones
+        } catch (error) {
+            throw new Error(`Error conseguir ${error}`)
+        }
+    },
+
     createUbicacion :async(ubicacion) => {
         
         try {

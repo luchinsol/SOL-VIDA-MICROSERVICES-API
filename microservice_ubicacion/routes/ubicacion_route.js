@@ -1,10 +1,11 @@
-import {getAllUbicaciones,createUbicacion,updateRelacionesUbicaciones,deleteUbicaciones,createZonas,getZonas,updateZonas,deleteZonas} from '../controllers/ubicacion_controller.js'
+import {getAllUbicaciones,getUbicacionesId,createUbicacion,updateRelacionesUbicaciones,deleteUbicaciones,createZonas,getZonas,updateZonas,deleteZonas} from '../controllers/ubicacion_controller.js'
 import express from 'express'
 
 const routerUbicacion= express.Router();
 //TABLA UBICACIONES
 routerUbicacion.post('/ubicacion',createUbicacion)
 routerUbicacion.get('/ubicacion',getAllUbicaciones)
+routerUbicacion.get('/ubicacion/:id',getUbicacionesId)
 routerUbicacion.put('/updateZonaTrabajo/:idRelacionUbicacion',updateRelacionesUbicaciones)
 routerUbicacion.delete('/ubicacion/:idUbicacion',deleteUbicaciones)
 //TABLA ZONA_TRABAJO

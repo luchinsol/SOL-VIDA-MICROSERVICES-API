@@ -64,14 +64,20 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import morgan from 'morgan'; // Importa Morgan
 import cors from 'cors';
+import amqp from 'amqplib';
 
 // routes
 import routerGWCliente from './routes/gw_cliente_route.js';
 import routerGWPedido from './routes/gw_pedido_route.js';
 import routerGWLogin from './routes/gw_login_route.js';
 import routerGWConductor from './routes/gw_conductor_route.js'
+import routerGWUbicacion from './routes/gw_ubicacion_route.js'
+import routerIntegracion from './routes/gw_integracion_route.js';
+import routerGWAlmacen from './routes/gw_almacen_routes.js';
 
 import { createClient } from 'redis';
+
+import { startConsumer } from './controllers/gw_pedido_controllers.js';
 
 // Configuración de Redis
 const redisClient = createClient({
@@ -141,11 +147,20 @@ function verificarToken(req, res, next) {
 app.use(verificarToken, routerGWCliente);
 app.use(verificarToken, routerGWPedido);
 app.use(verificarToken, routerGWConductor);
+app.use(verificarToken, routerGWUbicacion);
+app.use(verificarToken, routerIntegracion);
+app.use(verificarToken, routerGWAlmacen);
 app.use(routerGWLogin);
 
 const PORT = 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
+    try {
+        await startConsumer();
+        console.log('Consumidor de RabbitMQ iniciado correctamente');
+    } catch (error) {
+        console.error('Error al iniciar el consumidor de RabbitMQ:', error);
+    }
 });
 
 

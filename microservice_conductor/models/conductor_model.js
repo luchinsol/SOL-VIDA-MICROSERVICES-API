@@ -15,7 +15,7 @@ const modelUserConductor = {
     getConductorUserId: async (id) => {
         try {
             const resultado = await db_pool.one(`
-                SELECT * FROM public.conductor WHERE usuario_id = $1`, [id])
+                SELECT * FROM public.conductor WHERE id = $1`, [id])
             return resultado
         } catch (error) {
             throw new Error(`Error query get: ${error}`)
@@ -66,8 +66,6 @@ const modelUserConductor = {
             throw new Error(`Error query post ${error}`)
         }
     },
-
-
 
 }
 

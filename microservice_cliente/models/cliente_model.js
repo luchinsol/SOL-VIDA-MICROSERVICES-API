@@ -13,12 +13,12 @@ const modelCliente = {
     getClienteUserId: async (id) => {
         try {
             const resultado = await db_pool.one(`
-                SELECT * FROM public.cliente WHERE usuario_id = $1`, [id])
+                SELECT * FROM public.cliente WHERE id = $1`, [id])
             return resultado
         } catch (error) {
             throw new Error(`Error query get: ${error}`)
         }
-    },
+    }, 
     postCliente: async (cliente) => {
         try {
             const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';

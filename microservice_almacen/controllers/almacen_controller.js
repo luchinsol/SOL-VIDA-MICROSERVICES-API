@@ -1,8 +1,8 @@
-import modelCliente from "../models/cliente_model.js"
+import modelAlmacen from "../models/almacen_model.js"
 
-export const getClienteController = async (req, res) => {
+export const getAlmacenController = async (req, res) => {
     try {
-        const resultado = await modelCliente.getCliente()
+        const resultado = await modelAlmacen.getAllAlmacen()
 
         if (resultado) {
             res.status(200).json(resultado)
@@ -15,10 +15,10 @@ export const getClienteController = async (req, res) => {
     }
 }
 
-export const getClienteControllerId = async (req, res) => {
+export const getAlmacenControllerId = async (req, res) => {
     try {
         const { id } = req.params
-        const resultado = await modelCliente.getClienteUserId(id) 
+        const resultado = await modelAlmacen.getAlmacenId(id) 
 
         if (resultado) {
             res.status(200).json(resultado)
@@ -31,10 +31,10 @@ export const getClienteControllerId = async (req, res) => {
     }
 }
 
-export const postClienteController = async (req, res) => {
+export const postAlmacenController = async (req, res) => {
     try {
         const resultado = req.body
-        const response = await modelCliente.postCliente(resultado)
+        const response = await modelAlmacen.createAlmacen(resultado)
 
         if (response) {
             res.status(201).json(response)
@@ -47,11 +47,11 @@ export const postClienteController = async (req, res) => {
     }
 }
 
-export const putClienteController = async (req, res) => {
+export const putAlmacenController = async (req, res) => {
     try {
         const { id } = req.params
         const resultado = req.body
-        const response = modelCliente.putCliente(id, resultado)
+        const response = modelAlmacen.updateAlmacen(id, resultado)
         if (response) {
             res.status(200).json(response)
         }
@@ -64,10 +64,10 @@ export const putClienteController = async (req, res) => {
     }
 }
 
-export const deleteClienteController = async (req, res) => {
+export const deleteAlmacenController = async (req, res) => {
     try {
         const { id } = req.params
-        const resultado = modelCliente.deleteCliente(id)
+        const resultado = modelAlmacen.deleteAlmacen(id)
         if (resultado) {
             res.status(200).json(resultado)
         }
