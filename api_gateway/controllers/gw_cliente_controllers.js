@@ -3,7 +3,7 @@ import redisClient from '../index.js';
 import amqp from 'amqplib';
 
 const URLcliente = 'http://localhost:5002/api/v1/cliente';
-const URLuser = 'http://microservice_auth:5000/api/v1/user';
+const URLuser = 'http://localhost:5000/api/v1/user';
 const QUEUE_PEDIDOS = 'pedidos_queue';
 const QUEUE_CLIENTE_PEDIDOS = 'cliente_pedidos_queue';
 
