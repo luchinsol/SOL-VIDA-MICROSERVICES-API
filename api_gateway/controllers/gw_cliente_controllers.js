@@ -1,8 +1,8 @@
 import axios from 'axios';
 import redisClient from '../index.js';
 
-const URLcliente = 'http://microservice_cliente:5000/api/v1/cliente';
-const URLuser = 'http://microservice_auth:5000/api/v1/user';
+const URLcliente = 'http://localhost:5000/api/v1/cliente';
+const URLuser = 'http://localhost:5000/api/v1/user';
 
 export const getClientesControllerGW = async (req, res) => {
     const cacheKey = 'clientes_cache'
@@ -111,7 +111,7 @@ export const putClienteControllerGW = async (req,res) => {
         const response = await axios.put(`${URLcliente}/${id}`,req.body)
         console.log(response.data,"<--------------data POST api gw")
         if(response){
-            res.status(201).json(resultado.data)
+            res.status(200).json(resultado.data)
         }
         else{
             res.status(400).json({message:'Invalid input data'})
@@ -130,9 +130,9 @@ export const deleteClienteControllerGW = async (req, res) => {
         const response = await axios.delete(`${URLcliente}/${id}`);
         console.log(response.data,"---------conductores id")
         if (response) {
-            res.status(201).json(response.data);
+            res.status(200).json(response.data);
         } else {
-            res.status(400).json({ message: 'Invalid input data' });
+            res.status(404).json({ message: 'Invalid input data' });
         }
     } catch (error) {
         res.status(500).send('Error creating order');
