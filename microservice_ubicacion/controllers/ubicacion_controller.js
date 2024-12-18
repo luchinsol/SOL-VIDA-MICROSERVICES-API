@@ -11,6 +11,22 @@ export const getAllUbicaciones = async (req,res) => {
 }
 
 
+export const getUbicacionesId = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = await modelUbicacion.getUbicacionId(id)
+
+        if (resultado) {
+            res.status(200).json(resultado)
+        }
+        else {
+            res.status(404).json({ message: 'Not Found' })
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
 export const createUbicacion = async (req,res) => {
     try{
         const newUbicacion = req.body;

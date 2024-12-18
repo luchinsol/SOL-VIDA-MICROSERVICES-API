@@ -14,6 +14,8 @@ create table public.conductor(
     latitud float,
     longitud float,
     estado_registro varchar(50),
-    estado_trabajo varchar(50)
+    estado_trabajo varchar(50),
+    departamento varchar(50),
+    provincia varchar(50)
 );	
 

@@ -39,6 +39,7 @@ export const getConductoresControllerGW = async (req, res) => {
     }
 };
 
+//Info Conductor
 export const getConductoresControllerIdGW = async (req,res) => {
     
     // REDIS
