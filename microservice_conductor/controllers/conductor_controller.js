@@ -10,7 +10,7 @@ export const getAllUsersConductores = async (req, res) => {
             res.status(404).json({ message: 'Not Found' })
         }
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(304).json({ error: error.message })
     }
 }
 
@@ -26,7 +26,7 @@ export const getConductorControllerId = async (req, res) => {
             res.status(404).json({ message: 'Not Found' })
         }
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(304).json({ error: error.message })
     }
 }
 
@@ -42,7 +42,7 @@ export const createUserConductores = async (req, res) => {
             res.status(400).json({ message: 'Invalid input data' })
         }
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(409).json({ error: error.message })
     }
 }
 
@@ -59,7 +59,7 @@ export const updateUserConductores = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(400).json({ error: error.message })
     }
 }
 
@@ -71,10 +71,10 @@ export const deleteUserConductores = async (req, res) => {
             res.status(200).json(resultado)
         }
         else {
-            res.status(404).json({ message: 'Not Found' })
+            res.status(204).json({ message: 'Not Found' })
         }
 
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(404).json({ error: error.message })
     }
 }
