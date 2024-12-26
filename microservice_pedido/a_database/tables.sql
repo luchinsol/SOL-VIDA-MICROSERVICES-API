@@ -14,7 +14,10 @@ CREATE TABLE public.pedido(
 	tipo_pago varchar(500),
 	beneficiado_id int,
     almacen_id int,
-	ubicacion_id int
+	ubicacion_id int,
+	cantidad_rechazado int,
+	cantidad_noentregado int,
+	hora_acumulada timestamp
 );
 
 CREATE TABLE public.detalle_pedido(

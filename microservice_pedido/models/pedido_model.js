@@ -13,7 +13,7 @@ const modelPedidoDetalle = {
     getPedidoId: async (id) => {
         try {
             const resultado = await db_pool.one(`
-                SELECT * FROM public.pedido WHERE id=$1`,[id])
+                SELECT * FROM public.pedido WHERE id=$1`, [id])
             return resultado
         } catch (error) {
             throw new Error(`Error query get: ${error}`)
@@ -24,26 +24,26 @@ const modelPedidoDetalle = {
             const resultado = await db_pool.one(`
                 INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago)
                  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-                 [pedido.cliente_id,pedido.subtotal,pedido.descuento,pedido.total,pedido.fecha,pedido.tipo,pedido.estado,pedido.observacion,pedido.tipo_pago])
+                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago])
             return resultado
         } catch (error) {
             throw new Error(`Error query post: ${error}`)
         }
     },
-    updatePedido: async (idPedido, pedido)=>{
-        try{
-            const resultado= await db_pool.result(`UPDATE public.pedido SET tipo=$1, estado=$2
-                WHERE id=$2 RETURNING *`, [pedido.tipo,pedido.estado,idPedido])
+    updatePedido: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.result(`UPDATE public.pedido SET tipo=$1, estado=$2
+                WHERE id=$2 RETURNING *`, [pedido.tipo, pedido.estado, idPedido])
             return resultado
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error Update ${error}`)
         }
     },
-    deletePedido: async(idPedido) => {
-        try{
-            const resultado = await db_pool.result(`DELETE FROM public.pedido WHERE id=$1`,[idPedido])
+    deletePedido: async (idPedido) => {
+        try {
+            const resultado = await db_pool.result(`DELETE FROM public.pedido WHERE id=$1`, [idPedido])
             return resultado.rowCount === 1
-        } catch(error){
+        } catch (error) {
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
@@ -60,7 +60,7 @@ const modelPedidoDetalle = {
     getPedidoDetalleId: async (id) => {
         try {
             const resultado = await db_pool.one(`
-                SELECT * FROM public.detalle_pedido WHERE id=$1`,[id])
+                SELECT * FROM public.detalle_pedido WHERE id=$1`, [id])
             return resultado
         } catch (error) {
             throw new Error(`Error query get: ${error}`)
@@ -71,31 +71,31 @@ const modelPedidoDetalle = {
             const resultado = await db_pool.one(`
                 INSERT INTO public.pedido (ruta_id,cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago)
                  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-                 [pedido.ruta_id,pedido.cliente_id,pedido.subtotal,pedido.descuento,pedido.total,pedido.fecha,pedido.tipo,pedido.estado,pedido.observacion,pedido.tipo_pago])
+                [pedido.ruta_id, pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago])
             return resultado
         } catch (error) {
             throw new Error(`Error query post: ${error}`)
         }
     },
-    updatePedidoDetalle: async (idPedido, pedido)=>{
-        try{
-            const resultado= await db_pool.result(`UPDATE public.pedido SET tipo=$1, estado=$2
-                WHERE id=$2 RETURNING *`, [pedido.tipo,pedido.estado,idPedido])
+    updatePedidoDetalle: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.result(`UPDATE public.pedido SET tipo=$1, estado=$2
+                WHERE id=$2 RETURNING *`, [pedido.tipo, pedido.estado, idPedido])
             return resultado
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error Update ${error}`)
         }
     },
-    deletePedidoDetalle: async(idPedido) => {
-        try{
-            const resultado = await db_pool.result(`DELETE FROM public.pedido WHERE id=$1`,[idPedido])
+    deletePedidoDetalle: async (idPedido) => {
+        try {
+            const resultado = await db_pool.result(`DELETE FROM public.pedido WHERE id=$1`, [idPedido])
             return resultado.rowCount === 1
-        } catch(error){
+        } catch (error) {
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
-    getDetallePedidoAll: async(id)=>{
-        try{
+    getDetallePedidoAll: async (id) => {
+        try {
             const resultado = await db_pool.any(`
                SELECT 
     ped.total, 
@@ -112,63 +112,106 @@ INNER JOIN
     public.detalle_pedido AS det ON ped.id = det.pedido_id
 WHERE 
     ped.id = $1
-ORDER BY det.producto_id ASC ;`,[id])
-            return resultado 
-        }catch(error){
+ORDER BY det.producto_id ASC ;`, [id])
+            return resultado
+        } catch (error) {
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
 
-    updatePedidoAlmacen: async (idPedido, pedido)=>{
-        try{
-            const resultado= await db_pool.one(`UPDATE public.pedido SET almacen_id=$1
-                WHERE id=$2 RETURNING *`, [pedido.almacen_id,idPedido])
+    updatePedidoAlmacen: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.one(`UPDATE public.pedido SET almacen_id=$1
+                WHERE id=$2 RETURNING *`, [pedido.almacen_id, idPedido])
             return resultado
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error Update ${error}`)
         }
     },
     //ESTE ENDPOINT CUENTA CON LO SIGUIENTE EL NUMERO TOTAL DE PEDIDOS
-    getPedidosCount: async(id)=>{
-        try{
+    getPedidosCount: async (id) => {
+        try {
             const resultado = await db_pool.any(`
                SELECT COUNT(*) AS total_pedidos
 FROM public.pedido
-WHERE conductor_id = $1 AND estado = 'entregado';`,[id])
-            return resultado 
-        }catch(error){
+WHERE conductor_id = $1 AND estado = 'entregado';`, [id])
+            return resultado
+        } catch (error) {
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
     //ENDPOINT DEL ULTIMO PEDIDO
-    getPedidosConductorInfo: async(id)=>{
-        try{
+    getPedidosConductorInfo: async (id) => {
+        try {
             const resultado = await db_pool.any(`
                SELECT * 
 FROM public.pedido
 WHERE conductor_id = $1 AND estado = 'entregado'
 ORDER BY fecha DESC
-LIMIT 1;`,[id])
-            return resultado 
-        }catch(error){
+LIMIT 1;`, [id])
+            return resultado
+        } catch (error) {
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
 
 
-    getPedidosSinConductor: async()=>{
-        try{
+    getPedidosSinConductor: async () => {
+        try {
             const resultado = await db_pool.any(`
                SELECT * 
 FROM public.pedido
 WHERE conductor_id IS NULL AND estado = 'pendiente'
 ORDER BY id ASC;
 `)
-            return resultado 
-        }catch(error){
+            return resultado
+        } catch (error) {
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
+    getPedido: async (almacen_id) => {
+        try {
+            // hora actual
+            let horaActual = new Date()
+            let hora = horaActual.getHours()
+
+            let bandeja_entrada = []
+            let almacenes = ['A', 'B', 'C']
+            let hora_entrega = 90
+            for (var i = 0; i < bandeja_entrada.length; i++) {
+                if (bandeja_entrada[i].hora_acumulada - hora === 45) {
+                    bandeja_entrada[i].hora_acumulada = hora;
+
+                    // la cantidad 2 depende de los almacenes menos 1
+                    while (bandeja_entrada[i].cantidad_noentregado < 2) {
+                        let nuevosAlmacenes = almacenes.filter(elemento => elemento !== bandeja_entrada[i].almacen_id);
+                        bandeja_entrada[i].almacen_id = Voronoi(bandeja_entrada[i].ubicacion_id, nuevosAlmacenes)
+                        const result = await db_pool.one(`UPDATE public.pedido SET almacen_id = $1 WHERE id = $2`,
+                            [bandeja_entrada[i].almacen_id, bandeja_entrada[i].id]
+                        )
+
+                        bandeja_entrada[i].cantidad_noentregado++
+
+                        if (bandeja_entrada[i].estado === 'entregado') {
+                            break;
+                        }
+
+
+                    }
+                    // la cantidad depende del número de almacenes
+                    if(bandeja_entrada[i].cantidad_noentregado===3){
+                        bandeja_entrada[i].estado = "rezagado"
+                        const rezagado = await db_pool.one(`UPDATE public.pedido SET estado=$1 WHERE id=$2`,[
+                            bandeja_entrada[i].estado,bandeja_entrada[i].id
+                        ])
+                    }
+                }
+            }
+        } catch (error) {
+
+        }
+    }
+
 }
 
 export default modelPedidoDetalle
