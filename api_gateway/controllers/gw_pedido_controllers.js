@@ -80,6 +80,27 @@ export const getPedidosControllerGW = async (req, res) => {
     }
 };
 
+export const postPedidoControllerGW = async (req, res) => {
+    
+
+    try {
+            const pedidoData  = req.body; // Extraemos cliente_id y los demás datos del pedido
+            const resultado = await axios.post(URLpedido,pedidoData)
+            if(resultado && resultado.data){
+                res.status(201).json(resultado.data)
+            }
+            else{
+                res.status(400).json({message:'Invalid input data'})
+            } 
+    } catch (error) {
+        console.log("----ERROR API GW")
+        res.status(500).json({error:error.message})
+    }
+};
+
+
+
+
 export const postPedidosControllerGW = async (req, res) => {
     const { cliente_id, ...pedidoData } = req.body; // Extraemos cliente_id y los demás datos del pedido
 

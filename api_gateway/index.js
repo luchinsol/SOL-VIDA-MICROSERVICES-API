@@ -155,12 +155,14 @@ app.use(routerGWLogin);
 const PORT = 3000;
 app.listen(PORT, async () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
+    /*
     try {
         await startConsumer();
         console.log('Consumidor de RabbitMQ iniciado correctamente');
     } catch (error) {
         console.error('Error al iniciar el consumidor de RabbitMQ:', error);
     }
+    */
 });
 
 

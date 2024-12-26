@@ -1,6 +1,15 @@
 import { db_pool } from '../config.js'
+import amqp from 'amqplib';
+const RABBITMQ_URL = 'amqp://localhost';
+const QUEUE_NAME = 'new_orders';
 
-
+// Función para conectar y obtener un canal de RabbitMQ
+async function getRabbitMQChannel() {
+    const connection = await amqp.connect(RABBITMQ_URL);
+    const channel = await connection.createChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    return channel;
+}
 
 const modelPedidoDetalle = {
     getPedido: async () => {
@@ -30,9 +39,25 @@ const modelPedidoDetalle = {
                 INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago)
                  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
                 [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago])
+            channel = await getRabbitMQChannel();
+            const orderMessage = {
+                ...resultado,
+                timestamp: new Date().toISOString()
+            };
+            channel.sendToQueue(
+                QUEUE_NAME,
+                Buffer.from(JSON.stringify(orderMessage)),
+                { persistent: true } // Asegura que el mensaje persista incluso si RabbitMQ se reinicia
+            );
             return resultado
         } catch (error) {
             throw new Error(`Error query post: ${error}`)
+        }
+        finally {
+            // 5. Cerramos el canal si existe
+            if (channel) {
+                await channel.close();
+            }
         }
     },
     updatePedido: async (idPedido, pedido) => {
