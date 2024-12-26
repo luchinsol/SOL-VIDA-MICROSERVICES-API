@@ -1,4 +1,4 @@
-import { getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,updatePedidoAlmacenController,getDetallePedidosAll,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId } from "../controllers/pedido_controller.js";
+import { getPedidosAlmacen,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,updatePedidoAlmacenController,getDetallePedidosAll,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId } from "../controllers/pedido_controller.js";
 import express from 'express'
 
 const routerPedido = express.Router()
@@ -20,5 +20,7 @@ routerPedido.get('/pedido_conteo/:id',getPedidosConteos)
 routerPedido.get('/pedido_conductor/:id',getPedidosConductorInfos)
 //All Pedidos sin Conductor
 routerPedido.get('/pedido_sin_conductor',getPedidosSinConductores)
+//Pedidos de Almacen 
+routerPedido.get('/pedido_almacen/:id_almacen',getPedidosAlmacen)
 
 export default routerPedido
