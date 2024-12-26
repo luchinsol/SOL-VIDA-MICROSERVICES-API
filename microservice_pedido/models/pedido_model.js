@@ -66,34 +66,8 @@ const modelPedidoDetalle = {
             throw new Error(`Error query get: ${error}`)
         }
     },
-    postPedidoDetalle: async (pedido) => {
-        try {
-            const resultado = await db_pool.one(`
-                INSERT INTO public.pedido (ruta_id,cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-                 [pedido.ruta_id,pedido.cliente_id,pedido.subtotal,pedido.descuento,pedido.total,pedido.fecha,pedido.tipo,pedido.estado,pedido.observacion,pedido.tipo_pago])
-            return resultado
-        } catch (error) {
-            throw new Error(`Error query post: ${error}`)
-        }
-    },
-    updatePedidoDetalle: async (idPedido, pedido)=>{
-        try{
-            const resultado= await db_pool.result(`UPDATE public.pedido SET tipo=$1, estado=$2
-                WHERE id=$2 RETURNING *`, [pedido.tipo,pedido.estado,idPedido])
-            return resultado
-        }catch(error){
-            throw new Error(`Error Update ${error}`)
-        }
-    },
-    deletePedidoDetalle: async(idPedido) => {
-        try{
-            const resultado = await db_pool.result(`DELETE FROM public.pedido WHERE id=$1`,[idPedido])
-            return resultado.rowCount === 1
-        } catch(error){
-            throw new Error(`Error en Eliminación ${error.message}`)
-        }
-    },
+
+
     getDetallePedidoAll: async(id)=>{
         try{
             const resultado = await db_pool.any(`

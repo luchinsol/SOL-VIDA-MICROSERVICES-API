@@ -10,9 +10,6 @@ routerPedido.put('/pedido/:idPedido',updatePedidoController)
 routerPedido.delete('/pedido/:idPedido',deletePedidoController)
 //TABLA DETALLE PEDIDO
 routerPedido.get('/det_pedido',getPedidoController)
-routerPedido.post('/det_pedido',postPedidoController)
-routerPedido.put('/det_pedido/:idPedido')
-routerPedido.delete('/det_pedido/:idPedido')
 //ENPOINTS PARA LAS NECESIDADES ACTUALES
 routerPedido.get('/allpedidodetalle/:id',getDetallePedidosAll)
 routerPedido.put('/pedido_almacen/:idPedido',updatePedidoAlmacenController)
