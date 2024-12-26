@@ -9,8 +9,36 @@ const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en
 const QUEUE_NAME = 'pedidos_queue'; // Nombre de la cola
 
 let pedidosStorage = [];
+const sendPedidoRabbit = async (pedidoCreado) => {
+    try {
+        // Establecemos la conexión con el servidor RABBIT MQ
+        const connection = await amqp.connect('amqp://localhost')
+        const channel = await connection.createChannel()
 
+        // Definimos la cola
+        const queue = 'colaPedidoRabbit'
 
+        // Si no existe la colala creamos
+        await channel.assertQueue(queue, {
+            durable: false
+        })
+
+        //console.log(pedidoCreado)
+        // Enviamos el mensaja a la cola
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(pedidoCreado)))
+        //console.log("ENVIANDO A RABBIT MQ")
+        //console.log(JSON.stringify(pedidoCreado))
+
+        setTimeout(() => {
+            connection.close();
+
+        }, 500);
+
+    } catch (error) {
+        throw new Error(`Error en el envío a RabbitMQ: ${error}`)
+    }
+}
+/*
 const sendToQueue = async (pedido) => {
     try {
       const connection = await amqp.connect(RABBITMQ_URL);
@@ -36,7 +64,7 @@ const sendToQueue = async (pedido) => {
     } catch (error) {
       console.error('Error al enviar el pedido a la cola de RabbitMQ:', error.message);
     }
-  };
+  };*/
 
 export const getPedidosControllerGW = async (req, res) => {
     console.log("......get pedido controller");
@@ -99,7 +127,8 @@ export const postPedidosControllerGW = async (req, res) => {
             console.log("nueva---->>>>>")
             console.log(pedidoEnriquecido)
             // Enviar el pedido enriquecido a la cola de mensajería
-            await sendToQueue(pedidoEnriquecido);
+            //await sendToQueue(pedidoEnriquecido);
+            await sendPedidoRabbit(pedidoEnriquecido)
             //array utilizarlo -> SUGERENCIA: 
             //CONSUMIR EN SOCKET IO Y ALLI COLOCARLO EN UNA LISTA DE OBJETOS
 
