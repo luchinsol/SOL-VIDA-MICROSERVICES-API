@@ -157,3 +157,20 @@ export const getPedidosSinConductores = async (req,res) => {
         res.status(500).json({error:error.message})
     }
 }
+
+export const getPedidosAlmacen = async (req,res) => {
+    try {
+        const {almacen_id} = req.params
+        const resultado = await modelPedidoDetalle.getPedidos(almacen_id)
+       
+        if(resultado){
+            res.status(200).json(resultado)
+        }
+        else{
+            res.status(404).json({message:'Not Found'})
+        }
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}
+

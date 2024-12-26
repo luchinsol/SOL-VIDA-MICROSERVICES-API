@@ -1,5 +1,7 @@
 import { db_pool } from '../config.js'
 
+
+
 const modelPedidoDetalle = {
     getPedido: async () => {
         try {
@@ -19,6 +21,9 @@ const modelPedidoDetalle = {
             throw new Error(`Error query get: ${error}`)
         }
     },
+
+    
+
     postPedido: async (pedido) => {
         try {
             const resultado = await db_pool.one(`
@@ -169,6 +174,59 @@ ORDER BY id ASC;
             throw new Error(`Error en Eliminación ${error.message}`)
         }
     },
+
+    updatePedidoAlmacen: async (idPedido, pedido)=>{
+        try{
+            const resultado= await db_pool.one(`UPDATE public.pedido SET almacen_id=$1
+                WHERE id=$2 RETURNING *`, [pedido.almacen_id,idPedido])
+            return resultado
+        }catch(error){
+            throw new Error(`Error Update ${error}`)
+        }
+    },
+
+    getPedidos: async(almacen_id)=>{
+    try{       
+        const pedido_almacen = await db_pool.any(
+                `SELECT * FROM public.pedido WHERE almacen_id = $1`,[almacen_id]
+        )
+    let Almacenes = [1,2,3]
+    // Get current date and time
+    const now = new Date();
+        
+    // ISO format
+    const isoTime = now.toISOString();  // 2024-12-26T10:30:15.123Z
+
+    // Local time string
+    const localTime = now.toLocaleString();  // 12/26/2024, 10:30:15 AM
+
+    // Custom format using Date methods
+    const customTime = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`; // 10:30:15
+
+    for (var i=0; i<pedido_almacen.length;i++){
+            if(pedido_almacen[i].hac - customTime >= 20){
+                pedido_almacen[i].hac = customTime
+                while (pedido_almacen[i].cvr < 2){
+                    let AlmaX = Almacenes.filter(pedido_almacen[i].almacen_id)
+                    pedido_almacen[i].cvr++
+                    let tempAlmacenes = AlmaX
+                    let newAlmacen = Voronoi(pedido_almacen[i].ubicacion_id, tempAlmacenes)
+                    pedido_almacen[i].almacen_id = newAlmacen
+                    const Almacen_Actual = await db_pool.one(`
+                        UPDATE FROM public.pedido SET almacen_id=$1 where id=$2 RETURNING *`, pedido_almacen[i].almacen_id,pedido_almacen[i].id)
+                    if(Almacen_Actual[i].estado =="en proceso"){
+                        break;
+                    }
+                }
+            } 
+        }
+    }
+    catch(error){
+        throw new Error(`Error Pedido Almacen ${error}`)
+    }
+}
+
+
     getPedido: async (almacen_id) => {
         try {
             // hora actual
