@@ -4,6 +4,10 @@ import { db_pool } from "../almacen_config.js";
 // LOS MICROSERVICIOS : GET , GET(id), POST, PUT y DELETE
 
 // RESPETAR LOS CATCHS ERROR GENERALIZADOS PARA TODOS LOS MICROSERVICIOS
+// RESPETAR Y APLICAR LA SIGUIENTE ESTRUCTURA, PARA TODOS
+// LOS MICROSERVICIOS : GET , GET(id), POST, PUT y DELETE
+
+// RESPETAR LOS CATCHS ERROR GENERALIZADOS PARA TODOS LOS MICROSERVICIOS
 const modelAlmacen = {
   getAllAlmacen: async () => {
     try {
@@ -14,7 +18,49 @@ const modelAlmacen = {
       throw new Error(`Error get data: ${error}`);
     }
   },
+  getAllAlmacen: async () => {
+    try {
+      const resultado = await db_pool.any(`
+        SELECT * FROM public.almacen`);
+      return resultado;
+    } catch (error) {
+      throw new Error(`Error get data: ${error}`);
+    }
+  },
 
+  getAlmacenId: async (id) => {
+    try {
+      const resultado = await db_pool.oneOrNone(
+        `SELECT * FROM public.almacen WHERE id = $1`,
+        [id]
+      );
+      return resultado;
+    } catch (error) {
+      throw new Error(`Error get data: ${error}`);
+    }
+  },
+
+  createAlmacen: async (almacen) => {
+    try {
+      const resultado = await db_pool.one(
+        `INSERT INTO public.almacen 
+        (nombre, latitud, longitud, horario, departamento, provincia, direccion)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [
+          almacen.nombre,
+          almacen.latitud,
+          almacen.longitud,
+          almacen.horario,
+          almacen.departamento,
+          almacen.provincia,
+          almacen.direccion,
+        ]
+      );
+      return resultado;
+    } catch (error) {
+      throw new Error(`Error post data ${error}`);
+    }
+  },
   getAlmacenId: async (id) => {
     try {
       const resultado = await db_pool.oneOrNone(
@@ -86,5 +132,6 @@ const modelAlmacen = {
     }
   },
 };
+  
 
 export default modelAlmacen;

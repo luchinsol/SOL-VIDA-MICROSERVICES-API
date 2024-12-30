@@ -7,7 +7,7 @@ const modelPublicidad ={
             return resultado
         }
         catch(error){
-            throw new Error(`Error query get: ${error}`)
+            throw new Error(`Error get data: ${error}`);
         }
     }
 }

@@ -10,10 +10,11 @@ create table public.ubicacion(
 	zona_trabajo_id int    
 );
 
-create table public.zona_trabajo(
-	id serial primary key,
-	nombre varchar(500),
-    poligono_coordenadas varchar(10000)    
+CREATE TABLE public.zona_trabajo (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(500),
+    poligono_coordenadas NUMERIC[][] 
 );
+
 
 ALTER TABLE public.ubicacion ADD CONSTRAINT fk_ubicacion_zona FOREIGN KEY (zona_trabajo_id) REFERENCES public.zona_trabajo(id) ON DELETE CASCADE ON UPDATE CASCADE;

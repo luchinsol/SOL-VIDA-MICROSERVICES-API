@@ -65,6 +65,8 @@ import jwt from 'jsonwebtoken';
 import morgan from 'morgan'; // Importa Morgan
 import cors from 'cors';
 import amqp from 'amqplib';
+import http from "http";
+import { Server } from "socket.io";
 
 // routes
 /*import routerGWCliente from './routes/gw_cliente_route.js';
@@ -73,6 +75,7 @@ import routerGWConductor from './routes/gw_conductor_route.js'
 import routerGWUbicacion from './routes/gw_ubicacion_route.js'
 import routerIntegracion from './routes/gw_integracion_route.js';*/
 import routerGWAlmacen from './routes/gw_almacen_routes.js';
+import routerGWAlmacenZona from './routes/gw_almacen_zona_trabajo_route.js';
 import routerGWLogin from './routes/gw_login_route.js';
 import { createClient } from 'redis';
 
@@ -110,6 +113,39 @@ async function connectRedis() {
 //connectRedis();
 
 const app = express();
+/*
+const server = http.createServer(app);
+const io = new Server(server, {
+    
+    reconnection: true,
+    reconnectionAttempts: 10,  // Número máximo de intentos
+    reconnectionDelay: 2000,  // Retardo entre intentos en milisegundos
+    reconnectionDelayMax:2000
+});
+server.setTimeout(120000)
+io.on('connection', (socket) => {
+    console.log('Cliente conectado');
+    //console.log("holaa");
+
+    socket.on('update_orders', () => {
+        console.log('Cliente desconectado');
+    });
+
+    socket.on('new_order', (data) => {
+        //console.log(data);
+        console.log("---->>> ENTRE A SOCKET.IO ------>>");
+        io.emit('En tiempo real Pedido :)', data);
+    });
+
+    io.emit('testy')
+
+    /*  io.engine.on('upgrade', (request, socket, head) => {
+          console.log('Upgrade request');
+      });
+
+
+});
+*/
 
 const SECRET_KEY = 'aguasol'; // Usa la misma clave que en el microservicio de autenticación
 app.use(cors())
@@ -149,17 +185,20 @@ app.use(verificarToken, routerGWConductor);
 app.use(verificarToken, routerGWUbicacion);
 app.use(verificarToken, routerIntegracion);*/
 app.use(verificarToken, routerGWAlmacen);
+app.use(verificarToken, routerGWAlmacenZona);
 app.use(routerGWLogin);
 
 const PORT = 3000;
 app.listen(PORT, async () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
+    /*
     try {
         //await startConsumer();
         console.log('Consumidor de RabbitMQ iniciado correctamente');
     } catch (error) {
         console.error('Error al iniciar el consumidor de RabbitMQ:', error);
     }
+    */
 });
 
 

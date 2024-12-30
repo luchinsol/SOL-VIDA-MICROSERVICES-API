@@ -122,21 +122,47 @@ export const postAlmacenControllerGW = async (req, res) => {
 };
 
 export const putClienteControllerGW = async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log(id, "....id");
-    console.log(`${URLalmacen}/${id}`);
-    const response = await axios.put(`${URLalmacen}/${id}`, req.body);
-    console.log(response.data, "<--------------data POST api gw");
-    if (response) {
-      res.status(201).json(resultado.data);
-    } else {
-      res.status(400).json({ message: "Invalid input data" });
+    try {
+        const { id } = req.params;
+
+        // Validar que el ID esté presente
+        if (!id) {
+            return res.status(400).json({ message: 'ID del almacén es requerido' });
+        }
+
+        console.log(id, "....id");
+        console.log(`${URLalmacen}/${id}`);
+
+        // Realizar la solicitud al microservicio ALMACÉN
+        const response = await axios.put(`${URLalmacen}/${id}`, req.body);
+
+        // Verificar si la respuesta del microservicio es válida
+        if (response && response.data) {
+            console.log(response.data, "<--------------data PUT api gw");
+            return res.status(200).json(response.data);
+        } else {
+            return res.status(400).json({ message: 'Datos inválidos recibidos desde el microservicio' });
+        }
+    } catch (error) {
+        console.error(`Error en putClienteControllerGW: ${error.message}`);
+        
+        // Respuesta más detallada en caso de error
+        if (error.response) {
+            // Error desde el microservicio (e.g., 404 o 500)
+            return res.status(error.response.status).json({
+                message: `Error en el microservicio ALMACÉN: ${error.response.statusText}`,
+                data: error.response.data,
+            });
+        } else if (error.request) {
+            // El microservicio no respondió
+            return res.status(500).json({ message: 'Error de conexión con el microservicio ALMACÉN' });
+        } else {
+            // Otro tipo de error
+            return res.status(500).json({ message: `Error inesperado: ${error.message}` });
+        }
     }
-  } catch (error) {
-    res.status(500).send("Error Modificar Cliente");
-  }
 };
+
 
 export const deleteClienteControllerGW = async (req, res) => {
   try {
