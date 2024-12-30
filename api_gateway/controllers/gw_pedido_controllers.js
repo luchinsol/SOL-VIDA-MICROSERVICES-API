@@ -6,10 +6,10 @@ const URLpedidoDetalle = 'http://localhost:5001/api/v1/pedido_almacen';
 const URLcliente = 'http://localhost:5002/api/v1/cliente'; // URL del servicio de clientes
 
 const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
-const QUEUE_NAME = 'pedidos_queue'; // Nombre de la cola
+const QUEUE_NAME = 'colaPedidoRabbit'; // Nombre de la cola
 
 let pedidosStorage = [];
-const sendPedidoRabbit = async (pedidoCreado) => {
+/*const sendPedidoRabbit = async (pedidoCreado) => {
     try {
         // Establecemos la conexión con el servidor RABBIT MQ
         const connection = await amqp.connect('amqp://localhost')
@@ -20,7 +20,7 @@ const sendPedidoRabbit = async (pedidoCreado) => {
 
         // Si no existe la colala creamos
         await channel.assertQueue(queue, {
-            durable: false
+            durable: true
         })
 
         //console.log(pedidoCreado)
@@ -38,7 +38,9 @@ const sendPedidoRabbit = async (pedidoCreado) => {
         throw new Error(`Error en el envío a RabbitMQ: ${error}`)
     }
 }
-/*
+*/
+
+
 const sendToQueue = async (pedido) => {
     try {
       const connection = await amqp.connect(RABBITMQ_URL);
@@ -64,7 +66,7 @@ const sendToQueue = async (pedido) => {
     } catch (error) {
       console.error('Error al enviar el pedido a la cola de RabbitMQ:', error.message);
     }
-  };*/
+  };
 
 export const getPedidosControllerGW = async (req, res) => {
     console.log("......get pedido controller");
@@ -109,13 +111,12 @@ export const getPedidosControllerGW = async (req, res) => {
 };
 
 export const postPedidoControllerGW = async (req, res) => {
-    
-
     try {
             const pedidoData  = req.body; // Extraemos cliente_id y los demás datos del pedido
             const resultado = await axios.post(URLpedido,pedidoData)
             if(resultado && resultado.data){
                 res.status(201).json(resultado.data)
+                await sendToQueue(pedidoData)
             }
             else{
                 res.status(400).json({message:'Invalid input data'})
@@ -128,14 +129,19 @@ export const postPedidoControllerGW = async (req, res) => {
 
 
 
-
+/*
 export const postPedidosControllerGW = async (req, res) => {
-    const { cliente_id, ...pedidoData } = req.body; // Extraemos cliente_id y los demás datos del pedido
+    console.log("-------------->>>>>>>>")
+   // const { cliente_id, ...pedidoData } = req.body; // Extraemos cliente_id y los demás datos del pedido
 
     try {
+        await sendToQueue(req.body)
         // Realizar una solicitud GET para obtener los datos del cliente
-        const clienteResponse = await axios.get(`${URLcliente}/${cliente_id}`);
-
+       // const clienteResponse = await axios.get(`${URLcliente}/${cliente_id}`);
+        
+       // console.log(clienteResponse)
+        console.log("nueva---->>>>>")
+        /*
         if (clienteResponse && clienteResponse.data) {
             const clienteData = clienteResponse.data;
 
@@ -145,11 +151,11 @@ export const postPedidosControllerGW = async (req, res) => {
                 cliente: clienteData, // Datos del cliente obtenidos
             };
             //ARRAY DE objetos
-            console.log("nueva---->>>>>")
+            
             console.log(pedidoEnriquecido)
             // Enviar el pedido enriquecido a la cola de mensajería
             //await sendToQueue(pedidoEnriquecido);
-            await sendPedidoRabbit(pedidoEnriquecido)
+            
             //array utilizarlo -> SUGERENCIA: 
             //CONSUMIR EN SOCKET IO Y ALLI COLOCARLO EN UNA LISTA DE OBJETOS
 
@@ -162,12 +168,15 @@ export const postPedidosControllerGW = async (req, res) => {
             // Si no se obtiene respuesta del cliente, devolver error
             res.status(404).json({ message: 'Cliente no encontrado.' });
         }
+            res.status(201).json({
+                message: 'Pedido creado y enviado a la cola.',
+                pedido: pedidoEnriquecido
+            });
     } catch (error) {
         console.error('Error al crear el pedido:', error.message);
         res.status(500).send('Error creando el pedido');
     }
-};
-
+};*/
 
 
 

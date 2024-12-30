@@ -1,28 +1,13 @@
-import express from 'express';
-import bodyParser from 'body-parser';
 import * as turf from '@turf/turf';
-import cors from 'cors';
 
-const app = express();
-app.use(bodyParser.json());
-app.use(cors());
-
-const port = 3001;
-
-app.post('/api/analyze-location', (req, res) => {
-  const { coordinates, warehouses, warehouseRegions } = req.body;
-
+function analyzeLocation(warehouseRegions, coordinates, warehouses) {
   // Validate input
   if (!coordinates || !Array.isArray(coordinates) || coordinates.length !== 2) {
-    return res.status(400).json({
-      error: 'Invalid coordinates format'
-    });
+    throw new Error('Invalid coordinates format');
   }
 
   if (!Array.isArray(warehouses) || !Array.isArray(warehouseRegions)) {
-    return res.status(400).json({
-      error: 'Invalid warehouses or regions format'
-    });
+    throw new Error('Invalid warehouses or regions format');
   }
 
   const point = turf.point(coordinates);
@@ -38,7 +23,7 @@ app.post('/api/analyze-location', (req, res) => {
       }
 
       const polygon = turf.polygon([boundaries]);
-      
+
       if (turf.booleanPointInPolygon(point, polygon)) {
         containingRegion = {
           warehouseId: region.warehouseId,
@@ -87,12 +72,12 @@ app.post('/api/analyze-location', (req, res) => {
       }));
   }
 
-  return res.json({
+  return {
     point: coordinates,
     region: containingRegion || 'Point not in any defined region',
     nearestWarehouse,
     warehousesInRegion: warehousesInRegion.length > 0 ? warehousesInRegion : 'No warehouses in region'
-  });
-});
+  };
+}
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+export default analyzeLocation;
