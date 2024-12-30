@@ -4,12 +4,6 @@ import modelAlmacen from "../models/almacen_model.js";
 // MICROSERVICIOS : GET,GET(id),POST, PUT y DELETE
 
 // RESPETAR LAS RESPUESTAS HTTP (20X, 40X, 50X)
-import modelAlmacen from "../models/almacen_model.js";
-
-// RESPETAR Y ALICAR LA SIGUIENTE ESTRUCTURA PARA TODOS LOS
-// MICROSERVICIOS : GET,GET(id),POST, PUT y DELETE
-
-// RESPETAR LAS RESPUESTAS HTTP (20X, 40X, 50X)
 
 export const getAlmacenController = async (req, res) => {
   try {
