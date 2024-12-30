@@ -8,3 +8,5 @@ create table public.almacen(
 	provincia varchar(200),
     direccion varchar(300) 
 );  
+
+SELECT setval('public.almacen_id_seq', 1, false);

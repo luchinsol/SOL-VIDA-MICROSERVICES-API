@@ -69,15 +69,14 @@ import http from "http";
 import { Server } from "socket.io";
 
 // routes
-import routerGWCliente from './routes/gw_cliente_route.js';
+/*import routerGWCliente from './routes/gw_cliente_route.js';
 import routerGWPedido from './routes/gw_pedido_route.js';
-import routerGWLogin from './routes/gw_login_route.js';
 import routerGWConductor from './routes/gw_conductor_route.js'
 import routerGWUbicacion from './routes/gw_ubicacion_route.js'
-import routerIntegracion from './routes/gw_integracion_route.js';
+import routerIntegracion from './routes/gw_integracion_route.js';*/
 import routerGWAlmacen from './routes/gw_almacen_routes.js';
 import routerGWAlmacenZona from './routes/gw_almacen_zona_trabajo_route.js';
-
+import routerGWLogin from './routes/gw_login_route.js';
 import { createClient } from 'redis';
 
 import { startConsumer } from './controllers/gw_pedido_controllers.js';
@@ -111,7 +110,7 @@ async function connectRedis() {
         setTimeout(connectRedis, 3000);
     }
 }
-connectRedis();
+//connectRedis();
 
 const app = express();
 /*
@@ -180,11 +179,11 @@ function verificarToken(req, res, next) {
 }
 
 // ROUTES GW
-app.use(verificarToken, routerGWCliente);
+/*app.use(verificarToken, routerGWCliente);
 app.use(verificarToken, routerGWPedido);
 app.use(verificarToken, routerGWConductor);
 app.use(verificarToken, routerGWUbicacion);
-app.use(verificarToken, routerIntegracion);
+app.use(verificarToken, routerIntegracion);*/
 app.use(verificarToken, routerGWAlmacen);
 app.use(verificarToken, routerGWAlmacenZona);
 app.use(routerGWLogin);
@@ -194,7 +193,7 @@ app.listen(PORT, async () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
     /*
     try {
-        await startConsumer();
+        //await startConsumer();
         console.log('Consumidor de RabbitMQ iniciado correctamente');
     } catch (error) {
         console.error('Error al iniciar el consumidor de RabbitMQ:', error);

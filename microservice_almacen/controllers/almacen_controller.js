@@ -4,6 +4,12 @@ import modelAlmacen from "../models/almacen_model.js";
 // MICROSERVICIOS : GET,GET(id),POST, PUT y DELETE
 
 // RESPETAR LAS RESPUESTAS HTTP (20X, 40X, 50X)
+import modelAlmacen from "../models/almacen_model.js";
+
+// RESPETAR Y ALICAR LA SIGUIENTE ESTRUCTURA PARA TODOS LOS
+// MICROSERVICIOS : GET,GET(id),POST, PUT y DELETE
+
+// RESPETAR LAS RESPUESTAS HTTP (20X, 40X, 50X)
 
 export const getAlmacenController = async (req, res) => {
   try {
@@ -17,6 +23,7 @@ export const getAlmacenController = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+  
 
 export const getAlmacenControllerId = async (req, res) => {
   try {
@@ -31,6 +38,7 @@ export const getAlmacenControllerId = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+  
 
 export const postAlmacenController = async (req, res) => {
   try {
@@ -45,6 +53,7 @@ export const postAlmacenController = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+  
 
 export const putAlmacenController = async (req, res) => {
   try {
@@ -59,7 +68,7 @@ export const putAlmacenController = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
+  
 export const deleteAlmacenController = async (req, res) => {
   try {
     const { id } = req.params;
