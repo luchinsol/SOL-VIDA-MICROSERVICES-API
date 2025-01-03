@@ -3,17 +3,17 @@ import cors from 'cors';
 import morgan from "morgan";
 
 // IMPORT ROUTES
-import routerProducto from "./routes/producto_route.js";
+import routerZonaProducto from "./routes/zona_producto_route.js";
 
-const app_micro_producto = express()
+const app_micro_zona_producto = express()
 
-const PORT = 4025
+const PORT = 4125
 
-app_micro_producto.use(cors())
-app_micro_producto.use(morgan('combined'))
-app_micro_producto.use(express.json())
+app_micro_zona_producto.use(cors())
+app_micro_zona_producto.use(morgan('combined'))
+app_micro_zona_producto.use(express.json())
 
-app_micro_producto.use('/api/v1',routerProducto)
+app_micro_zona_producto.use('/api/v1',routerZonaProducto)
 
 // MANEJO DE ERRORES
 /*app_micro_pedido.use('/api', (req, res) => {
@@ -29,8 +29,8 @@ function errorHandler(err, req, res, next) {
     res.status(500).json({ error: 'Error interno del servidor' });
 }*/
 
-app_micro_producto.listen(PORT,()=>{
-    console.log(`Microservice PRODUCTO running http://localhost:${PORT}`)
+app_micro_zona_producto.listen(PORT,()=>{
+    console.log(`Microservice ZONA PRODUCTO running http://localhost:${PORT}`)
 })
 
-export {app_micro_producto}
+export {app_micro_zona_producto}
