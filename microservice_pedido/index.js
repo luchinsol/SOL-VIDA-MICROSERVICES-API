@@ -78,7 +78,7 @@ console.log("....CONSUMER......")
 server.listen(PORT, () => {
     console.log(`Microservice PEDIDO_DETALLE running http://127.0.0.1:${PORT}`);
     
-    setupConsumer();
+    //setupConsumer();
 });
 
 export { app_micro_pedido ,io, server};

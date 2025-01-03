@@ -116,7 +116,7 @@ export const postPedidoControllerGW = async (req, res) => {
             const resultado = await axios.post(URLpedido,pedidoData)
             if(resultado && resultado.data){
                 res.status(201).json(resultado.data)
-                await sendToQueue(pedidoData)
+                //await sendToQueue(pedidoData)
             }
             else{
                 res.status(400).json({message:'Invalid input data'})

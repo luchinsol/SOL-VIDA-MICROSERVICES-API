@@ -212,6 +212,20 @@ export const updatePedidoAlmacenController = async (req, res) => {
 };
 
 
+export const updatePedidoPrecios = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = req.body
+        const response = await modelPedidoDetalle.updatePedidoPrecio(id, resultado)
+        if (!response) {
+            return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 /*
 export const getPedidosAlmacen = async (req, res) => {
     try {
