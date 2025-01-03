@@ -36,9 +36,9 @@ const modelPedidoDetalle = {
     postPedido: async (pedido) => {
         try {
             const resultado = await db_pool.one(`
-                INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago]);
+                INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago,pedido.ubicacion_id]);
             return resultado;
         } catch (error) {
             throw new Error(`Error post data ${error}`);
@@ -197,6 +197,18 @@ ORDER BY id ASC;
         }
     },
     
+    updatePedidoPrecio: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET subtotal=$1, total =$2
+                WHERE id=$3 RETURNING *`, [pedido.subtotal, pedido.total, idPedido])
+            if (!resultado) {
+                return null;
+            }
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    },
 
     /*
     getPedidos: async (almacen_id) => {

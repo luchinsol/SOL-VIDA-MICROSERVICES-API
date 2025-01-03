@@ -30,7 +30,7 @@ function errorHandler(err, req, res, next) {
 }*/
 
 app_micro_zona_promocion.listen(PORT,()=>{
-    console.log(`Microservice CLIENTE running http://localhost:${PORT}`)
+    console.log(`Microservice ZONA PROMOCION running http://localhost:${PORT}`)
 })
 
 export {app_micro_zona_promocion}

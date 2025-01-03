@@ -1,4 +1,4 @@
-import { updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId } from "../controllers/pedido_controller.js";
+import { updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId } from "../controllers/pedido_controller.js";
 import express from 'express'
 
 const routerPedido = express.Router()
@@ -27,5 +27,6 @@ routerPedido.get('/pedido_sin_conductor',getPedidosSinConductores)
 //routerPedido.get('/pedido_almacen/:id_almacen',getPedidosAlmacen)
 //ACTUALIZACION DEL ALMACEN POR CADA PEDIDO
 routerPedido.put('/pedido_almacen/:id',updatePedidoAlmacenController)
+routerPedido.put('/pedido_precio/:id',updatePedidoPrecios)
 
 export default routerPedido
