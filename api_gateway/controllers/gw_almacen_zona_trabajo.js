@@ -1,69 +1,235 @@
 import axios from 'axios';
 import * as turf from '@turf/turf';
+import amqp from 'amqplib';
+
+const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+const QUEUE_NAME = 'colaPedidoRabbit'; // Nombre de la cola
 
 const URLzona = 'http://localhost:4009/api/v1/zona';
 const URLalmacen = 'http://localhost:5015/api/v1/almacen';
 const URLpedido = 'http://127.0.0.1:5001/api/v1/pedido';
 
-export const postInfoPedido = async (req, res) => {
+const sendToQueue = async (pedido) => {
     try {
-        const pedidoData = req.body;
-        const ubicacionId = pedidoData.ubicacion;
-        const producto_id = pedidoData.producto_id;
-        const cantidad = pedidoData.cantidad;
-        const promocion_id = pedidoData.promocion_id;
+      const connection = await amqp.connect(RABBITMQ_URL);
+      const channel = await connection.createChannel();
+  
+      const msg = JSON.stringify(pedido); // Convertir el pedido a JSON
+  
+      // Asegurarse de que la cola exista
+      await channel.assertQueue(QUEUE_NAME, {
+        durable: true, // La cola será persistente
+      });
+  
+      // Enviar el mensaje a la cola
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(msg), {
+        persistent: true, // El mensaje será persistente
+      });
+  
+      console.log('Pedido enviado a la cola:', pedido);
+      
+      // Cerramos la conexión
+      await channel.close();
+      await connection.close();
+    } catch (error) {
+      console.error('Error al enviar el pedido a la cola de RabbitMQ:', error.message);
+    }
+  };
 
-        let productoInfo, promocionInfo, cantidadPromos;
-        
-        if (promocion_id) {
-            [productoInfo, promocionInfo, cantidadPromos] = await Promise.all([
-                axios.get(`http://localhost:4025/api/v1/producto/${producto_id}`),
-                axios.get(`http://localhost:4025/api/v1/promocion/${promocion_id}`),
-                axios.get(`http://localhost:4025/api/v1/cantidadprod/${promocion_id}/${producto_id}`)
-            
-            ]);
-        } else {
-            productoInfo = await axios.get(`http://localhost:4025/api/v1/producto/${producto_id}`);
-            cantidadPromos = { data: cantidad }; // Usar cantidad original si no hay promoción
-        
-        }
+  export const postInfoPedido = async (req, res) => {
+    try {
+        const {
+            cliente_id, subtotal, descuento, total, fecha,
+            tipo, estado, observacion, tipo_pago, ubicacion_id,
+            detalles
+        } = req.body;
 
         let latitud, longitud;
         try {
-            const ubicacionRes = await axios.get(`http://localhost:4009/api/v1/ubicacion/${ubicacionId}`);
+            const ubicacionRes = await axios.get(`http://localhost:4009/api/v1/ubicacion/${ubicacion_id}`);
             latitud = ubicacionRes.data.latitud;
             longitud = ubicacionRes.data.longitud;
-            
-            if (longitud === undefined || latitud === undefined) {
-                return res.status(400).json({
-                    message: 'Coordenadas no disponibles en la ubicación'
-                });
+
+            if (!latitud || !longitud) {
+                return res.status(400).json({ message: 'Coordenadas no disponibles' });
             }
-        } catch (ubicacionError) {
+        } catch (error) {
             return res.status(404).json({ message: 'Ubicación no encontrada' });
         }
 
         const [responseZona, responseAlmacen, resultado] = await Promise.all([
             axios.get(URLzona),
             axios.get(URLalmacen),
-            axios.post(URLpedido, pedidoData)
+            axios.post(URLpedido, {
+                cliente_id, subtotal, descuento, total, fecha,
+                tipo, estado, observacion, tipo_pago, ubicacion_id
+            })
         ]);
 
-        if (!responseZona.data || !responseAlmacen.data) {
-            return res.status(404).json({ message: 'Datos de zonas o almacenes no encontrados' });
+        const warehouseRegions = processWarehouseRegions(responseZona.data);
+        const warehouses = processWarehouses(responseAlmacen.data);
+        const coordinates = [Number(longitud), Number(latitud)];
+        const analysis = analyzeLocation(warehouseRegions, coordinates, warehouses);
+
+        if (!resultado.data) {
+            return res.status(400).json({ message: 'Invalid input data' });
         }
 
-        const warehouseRegions = responseZona.data.map((zona) => {
-            try {
-                let processedCoordinates = zona.poligono_coordenadas;
-                
-                if (!Array.isArray(processedCoordinates) || !processedCoordinates.every(coord =>
-                    Array.isArray(coord) && coord.length === 2 &&
-                    typeof coord[0] === 'number' && typeof coord[1] === 'number')) {
-                    throw new Error(`Formato inválido de coordenadas para zona ${zona.id}`);
-                }
+        const pedidoId = resultado.data.id;
+        const regionId = analysis.region.warehouseId;
+        const almacenId = analysis.nearestWarehouse.id;
 
-                const polygon = {
+        // Process each order detail
+        const detallesProcessed = await Promise.all(detalles.map(async (detalle) => {
+            const { producto_id, cantidad, promocion_id } = detalle;
+
+            // Fetch product and promotion info in parallel
+            const [productoInfo, promocionInfo, cantidadPromos] = await Promise.all([
+                axios.get(`http://localhost:4025/api/v1/producto/${producto_id}`),
+                promocion_id ? axios.get(`http://localhost:4025/api/v1/promocion/${promocion_id}`) : Promise.resolve(null),
+                promocion_id ? axios.get(`http://localhost:4025/api/v1/cantidadprod/${promocion_id}/${producto_id}`) : Promise.resolve(null),
+            ]);
+
+            // Calculate price based on promotion
+            const precio = await axios.get(
+                promocion_id
+                    ? `http://localhost:4125/api/v1/precioZonaProducto/${regionId}/${promocion_id}`
+                    : `http://localhost:4225/api/v1/preciopromo/${regionId}/${producto_id}`
+            );
+
+            const precioFinal = precio.data.precio;
+            const descuento_inicial = precio.data.descuento;
+            const precioTotalAPagar = precioFinal - descuento_inicial;
+            const pagoFinalARealizar = precioTotalAPagar * cantidad;
+            const cantidadProductosPorPromo = cantidadPromos?.data?.cantidad;
+            const cantidadProductos = cantidadProductosPorPromo*cantidad;
+
+            // Create detail record
+            await axios.post(`http://127.0.0.1:5001/api/v1/det_pedido`, {
+                pedido_id: pedidoId,
+                producto_id,
+                cantidad,
+                promocion_id
+            });
+
+            // Return structured data based on whether it's a promotion or regular product
+            if (promocion_id) {
+                return {
+                    id: promocion_id,
+                    nombre: promocionInfo.data.nombre,
+                    descripcion: promocionInfo.data.descripcion,
+                    foto: promocionInfo.data.foto,
+                    valoracion: promocionInfo.data.valoracion,
+                    categoria: promocionInfo.data.categoria,
+                    precio: precioFinal,
+                    descuento: descuento_inicial,
+                    total: precioTotalAPagar,
+                    cantidad: cantidad,
+                    subtotal: pagoFinalARealizar,
+                    productos: [{
+                        id: productoInfo.data.id,
+                        nombre: productoInfo.data.nombre,
+                        descripcion: productoInfo.data.descripcion,
+                        foto: productoInfo.data.foto,
+                        valoracion: productoInfo.data.valoracion,
+                        categoria: productoInfo.data.categoria,
+                        precio: precioFinal,
+                        descuento: descuento_inicial,
+                        total: precioTotalAPagar,
+                        cantidad: cantidadProductosPorPromo,
+                        cantidadProductos: cantidadProductos,
+                        
+                    }]
+                };
+            } else {
+                return {
+                    id: producto_id,
+                    nombre: productoInfo.data.nombre,
+                    descripcion: productoInfo.data.descripcion,
+                    foto: productoInfo.data.foto,
+                    valoracion: productoInfo.data.valoracion,
+                    categoria: productoInfo.data.categoria,
+                    //cantidad: cantidad,
+                    //cantidad_final: cantidad,
+                    precio: precioFinal,
+                    descuento: descuento_inicial,
+                    subtotal: precioTotalAPagar,
+                    cantidad: cantidad,
+                    total: pagoFinalARealizar
+                };
+            }
+        }));
+
+        // Update warehouse and zone
+        await Promise.all([
+            axios.put(`http://127.0.0.1:5001/api/v1/pedido_almacen/${pedidoId}`, {
+                almacen_id: almacenId
+            }),
+            axios.put(`http://localhost:4009/api/v1/ubicacion/${ubicacion_id}`, {
+                zona_trabajo_id: regionId
+            })
+        ]);
+
+        // Separate items into promotions and products
+        const { promociones, productos } = detallesProcessed.reduce((acc, item) => {
+            if ('productos' in item) {
+                acc.promociones.push(item);
+            } else {
+                acc.productos.push(item);
+            }
+            return acc;
+        }, { promociones: [], productos: [] });
+
+        const subTotal = detallesProcessed.reduce((sum, detail) => sum + detail.subtotal, 0);
+        const descuentoCupon = resultado.data.descuento;
+        const precioFinal = subTotal - descuentoCupon;
+
+        await axios.put(`http://127.0.0.1:5001/api/v1/pedido_precio/${pedidoId}`, {
+            subtotal: subTotal,
+            total: precioFinal
+        });
+
+        const response = {
+            id: pedidoId,
+            coordenadas: { latitud, longitud },
+            detalles: {
+                promociones,
+                productos
+            },
+            region_id: regionId,
+            subtotal: subTotal,
+            descuento: descuentoCupon,
+            total: precioFinal
+        };
+
+        res.status(201).json(response);
+        await sendToQueue(response);
+
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({
+            message: 'Error procesando la solicitud',
+            error: error.message
+        });
+    }
+};
+
+// Helper functions
+const processWarehouseRegions = (zonas) => {
+    return zonas.map((zona) => {
+        try {
+            let processedCoordinates = zona.poligono_coordenadas;
+
+            if (!Array.isArray(processedCoordinates) || !processedCoordinates.every(coord =>
+                Array.isArray(coord) && coord.length === 2 &&
+                typeof coord[0] === 'number' && typeof coord[1] === 'number')) {
+                throw new Error(`Formato inválido de coordenadas para zona ${zona.id}`);
+            }
+
+            return {
+                warehouseId: zona.id,
+                name: zona.nombre,
+                polygon: {
                     type: "Feature",
                     properties: {
                         id: zona.id,
@@ -73,72 +239,22 @@ export const postInfoPedido = async (req, res) => {
                         type: "Polygon",
                         coordinates: [processedCoordinates]
                     }
-                };
-
-                return {
-                    warehouseId: zona.id,
-                    name: zona.nombre,
-                    polygon: polygon
-                };
-            } catch (error) {
-                console.error(`Error procesando zona ${zona.id}:`, error);
-                return null;
-            }
-        }).filter(region => region !== null);
-
-        const warehouses = responseAlmacen.data.map((almacen) => ({
-            id: almacen.id,
-            name: almacen.nombre,
-            location: [Number(almacen.longitud), Number(almacen.latitud)],
-            departamento: almacen.departamento
-        }));
-
-        const coordinates = [Number(longitud), Number(latitud)];
-        const analysis = analyzeLocation(warehouseRegions, coordinates, warehouses);
-
-        if (resultado && resultado.data) {
-            const pedidoId = resultado.data.id;
-            const almacenId = analysis.nearestWarehouse.id;
-
-            const detallePedido = {
-                pedido_id: pedidoId,
-                producto_id: producto_id,
-                cantidad: cantidad,
-                promocion_id: promocion_id
+                }
             };
-            
-            await axios.post('http://127.0.0.1:5001/api/v1/det_pedido', detallePedido);
-            await axios.put(`http://127.0.0.1:5001/api/v1/pedido_almacen/${pedidoId}`, {
-                almacen_id: almacenId
-            });
-
-            const response = {
-                pedido_id: pedidoId,
-                coordenadas: {
-                    latitud,
-                    longitud
-                },
-                analysis,
-                detalle_pedido: {
-                    ...detallePedido,
-                    producto: productoInfo.data,
-                    ...(promocion_id && { promocion: promocionInfo.data }),
-                    cantidad_final: cantidadPromos.data
-                },
-            };
-            
-            res.status(201).json(response);
-        } else {
-            res.status(400).json({ message: 'Invalid input data' });
+        } catch (error) {
+            console.error(`Error procesando zona ${zona.id}:`, error);
+            return null;
         }
+    }).filter(region => region !== null);
+};
 
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({
-            message: 'Error procesando la solicitud',
-            error: error.message
-        });
-    }
+const processWarehouses = (almacenes) => {
+    return almacenes.map((almacen) => ({
+        id: almacen.id,
+        name: almacen.nombre,
+        location: [Number(almacen.longitud), Number(almacen.latitud)],
+        departamento: almacen.departamento
+    }));
 };
 
 /*
@@ -242,7 +358,7 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
     for (const region of warehouseRegions) {
         try {
             console.log(`Verificando región ${region.name}`);
-            
+
             const isInside = turf.booleanPointInPolygon(point, region.polygon);
             console.log(`Punto está dentro de ${region.name}:`, isInside);
 
@@ -303,8 +419,8 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
                 departamento: w.departamento,
                 distance: Math.round(
                     turf.distance(
-                        point, 
-                        turf.point(w.location), 
+                        point,
+                        turf.point(w.location),
                         { units: 'kilometers' }
                     ) * 100
                 ) / 100
