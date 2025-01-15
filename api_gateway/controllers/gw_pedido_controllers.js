@@ -2,6 +2,8 @@ import axios from 'axios';
 import redisClient from '../index.js';
 import amqp from 'amqplib';
 import * as turf from '@turf/turf';
+import socket from '../index.js'
+import { v4 as uuidv4 } from 'uuid';
 const URLpedidoDetalle = 'http://localhost:5001/api/v1/pedido_almacen';
 const URLcliente = 'http://localhost:5002/api/v1/cliente'; // URL del servicio de clientes
 const URLzona = 'http://localhost:4009/api/v1/zona';
@@ -62,7 +64,13 @@ const sendToQueue = async (pedido) => {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(msg), {
         persistent: true, // El mensaje será persistente
       });
-  
+      socket.io.emit("holaPedido", {
+        id: uuidv4(), // Puedes usar un UUID aquí si prefieres un identificador único
+        descripcion: "hola soy el nuevo",
+        tiempoLimite: new Date(Date.now() + 300000).toISOString(), // 30 segundos después de ahora
+      });
+      
+      
       console.log('Pedido enviado a la cola:', pedido);
       
       // Cerramos la conexión
