@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   api_gateway:
-    build: ./api_gateway
+    image: luis101590/api_gateway:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "8082:3000"
     depends_on:
@@ -37,7 +37,7 @@ services:
       - microservices_network
 
   microservice_auth:
-    build: ./microservice_auth
+    image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5004:5000"
     deploy:
@@ -48,7 +48,7 @@ services:
       - microservices_network
 
   microservice_cliente:
-    build: ./microservice_cliente
+    image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5002:5000"
     deploy:
@@ -59,7 +59,7 @@ services:
       - microservices_network
 
   microservice_pedido:
-    build: ./microservice_pedido
+    image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5001:5000"
     deploy:
