@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   api_gateway:
     build: ./api_gateway
@@ -5,6 +7,7 @@ services:
       - "8082:3000"
     depends_on:
       - redis
+      - rabbitmq
       - microservice_auth
       - microservice_cliente
       - microservice_pedido
@@ -13,10 +16,21 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # Puerto para comunicación AMQP
+      - "15672:15672" # Puerto para la interfaz de administración
+    networks:
+      - microservices_network
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
 
   redis:
     image: redis:7.0
-    container_name: redis
     ports:
       - "6379:6379"
     networks:
@@ -26,6 +40,10 @@ services:
     build: ./microservice_auth
     ports:
       - "5004:5000"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     networks:
       - microservices_network
 
@@ -33,6 +51,10 @@ services:
     build: ./microservice_cliente
     ports:
       - "5002:5000"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     networks:
       - microservices_network
 
@@ -40,9 +62,13 @@ services:
     build: ./microservice_pedido
     ports:
       - "5001:5000"
+    deploy:
+      replicas: 3 # Se definen 3 réplicas para este servicio
+      restart_policy:
+        condition: on-failure
     networks:
       - microservices_network
 
 networks:
   microservices_network:
-    driver: bridge
+    driver: overlay
