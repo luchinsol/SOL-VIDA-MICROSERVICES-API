@@ -1,11 +1,12 @@
 // gw_login_controller.js
 import axios from 'axios';
+import dotenv from 'dotenv';
 
-//const URLlogin = 'http://localhost:5004/api/v1/login';//'http://microservice_auth:5000/api/v1/login';
-//const URLuser = 'http://localhost:5004/api/v1/user';//'http://microservice_auth:5000/api/v1/user';
-const URLlogin = 'http://microservice_auth:5000/api/v1/login';
-const URLuser = 'http://microservice_auth:5000/api/v1/user';
+// Carga las variables de entorno del archivo .env
+dotenv.config();
 
+const URLlogin = process.env.LOGIN_SERVICE_URL
+const URLuser = process.env.USER_SERVICE_URL
 
 export const postLoginController = async (req, res) => {
     try {

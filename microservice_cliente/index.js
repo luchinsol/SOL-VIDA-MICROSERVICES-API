@@ -2,12 +2,15 @@ import express from "express";
 import cors from 'cors';
 import morgan from "morgan";
 
+import dotenv from 'dotenv'
+dotenv.config()
+
 // IMPORT ROUTES
 import routerCliente from "./routes/cliente_route.js";
 
 const app_micro_cliente = express()
 
-const PORT = 5002
+const PORT = process.env.PORT_CLIENTE
 
 app_micro_cliente.use(cors())
 app_micro_cliente.use(morgan('combined'))

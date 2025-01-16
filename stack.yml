@@ -17,6 +17,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - RABBITMQ_URL=amqp://rabbitmq:5672
+    env_file:
+      - ./api_gateway/.env  # Ruta del archivo .env para api_gateway
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -46,6 +48,8 @@ services:
         condition: on-failure
     networks:
       - microservices_network
+    env_file:
+      - ./microservice_auth/.env
 
   microservice_cliente:
     image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
@@ -57,13 +61,15 @@ services:
         condition: on-failure
     networks:
       - microservices_network
-
+    env_file:
+      - ./microservice_cliente/.env
+      
   microservice_pedido:
     image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5001:5000"
     deploy:
-      replicas: 3 # Se definen 3 réplicas para este servicio
+      replicas: 1 # Se definen 3 réplicas para este servicio
       restart_policy:
         condition: on-failure
     networks:

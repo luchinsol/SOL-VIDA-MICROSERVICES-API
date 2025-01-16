@@ -79,7 +79,10 @@ import routerGWAlmacenZona from "./routes/gw_almacen_zona_trabajo_route.js";
 import routerGWLogin from "./routes/gw_login_route.js";
 import { createClient } from "redis";
 
-//import { startConsumer } from './controllers/gw_pedido_controllers.js';
+import dotenv from 'dotenv';
+
+// Carga las variables de entorno del archivo .env
+dotenv.config();
 
 // Configuración de Redis
 const redisClient = createClient({
@@ -182,7 +185,7 @@ app.use(verificarToken, routerGWAlmacen);
 app.use(verificarToken, routerGWAlmacenZona);
 app.use(routerGWLogin);
 
-const PORT = 3000;
+const PORT = process.env.PORT_APIGW;
 server.listen(PORT, async () => {
   console.log(`API Gateway running http://localhost:${PORT}`);
   /*
