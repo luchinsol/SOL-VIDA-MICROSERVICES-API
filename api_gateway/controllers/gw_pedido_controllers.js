@@ -10,8 +10,8 @@ const URLzona = 'http://localhost:4009/api/v1/zona';
 const URLalmacen = 'http://localhost:5015/api/v1/almacen';
 const URLpedido = 'http://127.0.0.1:5001/api/v1/pedido';
 
-
-const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+const RABBITMQ_URL = 'amqp://rabbitmq';
+//const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
 const QUEUE_NAME = 'colaPedidoRabbit'; // Nombre de la cola
 
 
