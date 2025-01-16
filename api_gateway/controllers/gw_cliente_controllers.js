@@ -2,8 +2,9 @@ import axios from 'axios';
 import redisClient from '../index.js';
 import amqp from 'amqplib';
 
-const URLcliente = 'http://localhost:5002/api/v1/cliente';
-const URLuser = 'http://localhost:5000/api/v1/user';
+const URLcliente = 'http://microservice_cliente:5000/api/v1/cliente';
+
+
 const QUEUE_PEDIDOS = 'pedidos_queue';
 const QUEUE_CLIENTE_PEDIDOS = 'cliente_pedidos_queue';
 
