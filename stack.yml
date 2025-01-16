@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   api_gateway:
-    image: luis101590/api_gateway:latest  # Apunta a la imagen subida a Docker Hub
+    build: ./api_gateway
     ports:
       - "8082:3000"
     depends_on:
@@ -19,9 +19,9 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq:5672
 
   rabbitmq:
-    image: rabbitmq:4.0-management
+    image: rabbitmq:3-management
     ports:
-      - "5672:5672" # Puerto para comunicación AMQP
+      - "5672:5672" # Puerto para comunicación AMQP 
       - "15672:15672" # Puerto para la interfaz de administración
     networks:
       - microservices_network
@@ -37,7 +37,7 @@ services:
       - microservices_network
 
   microservice_auth:
-    image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
+    build: ./microservice_auth
     ports:
       - "5004:5000"
     deploy:
@@ -48,7 +48,7 @@ services:
       - microservices_network
 
   microservice_cliente:
-    image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
+    build: ./microservice_cliente
     ports:
       - "5002:5000"
     deploy:
@@ -59,7 +59,7 @@ services:
       - microservices_network
 
   microservice_pedido:
-    image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
+    build: ./microservice_pedido
     ports:
       - "5001:5000"
     deploy:
