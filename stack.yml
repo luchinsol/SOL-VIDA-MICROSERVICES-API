@@ -19,7 +19,7 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq:5672
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:4.0-management
     ports:
       - "5672:5672" # Puerto para comunicación AMQP
       - "15672:15672" # Puerto para la interfaz de administración
