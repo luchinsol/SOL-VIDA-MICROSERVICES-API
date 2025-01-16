@@ -1,8 +1,10 @@
 // gw_login_controller.js
 import axios from 'axios';
 
-const URLlogin = 'http://localhost:5004/api/v1/login';//'http://microservice_auth:5000/api/v1/login';
-const URLuser = 'http://localhost:5000/api/v1/user';//'http://microservice_auth:5000/api/v1/user';
+//const URLlogin = 'http://localhost:5004/api/v1/login';//'http://microservice_auth:5000/api/v1/login';
+//const URLuser = 'http://localhost:5004/api/v1/user';//'http://microservice_auth:5000/api/v1/user';
+const URLlogin = 'http://microservice_auth:5000/api/v1/login';
+const URLuser = 'http://microservice_auth:5000/api/v1/user';
 
 
 export const postLoginController = async (req, res) => {
