@@ -3,11 +3,17 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 
 // Carga las variables de entorno del archivo .env
-dotenv.config();
+dotenv.config({path:'./.env'});
 
-const URLlogin = process.env.LOGIN_SERVICE_URL
-const URLuser = process.env.USER_SERVICE_URL
-
+const URLlogin ="http://microservice_auth:5000/api/v1/login" // process.env.LOGIN_SERVICE_URL
+const URLuser = "http://microservice_auth:5000/api/v1/user"//process.env.USER_SERVICE_URL
+console.log("....urls....")
+console.log(URLlogin)
+console.log(URLuser)
+console.log("....url ENV...")
+console.log(process.env.LOGIN_SERVICE_URL)
+console.log(process.env.USER_SERVICE_URL)
+console.log(process.env.PORT_AUTH)
 export const postLoginController = async (req, res) => {
     try {
         const credenciales = req.body;
