@@ -17,6 +17,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - RABBITMQ_URL=amqp://rabbitmq:5672
+      - LOGIN_SERVICE_URL=${LOGIN_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
     env_file:
       - ./api_gateway/.env  # Ruta del archivo .env para api_gateway
 
