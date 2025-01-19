@@ -43,7 +43,7 @@ services:
   microservice_auth:
     image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
     ports:
-      - "5004:5000"
+      - "5004:5004" # HOST : CONTENEDOR -> También puede ser - 5004 para resumir, por la igualdad de puertos
     deploy:
       replicas: 1
       restart_policy:
@@ -56,7 +56,7 @@ services:
   microservice_cliente:
     image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
     ports:
-      - "5002:5000"
+      - "5002:5002"
     deploy:
       replicas: 1
       restart_policy:

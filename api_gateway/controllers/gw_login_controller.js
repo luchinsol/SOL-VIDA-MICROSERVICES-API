@@ -5,8 +5,8 @@ import dotenv from 'dotenv';
 // Carga las variables de entorno del archivo .env
 dotenv.config({path:'./.env'});
 
-const URLlogin ="http://microservice_auth:5000/api/v1/login" // process.env.LOGIN_SERVICE_URL
-const URLuser = "http://microservice_auth:5000/api/v1/user"//process.env.USER_SERVICE_URL
+const URLlogin = "http://microservice_auth:5004/api/v1/login" // process.env.LOGIN_SERVICE_URL
+const URLuser = "http://microservice_auth:5004/api/v1/user"//process.env.USER_SERVICE_URL
 console.log("....urls....")
 console.log(URLlogin)
 console.log(URLuser)
