@@ -11,7 +11,7 @@ COPY ./ /app
 RUN npm install
 
 # Exponer el puerto que usa el gateway
-EXPOSE 8080
+EXPOSE 3000
 
 # Comando para ejecutar el servicio
 CMD ["node", "index.js"]
