@@ -2,6 +2,8 @@ import axios from 'axios';
 import redisClient from '../index.js';
 import amqp from 'amqplib';
 import * as turf from '@turf/turf';
+import socket from '../index.js'
+import { v4 as uuidv4 } from 'uuid';
 const URLpedidoDetalle = 'http://localhost:5001/api/v1/pedido_almacen';
 const URLcliente = 'http://localhost:5002/api/v1/cliente'; // URL del servicio de clientes
 const URLzona = 'http://localhost:4009/api/v1/zona';
@@ -9,8 +11,10 @@ const URLalmacen = 'http://localhost:5015/api/v1/almacen';
 const URLpedido = 'http://127.0.0.1:5001/api/v1/pedido';
 
 
+
 const MAIN_QUEUE = 'micro_pedidos';
 const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+
 
 const sendToQueue = async (pedido) => {
     try {
@@ -20,10 +24,13 @@ const sendToQueue = async (pedido) => {
       const msg = JSON.stringify(pedido); // Convertir el pedido a JSON
   
       // Asegurarse de que la cola exista
+
       await channel.sendToQueue(MAIN_QUEUE, Buffer.from(msg), {
         persistent: true
     });
   
+
+      
       console.log('Pedido enviado a la cola:', pedido);
       
       // Cerramos la conexión

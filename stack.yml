@@ -1,0 +1,82 @@
+version: "3.9"
+
+services:
+  api_gateway:
+    image: luis101590/api_gateway:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "8082:3000"
+    depends_on:
+      - redis
+      - rabbitmq
+      - microservice_auth
+      - microservice_cliente
+      - microservice_pedido
+    networks:
+      - microservices_network
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - LOGIN_SERVICE_URL=http://microservice_auth:5000/api/v1/login
+      - USER_SERVICE_URL=http://microservice_auth:5000/api/v1/user
+    env_file:
+      - ./api_gateway/.env  # Ruta del archivo .env para api_gateway
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # Puerto para comunicación AMQP
+      - "15672:15672" # Puerto para la interfaz de administración
+    networks:
+      - microservices_network
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices_network
+
+  microservice_auth:
+    image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5004:5004" # HOST : CONTENEDOR -> También puede ser - 5004 para resumir, por la igualdad de puertos
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_auth/.env
+
+  microservice_cliente:
+    image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5002:5002"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_cliente/.env
+      
+  microservice_pedido:
+    image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5001:5000"
+    deploy:
+      replicas: 1 # Se definen 3 réplicas para este servicio
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+
+networks:
+  microservices_network:
+    driver: overlay

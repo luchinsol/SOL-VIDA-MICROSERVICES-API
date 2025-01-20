@@ -4,8 +4,11 @@ import { Server } from 'socket.io';
 import amqp from 'amqplib';
 import http from "http";
 import routerPedido from "./routes/pedido_route.js";
+
 import cors from 'cors';
 
+
+dotenv.config();
 const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 

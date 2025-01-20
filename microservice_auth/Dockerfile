@@ -10,8 +10,8 @@ COPY . /app
 # Instala las dependencias
 RUN npm install
 
-# Expone el puerto que el servicio va a utilizar
-EXPOSE 5000
+# Expone el puerto que el servicio va a utilizar, SOLO ES FORMALIDAD, MÁS NO FUNCIONAL
+EXPOSE 5004
 
 # Comando para ejecutar la aplicación
 CMD ["node", "index.js"]

@@ -2,12 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';  // Importa Morgan
 
+
+import dotenv from 'dotenv';
+
+// Configurar dotenv con la ruta al archivo .env en la raíz del proyecto
+dotenv.config();
 // IMPORT ROUTES
 import routerLogin from "./routes/login_route.js";
 
 const app_micro_login = express()
 
-const PORT = 5004
+const PORT = process.env.PORT_AUTH
 
 app_micro_login.use(cors())
 app_micro_login.use(morgan('combined'))
