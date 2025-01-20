@@ -4,7 +4,8 @@ import amqp from 'amqplib';
 import * as turf from '@turf/turf';
 import socket from '../index.js'
 import { v4 as uuidv4 } from 'uuid';
-
+import dotenv from 'dotenv'
+dotenv.config()
 
 const service_pedido = process.env.MICRO_PEDIDO
 const service_ubicacion = process.env.MICRO_UBICACION
