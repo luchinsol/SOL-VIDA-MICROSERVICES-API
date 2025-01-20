@@ -120,6 +120,101 @@ async function connectRedis() {
 const app = express();
 
 const server = http.createServer(app);
+/*
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
+    pingTimeout: 60000,
+    pingInterval: 25000
+});
+let pendingOrders = [];
+const RABBITMQ_URL = 'amqp://localhost';
+const QUEUE_NAME = 'colaPedidoRabbit';
+
+async function setupConsumer() {
+    try {
+        const connection = await amqp.connect(RABBITMQ_URL);
+        const channel = await connection.createChannel();
+
+        await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+        console.log('Gateway: Esperando pedidos en RabbitMQ...');
+
+        channel.consume(QUEUE_NAME, async (msg) => {
+            if (msg) {
+                try {
+                    const order = JSON.parse(msg.content.toString());
+                    console.log('Nuevo pedido recibido:', order);
+
+                    // Agregar timestamp y almacenar pedido
+                    const orderWithTimestamp = {
+                        ...order,
+                        timestamp: new Date().toISOString()
+                    };
+                    pendingOrders.push(orderWithTimestamp);
+
+                    // Emitir el evento a todos los clientes conectados
+                    io.emit('orders_updated', {
+                        status: 'success',
+                        action: 'new_order',
+                        data: pendingOrders,
+                        lastOrder: orderWithTimestamp,
+                        message: 'Nuevo pedido recibido'
+                    });
+
+                    // No se confirma el mensaje (ack) para simplificar la prueba
+                } catch (error) {
+                    console.error('Error procesando el mensaje:', error);
+                }
+            }
+        });
+
+        connection.on('close', () => {
+            console.error('Conexión a RabbitMQ cerrada, intentando reconectar...');
+            setTimeout(setupConsumer, 5000);
+        });
+
+        connection.on('error', (err) => {
+            console.error('Error de conexión a RabbitMQ:', err);
+        });
+    } catch (error) {
+        console.error('Error configurando consumidor de RabbitMQ:', error);
+        setTimeout(setupConsumer, 5000);
+    }
+}
+
+
+io.on('connection', (socket) => {
+    console.log(`Cliente conectado: ${socket.id}`);
+
+    // Enviar pedidos iniciales al cliente
+    socket.emit('orders_updated', {
+        status: 'success',
+        action: 'initial_load',
+        data: pendingOrders,
+        message: 'Cargando pedidos iniciales'
+    });
+
+    // Evento para refrescar los pedidos
+    socket.on('get_orders', () => {
+        socket.emit('orders_updated', {
+            status: 'success',
+            action: 'refresh',
+            data: pendingOrders,
+            message: 'Pedidos actualizados'
+        });
+    });
+
+    // Manejo de desconexión
+    socket.on('disconnect', () => {
+        console.log(`Cliente desconectado: ${socket.id}`);
+    });
+});*/
+/*
+
+const server = http.createServer(app);
 const io = new Server(server, {
   reconnection: true,
   reconnectionAttempts: 10, // Número máximo de intentos
@@ -185,10 +280,14 @@ app.use(verificarToken, routerGWAlmacen);
 app.use(verificarToken, routerGWAlmacenZona);
 app.use(routerGWLogin);
 
-const PORT = process.env.PORT_APIGW;
-server.listen(PORT, async () => {
-  console.log(`API Gateway running http://localhost:${PORT}`);
-  /*
+
+const PORT = 3000;
+app.listen(PORT, async () => {
+    console.log(`API Gateway running http://localhost:${PORT}`);
+    //await setupConsumer();
+    /*
+
+
     try {
         //await startConsumer();
         console.log('Consumidor de RabbitMQ iniciado correctamente');
@@ -198,8 +297,8 @@ server.listen(PORT, async () => {
     */
 });
 
-// Exporta ambos objetos claramente
-export default {
-    redisClient,
-    io
-  };
+
+//export default{ app, io, server,redisClient };
+export default redisClient;
+
+
