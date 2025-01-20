@@ -3,21 +3,15 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 
 // Carga las variables de entorno del archivo .env
-dotenv.config({path:'./.env'});
+dotenv.config();
 
-const URLlogin = "http://microservice_auth:5004/api/v1/login" // process.env.LOGIN_SERVICE_URL
-const URLuser = "http://microservice_auth:5004/api/v1/user"//process.env.USER_SERVICE_URL
-console.log("....urls....")
-console.log(URLlogin)
-console.log(URLuser)
-console.log("....url ENV...")
-console.log(process.env.LOGIN_SERVICE_URL)
-console.log(process.env.USER_SERVICE_URL)
-console.log(process.env.PORT_AUTH)
+const service_auth = process.env.MICRO_AUTH
+console.log(service_auth)
+
 export const postLoginController = async (req, res) => {
     try {
         const credenciales = req.body;
-        const response = await axios.post(URLlogin, credenciales);
+        const response = await axios.post(`${service_auth}/login`, credenciales);
         //console.log("response----------",response)
         if (response && response.data.tokenUser) {
             // Envía el token al cliente
@@ -34,7 +28,7 @@ export const postUserExistController = async (req,res) => {
     try {
         console.log("........dentro del exist user GW")
         const credenciales  = req.body
-        const response = await axios.post(URLuser,credenciales)
+        const response = await axios.post(`${service_auth}/user`,credenciales)
         const userExist = response.data
         if(userExist.message == 'User exist!'){
             res.status(201).json({message:response.data.message})

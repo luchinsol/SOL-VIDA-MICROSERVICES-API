@@ -1,7 +1,10 @@
 import axios from 'axios';
 import redisClient from '../index.js';
-const URLconductor = 'http://localhost:5011/api/v1/conductor';//'http://localhost:5000/api/v1/pedido';
+import dotenv from 'dotenv'
 
+dotenv.config()
+
+const service_conductor = process.env.MICRO_CONDUCTOR
 
 export const getConductoresControllerGW = async (req, res) => {
     console.log("......get conductor controller");
@@ -20,7 +23,7 @@ export const getConductoresControllerGW = async (req, res) => {
             return res.status(200).json(JSON.parse(cachedData));
         }
 
-        const response = await axios.get(URLconductor);
+        const response = await axios.get(`${service_conductor}/conductor`);
         console.log("Respuesta de la API de pedidos:", response.data);
 
         if (response && response.data) {
@@ -61,8 +64,8 @@ export const getConductoresControllerIdGW = async (req,res) => {
     try {
         const { id } = req.params
         console.log(id,".....id")
-        console.log(`${URLconductor}/${id}`)
-        const response = await axios.get(`${URLconductor}/${id}`)
+        console.log(`${service_conductor}/conductor/${id}`)
+        const response = await axios.get(`${service_conductor}/conductor/${id}`)
         console.log(response.data,"---------------client id")
         if(response && response.data){
 
@@ -84,7 +87,7 @@ export const getConductoresControllerIdGW = async (req,res) => {
 
 export const postConductoresControllerGW = async (req, res) => {
     try {
-        const response = await axios.post(URLconductor, req.body);
+        const response = await axios.post(`${service_conductor}/conductor`, req.body);
         if (response) {
             res.status(201).json(response.data);
         } else {
@@ -100,8 +103,8 @@ export const putConductoresControllerGW = async (req, res) => {
     try {
         const { id }= req.params
         console.log(id,".....id")
-        console.log(`${URLconductor}/${id}`)
-        const response = await axios.put(`${URLconductor}/${id}`, req.body);
+        console.log(`${service_conductor}/conductor/${id}`)
+        const response = await axios.put(`${service_conductor}/conductor/${id}`, req.body);
         console.log(response.data,"---------conductores id")
         if (response) {
             res.status(201).json(response.data);
@@ -117,8 +120,8 @@ export const deleteConductoresControllerGW = async (req, res) => {
     try {
         const { id }= req.params
         console.log(id,".....id")
-        console.log(`${URLconductor}/${id}`)
-        const response = await axios.delete(`${URLconductor}/${id}`);
+        console.log(`${service_conductor}/conductor/${id}`)
+        const response = await axios.delete(`${service_conductor}/conductor/${id}`);
         console.log(response.data,"---------conductores id")
         if (response) {
             res.status(201).json(response.data);

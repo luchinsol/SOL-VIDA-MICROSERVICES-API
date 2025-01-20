@@ -1,9 +1,11 @@
 import axios from 'axios';
 import redisClient from '../index.js';
 import amqp from 'amqplib';
+import dotenv from 'dotenv'
+dotenv.config()
 
-const URLcliente = 'http://microservice_cliente:5000/api/v1/cliente';
 
+const service_cliente = process.env.MICRO_CLIENTE
 
 const QUEUE_PEDIDOS = 'pedidos_queue';
 const QUEUE_CLIENTE_PEDIDOS = 'cliente_pedidos_queue';
@@ -38,7 +40,7 @@ export const getClientesControllerGW = async (req, res) => {
 
 
     try {
-        const response = await axios.get(URLcliente);
+        const response = await axios.get(`${service_cliente}/cliente`);
         if (response && response.data) {
             try {
                 await redisClient.setEx(cacheKey, 3600, JSON.stringify(response.data))
@@ -75,8 +77,8 @@ export const getClientesControllerIdGW = async (req,res) => {
     try {
         const { id } = req.params
         console.log(id,".....id")
-        console.log(`${URLcliente}/${id}`)
-        const response = await axios.get(`${URLcliente}/${id}`)
+        console.log(`${service_cliente}/cliente/${id}`)
+        const response = await axios.get(`${service_cliente}/cliente/${id}`)
         console.log(response.data,"---------------client id")
         if(response && response.data){
 
@@ -102,7 +104,7 @@ export const postClienteControllerGW = async (req,res) => {
         const response = req.body
         console.log(response,"<--------------data POST api gw")
 
-        const resultado = await axios.post(URLcliente,response)
+        const resultado = await axios.post(`${service_cliente}/cliente`,response)
         console.log(resultado,"<------------micro cliente API GW")
         if(resultado && resultado.data){
             res.status(201).json(resultado.data)
@@ -122,8 +124,8 @@ export const putClienteControllerGW = async (req,res) => {
     try {
         const {id}= req.params
         console.log(id,"....id")
-        console.log(`${URLcliente}/${id}`)
-        const response = await axios.put(`${URLcliente}/${id}`,req.body)
+        console.log(`${service_cliente}/cliente/${id}`)
+        const response = await axios.put(`${service_cliente}/cliente/${id}`,req.body)
         console.log(response.data,"<--------------data POST api gw")
         if(response){
             res.status(200).json(resultado.data)
@@ -141,8 +143,8 @@ export const deleteClienteControllerGW = async (req, res) => {
     try {
         const { id }= req.params
         console.log(id,".....id")
-        console.log(`${URLcliente}/${id}`)
-        const response = await axios.delete(`${URLcliente}/${id}`);
+        console.log(`${service_cliente}/cliente/${id}`)
+        const response = await axios.delete(`${service_cliente}/cliente/${id}`);
         console.log(response.data,"---------conductores id")
         if (response) {
             res.status(200).json(response.data);

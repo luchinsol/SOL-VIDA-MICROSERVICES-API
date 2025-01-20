@@ -4,17 +4,15 @@ import amqp from 'amqplib';
 import * as turf from '@turf/turf';
 import socket from '../index.js'
 import { v4 as uuidv4 } from 'uuid';
-const URLpedidoDetalle = 'http://localhost:5001/api/v1/pedido_almacen';
-const URLcliente = 'http://localhost:5002/api/v1/cliente'; // URL del servicio de clientes
-const URLzona = 'http://localhost:4009/api/v1/zona';
-const URLalmacen = 'http://localhost:5015/api/v1/almacen';
-const URLpedido = 'http://127.0.0.1:5001/api/v1/pedido';
 
 
+const service_pedido = process.env.MICRO_PEDIDO
+const service_ubicacion = process.env.MICRO_UBICACION
+const service_almacen = process.env.MICRO_ALMACEN
 
 const MAIN_QUEUE = 'micro_pedidos';
-const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
-
+//const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+const RABBITMQ_URL = process.env.RABBITMQ_URL
 
 const sendToQueue = async (pedido) => {
     try {
@@ -25,7 +23,7 @@ const sendToQueue = async (pedido) => {
   
       // Asegurarse de que la cola exista
 
-      await channel.sendToQueue(MAIN_QUEUE, Buffer.from(msg), {
+      channel.sendToQueue(MAIN_QUEUE, Buffer.from(msg), {
         persistent: true
     });
   
@@ -62,7 +60,7 @@ export const getPedidosControllerGW = async (req, res) => {
         }
 
         // Si no hay datos en caché, hacer la solicitud a la API
-        const response = await axios.get(URLpedido);
+        const response = await axios.get(`${service_pedido}/pedido`);
         console.log("Respuesta de la API de pedidos:", response.data);
 
         if (response && response.data) {
@@ -105,9 +103,9 @@ export const postInfoPedido = async (req, res) => {
         }
 
         const [responseZona, responseAlmacen, resultado] = await Promise.all([
-            axios.get(URLzona),
-            axios.get(URLalmacen),
-            axios.post(URLpedido, {
+            axios.get(`${service_ubicacion}/zona`),
+            axios.get(`${service_almacen}/almacen`),
+            axios.post(`${service_pedido}/pedido`, {
                 cliente_id, subtotal, descuento, total, fecha,
                 tipo, estado, observacion, tipo_pago, ubicacion_id
             })
@@ -400,7 +398,7 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
 export const UpdateAlmacenPedidosControllerGW = async (req, res) => {
     try {
         const {id} = req.params
-        const response = await axios.put(`${URLpedidoDetalle}/${id}`,req.body);
+        const response = await axios.put(`${service_pedido}/pedido_almacen/${id}`,req.body);
         if (response) {
            //await redisClient.del('pedidos_cache');
             res.status(201).json(response.data);
