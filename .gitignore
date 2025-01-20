@@ -7,7 +7,6 @@ microservice_auth/node_modules/
 microservice_publicidad/node_modules/
 microservice_almacen/node_modules/
 microservice_categoria/node_modules/
-microservice_conductor/node_modules/
 microservice_notificacion/node_modules/
 microservice_pago/node_modules/
 microservice_producto/node_modules/
@@ -15,4 +14,4 @@ microservice_ubicacion/node_modules/
 microservice_vehiculo/node_modules/
 microservice_zonaproducto/node_modules/
 microservice_zonapromocion/node_modules/
-node_modules
+microservice_conductor/node_modules/
