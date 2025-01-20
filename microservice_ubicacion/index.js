@@ -1,13 +1,15 @@
 import express from "express";
 import cors from 'cors';
 import morgan from "morgan";
+import dotenv from 'dotenv'
+dotenv.config()
 
 // IMPORT ROUTES
 import routerUbicacion from "./routes/ubicacion_route.js";
 
 const app_micro_ubicacion = express()
 
-const PORT = 4009
+const PORT = process.env.PORT_UBI
 
 app_micro_ubicacion.use(cors())
 app_micro_ubicacion.use(morgan('combined'))

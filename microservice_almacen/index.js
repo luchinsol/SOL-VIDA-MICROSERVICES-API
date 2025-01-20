@@ -9,7 +9,7 @@ import routerAlmacen from "./routes/almacen_routes.js";
 
 const app_micro_almacen = express()
 
-const PORT = 5015
+const PORT = process.env.PORT_ALMACEN
 
 app_micro_almacen.use(cors())
 app_micro_almacen.use(morgan('combined'))

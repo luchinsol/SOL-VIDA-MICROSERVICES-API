@@ -1,12 +1,14 @@
 import express from "express";
 import cors from 'cors';
 import morgan from "morgan";
-
+import dotenv from 'dotenv'
 import routerConductor from "./routes/conductor_route.js";
+
+dotenv.config()
 
 const app_micro_conductor = express()
 
-const PORT = 5011
+const PORT = process.env.PORT_CONDUC
 
 app_micro_conductor.use(cors())
 app_micro_conductor.use(morgan('combined'))

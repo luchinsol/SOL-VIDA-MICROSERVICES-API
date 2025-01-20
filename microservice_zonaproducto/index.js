@@ -1,13 +1,15 @@
 import express from "express";
 import cors from 'cors';
 import morgan from "morgan";
+import dotenv from 'dotenv'
+dotenv.config()
 
 // IMPORT ROUTES
 import routerZonaProducto from "./routes/zona_producto_route.js";
 
 const app_micro_zona_producto = express()
 
-const PORT = 4125
+const PORT = process.env.PORT_ZONAPRODUCTO
 
 app_micro_zona_producto.use(cors())
 app_micro_zona_producto.use(morgan('combined'))
