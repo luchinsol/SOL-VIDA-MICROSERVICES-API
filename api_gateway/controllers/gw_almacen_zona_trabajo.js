@@ -1,13 +1,21 @@
 import axios from 'axios';
 import * as turf from '@turf/turf';
 import amqp from 'amqplib';
+import dotenv from 'dotenv'
 
-const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+dotenv.config()
+
+const RABBITMQ_URL = process.env.RABBITMQ_URL
+console.log("rabbit",RABBITMQ_URL)
+
 const QUEUE_NAME = 'colaPedidoRabbit'; // Nombre de la cola
 
-const URLzona = 'http://localhost:4009/api/v1/zona';
-const URLalmacen = 'http://localhost:5015/api/v1/almacen';
-const URLpedido = 'http://127.0.0.1:5001/api/v1/pedido';
+const service_ubicacion = process.env.MICRO_UBICACION
+const service_producto = process.env.MICRO_PRODUCTO
+const service_zonaproducto = process.env.MICRO_ZONAPRODUCTO
+const service_zonapromocion = process.env.MICRO_ZONAPROMOCION
+const service_pedido = process.env.MICRO_PEDIDO
+const service_almacen = process.env.MICRO_ALMACEN
 
 const sendToQueue = async (pedido) => {
     try {
@@ -46,7 +54,7 @@ const sendToQueue = async (pedido) => {
 
         let latitud, longitud;
         try {
-            const ubicacionRes = await axios.get(`http://localhost:4009/api/v1/ubicacion/${ubicacion_id}`);
+            const ubicacionRes = await axios.get(`${service_ubicacion}/ubicacion/${ubicacion_id}`);
             latitud = ubicacionRes.data.latitud;
             longitud = ubicacionRes.data.longitud;
 
@@ -58,9 +66,9 @@ const sendToQueue = async (pedido) => {
         }
 
         const [responseZona, responseAlmacen, resultado] = await Promise.all([
-            axios.get(URLzona),
-            axios.get(URLalmacen),
-            axios.post(URLpedido, {
+            axios.get(`${service_ubicacion}/zona`),
+            axios.get(`${service_almacen}/almacen`),
+            axios.post(`${service_pedido}/pedido`, {
                 cliente_id, subtotal, descuento, total, fecha,
                 tipo, estado, observacion, tipo_pago, ubicacion_id
             })
@@ -85,16 +93,16 @@ const sendToQueue = async (pedido) => {
 
             // Fetch product and promotion info in parallel
             const [productoInfo, promocionInfo, cantidadPromos] = await Promise.all([
-                axios.get(`http://localhost:4025/api/v1/producto/${producto_id}`),
-                promocion_id ? axios.get(`http://localhost:4025/api/v1/promocion/${promocion_id}`) : Promise.resolve(null),
-                promocion_id ? axios.get(`http://localhost:4025/api/v1/cantidadprod/${promocion_id}/${producto_id}`) : Promise.resolve(null),
+                axios.get(`${service_producto}/producto/${producto_id}`),
+                promocion_id ? axios.get(`${service_producto}/promocion/${promocion_id}`) : Promise.resolve(null),
+                promocion_id ? axios.get(`${service_producto}/cantidadprod/${promocion_id}/${producto_id}`) : Promise.resolve(null),
             ]);
 
             // Calculate price based on promotion
             const precio = await axios.get(
                 promocion_id
-                    ? `http://localhost:4125/api/v1/precioZonaProducto/${regionId}/${promocion_id}`
-                    : `http://localhost:4225/api/v1/preciopromo/${regionId}/${producto_id}`
+                    ? `${service_zonaproducto}/precioZonaProducto/${regionId}/${promocion_id}`
+                    : `${service_zonapromocion}/preciopromo/${regionId}/${producto_id}`
             );
 
             const precioFinal = precio.data.precio;
@@ -105,7 +113,7 @@ const sendToQueue = async (pedido) => {
             const cantidadProductos = cantidadProductosPorPromo*cantidad;
 
             // Create detail record
-            await axios.post(`http://127.0.0.1:5001/api/v1/det_pedido`, {
+            await axios.post(`${service_pedido}/det_pedido`, {
                 pedido_id: pedidoId,
                 producto_id,
                 cantidad,
@@ -162,10 +170,10 @@ const sendToQueue = async (pedido) => {
 
         // Update warehouse and zone
         await Promise.all([
-            axios.put(`http://127.0.0.1:5001/api/v1/pedido_almacen/${pedidoId}`, {
+            axios.put(`${service_pedido}/pedido_almacen/${pedidoId}`, {
                 almacen_id: almacenId
             }),
-            axios.put(`http://localhost:4009/api/v1/ubicacion/${ubicacion_id}`, {
+            axios.put(`${service_ubicacion}/ubicacion/${ubicacion_id}`, {
                 zona_trabajo_id: regionId
             })
         ]);
@@ -184,7 +192,7 @@ const sendToQueue = async (pedido) => {
         const descuentoCupon = resultado.data.descuento;
         const precioFinal = subTotal - descuentoCupon;
 
-        await axios.put(`http://127.0.0.1:5001/api/v1/pedido_precio/${pedidoId}`, {
+        await axios.put(`${service_pedido}/pedido_precio/${pedidoId}`, {
             subtotal: subTotal,
             total: precioFinal
         });

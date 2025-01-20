@@ -1,6 +1,10 @@
 import axios from "axios";
 import redisClient from "../index.js";
-const URLalmacen = "http://localhost:5015/api/v1/almacen"; //'http://localhost:5000/api/v1/pedido';
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+const service_almacen = process.env.MICRO_ALMACEN
 /*
 export const getAlmacenControllerIdGW = async (req,res) => {
     
@@ -53,7 +57,7 @@ export const getAlmacenControllerIdGW = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const response = await axios.get(`${URLalmacen}/${id}`);
+    const response = await axios.get(`${service_almacen}/almacen/${id}`);
 
     if (response && response.data) {
       res.status(200).json(response.data);
@@ -87,7 +91,7 @@ export const getAlmacenControllerGW = async (req, res) => {
      }*/
 
   try {
-    const response = await axios.get(URLalmacen);
+    const response = await axios.get(`${service_almacen}/almacen`);
     if (response && response.data) {
       /* try {
                  await redisClient.setEx(cacheKey, 3600, JSON.stringify(response.data))
@@ -108,7 +112,7 @@ export const postAlmacenControllerGW = async (req, res) => {
     const response = req.body;
     console.log(response, "<--------------data POST api gw");
 
-    const resultado = await axios.post(URLalmacen, response);
+    const resultado = await axios.post(`${service_almacen}/almacen`, response);
     console.log(resultado, "<------------micro almacen API GW");
     if (resultado && resultado.data) {
       res.status(201).json(resultado.data);
@@ -131,10 +135,10 @@ export const putClienteControllerGW = async (req, res) => {
         }
 
         console.log(id, "....id");
-        console.log(`${URLalmacen}/${id}`);
+        console.log(`${service_almacen}/almacen/${id}`);
 
         // Realizar la solicitud al microservicio ALMACÉN
-        const response = await axios.put(`${URLalmacen}/${id}`, req.body);
+        const response = await axios.put(`${service_almacen}/almacen/${id}`, req.body);
 
         // Verificar si la respuesta del microservicio es válida
         if (response && response.data) {
@@ -168,8 +172,8 @@ export const deleteClienteControllerGW = async (req, res) => {
   try {
     const { id } = req.params;
     console.log(id, ".....id");
-    console.log(`${URLalmacen}/${id}`);
-    const response = await axios.delete(`${URLalmacen}/${id}`);
+    console.log(`${service_almacen}/almacen/${id}`);
+    const response = await axios.delete(`${service_almacen}/almacen/${id}`);
     console.log(response.data, "---------conductores id");
     if (response) {
       res.status(201).json(response.data);

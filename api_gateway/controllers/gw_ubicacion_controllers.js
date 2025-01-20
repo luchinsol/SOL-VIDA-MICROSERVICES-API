@@ -1,6 +1,10 @@
 import axios from 'axios';
 import redisClient from '../index.js';
-const URLubicacion = 'http://localhost:4009/api/v1/ubicacion';//'http://localhost:5000/api/v1/pedido';
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+const service_ubicacion = process.env.MICRO_UBICACION
 
 export const getUbicacionesControllerIdGW = async (req,res) => {
     
@@ -23,8 +27,8 @@ export const getUbicacionesControllerIdGW = async (req,res) => {
     try {
         const { id } = req.params
         console.log(id,".....id")
-        console.log(`${URLubicacion}/${id}`)
-        const response = await axios.get(`${URLubicacion}/${id}`)
+        console.log(`${service_ubicacion}/ubicacion/${id}`)
+        const response = await axios.get(`${service_ubicacion}/ubicacion/${id}`)
         console.log(response.data,"---------------ubicacion id")
         if(response && response.data){
 

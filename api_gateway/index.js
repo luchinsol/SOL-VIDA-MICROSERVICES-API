@@ -1,65 +1,4 @@
-/*const express = require ("express")
-const jwt = require("jsonwebtoken")
 
-const app = express()
-
-app.get("/api",(req,res)=>{
-    res.json({
-        mensaje:"Node js jwt"
-    })
-})
-
-app.post("/api/login",(req,res)=>{
-    const user = {
-        "id":1,
-        "user":"Luis",
-        "email":"luchin@gmail.com"
-    }
-    jwt.sign({user:user},'claveKey',{expiresIn:'30s'},(err,token)=>{
-        res.json({
-            token:token,
-
-        })
-    })
-   // res.json(user)
-})
-// RUTA DE USUARIO
-app.post("/api/posts",verificarToken,(req,res)=>{
-    
-    jwt.verify(req.token,'claveKey', (error,authData)=>{
-        if(error){
-            res.sendStatus(403)
-        }
-        else{
-            res.json({mensaje:"POST fue creado",
-                authData:authData
-            })
-        }
-    })
-    
-    
-})
-
-// Authorization: Bearer
-function verificarToken(req,res,next){
-    const BearerHeader = req.headers['authorization']
-    if(typeof BearerHeader !== 'undefined'){
-       const BearerToken = BearerHeader.split(" ")[1]
-       req.token =BearerToken
-       next() 
-    }
-    else{
-        // acceso prohibido
-        res.sendStatus(403)
-    }
-}
-
-//// INICIO
-app.listen(3000,function(){
-    console.log("api running...")
-})*/
-
-// gateway.mjs
 import express from "express";
 import jwt from "jsonwebtoken";
 import morgan from "morgan"; // Importa Morgan
@@ -73,7 +12,7 @@ import routerGWCliente from "./routes/gw_cliente_route.js";
 import routerGWPedido from "./routes/gw_pedido_route.js";
 import routerGWConductor from "./routes/gw_conductor_route.js";
 import routerGWUbicacion from "./routes/gw_ubicacion_route.js";
-import routerIntegracion from "./routes/gw_integracion_route.js";
+
 import routerGWAlmacen from "./routes/gw_almacen_routes.js";
 import routerGWAlmacenZona from "./routes/gw_almacen_zona_trabajo_route.js";
 import routerGWLogin from "./routes/gw_login_route.js";
@@ -120,98 +59,6 @@ async function connectRedis() {
 const app = express();
 
 const server = http.createServer(app);
-/*
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    },
-    pingTimeout: 60000,
-    pingInterval: 25000
-});
-let pendingOrders = [];
-const RABBITMQ_URL = 'amqp://localhost';
-const QUEUE_NAME = 'colaPedidoRabbit';
-
-async function setupConsumer() {
-    try {
-        const connection = await amqp.connect(RABBITMQ_URL);
-        const channel = await connection.createChannel();
-
-        await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-        console.log('Gateway: Esperando pedidos en RabbitMQ...');
-
-        channel.consume(QUEUE_NAME, async (msg) => {
-            if (msg) {
-                try {
-                    const order = JSON.parse(msg.content.toString());
-                    console.log('Nuevo pedido recibido:', order);
-
-                    // Agregar timestamp y almacenar pedido
-                    const orderWithTimestamp = {
-                        ...order,
-                        timestamp: new Date().toISOString()
-                    };
-                    pendingOrders.push(orderWithTimestamp);
-
-                    // Emitir el evento a todos los clientes conectados
-                    io.emit('orders_updated', {
-                        status: 'success',
-                        action: 'new_order',
-                        data: pendingOrders,
-                        lastOrder: orderWithTimestamp,
-                        message: 'Nuevo pedido recibido'
-                    });
-
-                    // No se confirma el mensaje (ack) para simplificar la prueba
-                } catch (error) {
-                    console.error('Error procesando el mensaje:', error);
-                }
-            }
-        });
-
-        connection.on('close', () => {
-            console.error('Conexión a RabbitMQ cerrada, intentando reconectar...');
-            setTimeout(setupConsumer, 5000);
-        });
-
-        connection.on('error', (err) => {
-            console.error('Error de conexión a RabbitMQ:', err);
-        });
-    } catch (error) {
-        console.error('Error configurando consumidor de RabbitMQ:', error);
-        setTimeout(setupConsumer, 5000);
-    }
-}
-
-
-io.on('connection', (socket) => {
-    console.log(`Cliente conectado: ${socket.id}`);
-
-    // Enviar pedidos iniciales al cliente
-    socket.emit('orders_updated', {
-        status: 'success',
-        action: 'initial_load',
-        data: pendingOrders,
-        message: 'Cargando pedidos iniciales'
-    });
-
-    // Evento para refrescar los pedidos
-    socket.on('get_orders', () => {
-        socket.emit('orders_updated', {
-            status: 'success',
-            action: 'refresh',
-            data: pendingOrders,
-            message: 'Pedidos actualizados'
-        });
-    });
-
-    // Manejo de desconexión
-    socket.on('disconnect', () => {
-        console.log(`Cliente desconectado: ${socket.id}`);
-    });
-});*/
 
 
 //const server = http.createServer(app);
@@ -239,7 +86,7 @@ io.on("connection", (socket) => {
   io.emit("testy");
 });
 
-const SECRET_KEY = "aguasol"; // Usa la misma clave que en el microservicio de autenticación
+const SECRET_KEY = process.env.CLAVESOL; // Usa la misma clave que en el microservicio de autenticación
 app.use(cors());
 app.use(express.json());
 
@@ -275,30 +122,16 @@ app.use(verificarToken, routerGWCliente);
 app.use(verificarToken, routerGWPedido);
 app.use(verificarToken, routerGWConductor);
 app.use(verificarToken, routerGWUbicacion);
-app.use(verificarToken, routerIntegracion);
 app.use(verificarToken, routerGWAlmacen);
 app.use(verificarToken, routerGWAlmacenZona);
 app.use(routerGWLogin);
 
 
-const PORT = 3000;
+const PORT = process.env.PORT_APIGW;
 app.listen(PORT, async () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
-    //await setupConsumer();
-    /*
 
-
-    try {
-        //await startConsumer();
-        console.log('Consumidor de RabbitMQ iniciado correctamente');
-    } catch (error) {
-        console.error('Error al iniciar el consumidor de RabbitMQ:', error);
-    }
-    */
 });
-
-
-//export default{ app, io, server,redisClient };
 export default redisClient;
 
 
