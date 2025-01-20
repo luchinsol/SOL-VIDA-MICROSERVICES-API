@@ -210,6 +210,19 @@ ORDER BY id ASC;
         }
     },
 
+    updatePedidoConductor: async (idPedido, pedido) => {
+        try{
+            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1
+                WHERE id=$2 RETURNING *`, [pedido.conductor_id, idPedido])
+            if (!resultado) {
+                return null;
+            }
+            return resultado;
+        }catch(error){
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    }
+
     /*
     getPedidos: async (almacen_id) => {
         try {
