@@ -212,9 +212,9 @@ io.on('connection', (socket) => {
         console.log(`Cliente desconectado: ${socket.id}`);
     });
 });*/
-/*
 
-const server = http.createServer(app);
+
+//const server = http.createServer(app);
 const io = new Server(server, {
   reconnection: true,
   reconnectionAttempts: 10, // Número máximo de intentos
