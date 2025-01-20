@@ -16,9 +16,7 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - RABBITMQ_URL=amqp://rabbitmq:5672
-      - LOGIN_SERVICE_URL=http://microservice_auth:5000/api/v1/login
-      - USER_SERVICE_URL=http://microservice_auth:5000/api/v1/user
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     env_file:
       - ./api_gateway/.env  # Ruta del archivo .env para api_gateway
 
@@ -40,10 +38,10 @@ services:
     networks:
       - microservices_network
 
-  microservice_auth:
-    image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
+  microservice_almacen:
+    image: luis101590/microservice_almacen:latest
     ports:
-      - "5004:5004" # HOST : CONTENEDOR -> También puede ser - 5004 para resumir, por la igualdad de puertos
+      - "5003:5003"
     deploy:
       replicas: 1
       restart_policy:
@@ -51,7 +49,72 @@ services:
     networks:
       - microservices_network
     env_file:
-      - ./microservice_auth/.env
+      - ./microservice_almacen/.env
+
+  microservice_ubicacion:
+    image: luis101590/microservice_ubicacion:latest
+    ports:
+      - "5005:5005"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_ubicacion/.env
+
+  microservice_pedido:
+    image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5010:5010"
+    deploy:
+      replicas: 1 # Se definen 3 réplicas para este servicio
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_pedido/.env
+
+  microservice_producto:
+    image: luis101590/microservice_producto:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5004:5004"
+    deploy:
+      replicas: 1 # Se definen 3 réplicas para este servicio
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_producto/.env
+
+  microservice_zonaproducto:
+    image: luis101590/microservice_zonaproducto:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5006:5006"
+    deploy:
+      replicas: 1 # Se definen 3 réplicas para este servicio
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_zonaproducto/.env
+
+  microservice_zonapromocion:
+    image: luis101590/microservice_zonapromocion:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5007:5007"
+    deploy:
+      replicas: 1 # Se definen 3 réplicas para este servicio
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_zonapromocion/.env
 
   microservice_cliente:
     image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
@@ -65,17 +128,32 @@ services:
       - microservices_network
     env_file:
       - ./microservice_cliente/.env
-      
-  microservice_pedido:
-    image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
+
+  microservice_conductor:
+    image: luis101590/microservice_conductor:latest  # Apunta a la imagen subida a Docker Hub
     ports:
-      - "5001:5000"
+      - "5009:5009"
     deploy:
-      replicas: 1 # Se definen 3 réplicas para este servicio
+      replicas: 1
       restart_policy:
         condition: on-failure
     networks:
       - microservices_network
+    env_file:
+      - ./microservice_conductor/.env
+
+  microservice_auth:
+    image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
+    ports:
+      - "5001:5001" # HOST : CONTENEDOR -> También puede ser - 5004 para resumir, por la igualdad de puertos
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_auth/.env
 
 networks:
   microservices_network:

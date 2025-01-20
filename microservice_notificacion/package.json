@@ -1,5 +1,5 @@
 {
-  "name": "solmicroservicios",
+  "name": "microservice_notificacion",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "type": "module",
   "dependencies": {
     "dotenv": "^16.4.7"
   }
