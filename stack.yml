@@ -11,6 +11,11 @@ services:
       - microservice_auth
       - microservice_cliente
       - microservice_pedido
+      - microservice_zonaproducto
+      - microservice_zonapromocion
+      - microservice_producto
+      - microservice_conductor
+      - microservice_ubicacion
     networks:
       - microservices_network
     environment:
@@ -74,6 +79,8 @@ services:
         condition: on-failure
     networks:
       - microservices_network
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     env_file:
       - ./microservice_pedido/.env
 
