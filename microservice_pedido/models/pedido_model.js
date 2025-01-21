@@ -1,6 +1,6 @@
 import { db_pool } from '../config.js'
 import amqp from 'amqplib';
-const RABBITMQ_URL = 'amqp://localhost';
+const RABBITMQ_URL ='amqp://rabbitmq';// 'amqp://localhost';
 const QUEUE_NAME = 'new_orders';
 
 // Función para conectar y obtener un canal de RabbitMQ
