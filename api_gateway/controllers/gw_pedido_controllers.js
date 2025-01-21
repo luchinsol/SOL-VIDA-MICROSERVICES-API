@@ -233,7 +233,7 @@ export const postInfoPedido = async (req, res) => {
         const descuentoCupon = resultado.data.descuento;
         const precioFinal = subTotal - descuentoCupon;
 
-        await axios.put(`${service_producto}/pedido_precio/${pedidoId}`, {
+        await axios.put(`${service_pedido}/pedido_precio/${pedidoId}`, {
             subtotal: subTotal,
             total: precioFinal
         });
