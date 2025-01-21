@@ -272,7 +272,7 @@ async function setupConsumer() {
 
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = 'amqp://rabbitmq'//'amqp://localhost';
+const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://rabbitmq'//'amqp://localhost';
 const QUEUE_NAME = 'colaPedidoRabbit';
 const MAIN_QUEUE = 'micro_pedidos';
 const ARCHIVE_QUEUE = 'pedidos_archive';
@@ -281,7 +281,7 @@ const ARCHIVE_EXCHANGE = 'micro_pedidos_exchange';
 const ARCHIVE_ROUTING_KEY = 'pedido.archived';
 
 server.listen(PORT, async () => {
-    console.log(`Microservice PEDIDO_DETALLE running http://127.0.0.1:${PORT}`);
+    console.log(`Microservice PEDIDO_DETALLE running http://localhost:${PORT}`);
     await setupConsumer();
 });
 
