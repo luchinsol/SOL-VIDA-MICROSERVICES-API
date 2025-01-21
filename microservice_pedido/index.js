@@ -273,6 +273,8 @@ async function setupConsumer() {
 
 const PORT = process.env.PORT_PEDIDO
 const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://rabbitmq'//'amqp://localhost';
+console.log("...cola d pedidos en stack.yml")
+console.log(RABBITMQ_URL)
 const QUEUE_NAME = 'colaPedidoRabbit';
 const MAIN_QUEUE = 'micro_pedidos';
 const ARCHIVE_QUEUE = 'pedidos_archive';
