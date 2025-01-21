@@ -11,7 +11,7 @@ COPY . /app
 RUN npm install
 
 # Expone el puerto que el servicio va a utilizar, SOLO ES FORMALIDAD, MÁS NO FUNCIONAL
-EXPOSE 5004
+EXPOSE 5001
 
 # Comando para ejecutar la aplicación
 CMD ["node", "index.js"]
