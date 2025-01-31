@@ -16,6 +16,14 @@ create table public.conductor(
     estado_registro varchar(50),
     estado_trabajo varchar(50),
     departamento varchar(50),
-    provincia varchar(50)
+    provincia varchar(50),
+    evento_id INT, 
+    CONSTRAINT fk_evento FOREIGN KEY (evento_id) REFERENCES public.evento (id) 
 );	
+
+CREATE TABLE public.evento (
+    id SERIAL PRIMARY KEY, 
+    nombre VARCHAR(100) NOT NULL 
+);
+
 

@@ -1,3 +1,4 @@
+import modelPedidoDetalle from "../../microservice_pedido/models/pedido_model.js";
 import modelUserConductor from "../models/conductor_model.js"
 export const getAllUsersConductores = async (req, res) => {
     try {
@@ -54,6 +55,20 @@ export const updateUserConductores = async (req, res) => {
         }
 };
 
+export const updateEventosConductores = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = req.body
+      const response = await modelUserConductor.updateEventosConductor(id, resultado);
+      if (!response) {
+          return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(response);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
 export const deleteUserConductores = async (req, res) => {
     try {
         const { id } = req.params
@@ -66,3 +81,43 @@ export const deleteUserConductores = async (req, res) => {
           res.status(500).json({ error: error.message });
         }
 };
+
+export const getAllEventos = async (req, res) => {
+  try {
+      const resultado = await modelUserConductor.getEventoConductor()
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not Found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+export const getEventoConductoresPorId = async (req, res) => {
+  try {
+      const {id} = req.params
+      const resultado = await modelUserConductor.getEventoConductorPorId(id)
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not Found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+export const getEventoConductorEspecificos = async (req,res) => {
+  try{
+    const {id} = req.params
+    const resultado = await modelUserConductor.getEventoConductorEspecifico(id)
+    if (!resultado){
+      return res.status(404).json({message: "Data not found"})
+    }
+    res.status(200).json(resultado);
+  } catch(error){
+    res.status(500).json({error: error.message });
+  }
+}
