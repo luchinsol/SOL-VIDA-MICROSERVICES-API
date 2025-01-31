@@ -7,8 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv'
 dotenv.config()
 
-const service_pedido = process.env.MICRO_PEDIDO
 const service_ubicacion = process.env.MICRO_UBICACION
+const service_pedido = process.env.MICRO_PEDIDO
 const service_almacen = process.env.MICRO_ALMACEN
 const service_producto = process.env.MICRO_PRODUCTO
 const service_zonaproducto = process.env.MICRO_ZONAPRODUCTO

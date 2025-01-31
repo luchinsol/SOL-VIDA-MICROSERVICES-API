@@ -12,6 +12,26 @@ dotenv.config();
 const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
+const PORT = process.env.PORT_PEDIDO
+const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://rabbitmq'//'amqp://localhost';
+console.log("...cola d pedidos en stack.yml")
+console.log(RABBITMQ_URL)
+const QUEUE_NAME = 'colaPedidoRabbit';
+const MAIN_QUEUE = 'micro_pedidos';
+const ARCHIVE_QUEUE = 'pedidos_archive';
+const DRIVERS_EXCHANGE = 'drivers_exchange';
+const ARCHIVE_EXCHANGE = 'micro_pedidos_exchange';
+const ARCHIVE_ROUTING_KEY = 'pedido.archived';
+const EXPIRED_ORDERS_QUEUE = 'pedidos_expirados_queue';
+const ARCHIVE_QUEUE_1 = 'pedidos_archive_1';
+const ARCHIVE_QUEUE_2 = 'pedidos_archive_2';
+const ARCHIVE_QUEUE_3 = 'pedidos_archive_3';
+const DRIVERS_EXCHANGE_1 = 'drivers_exchange_1';
+const DRIVERS_EXCHANGE_2 = 'drivers_exchange_2';
+const DRIVERS_EXCHANGE_3 = 'drivers_exchange_3';
+const EXPIRED_ORDERS_EXCHANGE = 'expired_orders_exchange';
+
+
 const io = new Server(server, {
     cors: {
         origin: "*",
@@ -590,24 +610,9 @@ async function setupConsumer() {
 }
 
 
-const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = 'amqp://localhost';//process.env.RABBITMQ_URL//'amqp://rabbitmq'//'amqp://localhost';
 console.log("...cola d pedidos en stack.yml")
 console.log(RABBITMQ_URL)
-const QUEUE_NAME = 'colaPedidoRabbit';
-const MAIN_QUEUE = 'micro_pedidos';
-const ARCHIVE_QUEUE = 'pedidos_archive';
-const DRIVERS_EXCHANGE = 'drivers_exchange';
-const ARCHIVE_EXCHANGE = 'micro_pedidos_exchange';
-const ARCHIVE_ROUTING_KEY = 'pedido.archived';
-const EXPIRED_ORDERS_QUEUE = 'pedidos_expirados_queue';
-const ARCHIVE_QUEUE_1 = 'pedidos_archive_1';
-const ARCHIVE_QUEUE_2 = 'pedidos_archive_2';
-const ARCHIVE_QUEUE_3 = 'pedidos_archive_3';
-const DRIVERS_EXCHANGE_1 = 'drivers_exchange_1';
-const DRIVERS_EXCHANGE_2 = 'drivers_exchange_2';
-const DRIVERS_EXCHANGE_3 = 'drivers_exchange_3';
-const EXPIRED_ORDERS_EXCHANGE = 'expired_orders_exchange';
+
 
 
 server.listen(PORT, async () => {
