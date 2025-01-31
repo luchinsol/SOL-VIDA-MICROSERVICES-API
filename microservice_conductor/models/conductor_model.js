@@ -60,6 +60,20 @@ const modelUserConductor = {
         }
     },
 
+    updateEventosConductor: async (id, conductor) => {
+
+        try {
+            const resultado = await db_pool.oneOrNone(`UPDATE public.conductor SET evento_id = $1 WHERE id = $2 RETURNING *`,
+                [conductor.evento_id, id]);
+            if (!resultado) {
+                return null;
+            }
+            return resultado
+        } catch (error) {
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    },
+
 
     deleteUserConductor: async (id) => {
         try {
@@ -70,7 +84,61 @@ const modelUserConductor = {
         }
     },
 
-    
+    getEventoConductor: async() => {
+        try {
+            const resultado = await db_pool.any(
+                `select * from public.evento`)
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    getEventoConductorPorId: async(id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(
+                `SELECT e.nombre FROM evento AS e WHERE e.id = $1;`,[id]);
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+
+    getEventoConductorEspecifico: async(id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(
+                `SELECT
+    c.id,
+    c.usuario_id,
+    c.nombres,
+    c.apellidos,
+    c.dni,
+    c.fecha_nacimiento,
+    c.n_licencia,
+    c.n_soat,
+    c.foto_licencia,
+    c.foto_soat,
+    c.latitud,
+    c.longitud,
+    c.estado_registro,
+    c.estado_trabajo,
+    c.departamento,
+    c.provincia,
+    c.evento_id,
+    e.nombre
+FROM
+    conductor AS c
+INNER JOIN
+    evento AS e ON c.evento_id = e.id
+WHERE
+    c.id = $1;
+`,[id]);
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
     
 }
 

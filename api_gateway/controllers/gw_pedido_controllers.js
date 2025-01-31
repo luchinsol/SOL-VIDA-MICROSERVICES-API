@@ -8,15 +8,16 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const service_ubicacion = process.env.MICRO_UBICACION
+const service_pedido = process.env.MICRO_PEDIDO
+const service_almacen = process.env.MICRO_ALMACEN
 const service_producto = process.env.MICRO_PRODUCTO
 const service_zonaproducto = process.env.MICRO_ZONAPRODUCTO
 const service_zonapromocion = process.env.MICRO_ZONAPROMOCION
-const service_pedido = process.env.MICRO_PEDIDO
-const service_almacen = process.env.MICRO_ALMACEN
-
+const service_cliente = process.env.MICRO_CLIENTE
+const service_conductor = process.env.MICRO_CONDUCTOR
 const MAIN_QUEUE = 'micro_pedidos';
-//const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
-const RABBITMQ_URL = process.env.RABBITMQ_URL
+const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+//const RABBITMQ_URL = process.env.RABBITMQ_URL
 
 const sendToQueue = async (pedido) => {
     try {
@@ -125,8 +126,10 @@ export const postInfoPedido = async (req, res) => {
         }
 
         const pedidoId = resultado.data.id;
+        const clienteId = resultado.data.cliente_id;
         const regionId = analysis.region.warehouseId;
         const almacenId = analysis.nearestWarehouse.id;
+        const almacenes = analysis.nearestWarehouseIds;
 
         // Process each order detail
         const detallesProcessed = await Promise.all(detalles.map(async (detalle) => {
@@ -238,6 +241,33 @@ export const postInfoPedido = async (req, res) => {
             total: precioFinal
         });
 
+        async function fetchWarehouseEvents(warehouseIds) {
+            try {
+                const eventPromises = warehouseIds.map(id => 
+                    axios.get(`${service_conductor}/eventos/${id}`)
+                        .then(response => ({
+                            almacen_id: id,
+                            nombre_evento: response.data.nombre
+                        }))
+                        .catch(error => ({
+                            almacen_id: id,
+                            nombre_evento: null,
+                            error: 'Event not found'
+                        }))
+                );
+                return await Promise.all(eventPromises);
+            } catch (error) {
+                console.error('Error fetching warehouse events:', error);
+                return [];
+            }
+        }
+
+
+        const cliente_completo = await axios.get(`${service_cliente}/cliente/${clienteId}`)
+        const data_cliente = cliente_completo.data 
+
+        const warehouseEvents = await fetchWarehouseEvents(almacenes);
+        
         const response = {
             id: pedidoId,
             coordenadas: { latitud, longitud },
@@ -249,8 +279,55 @@ export const postInfoPedido = async (req, res) => {
             almacen_id: almacenId,
             subtotal: subTotal,
             descuento: descuentoCupon,
-            total: precioFinal
+            total: precioFinal,
+            AlmacenesPendientes: almacenes.map(id => {
+                const eventInfo = warehouseEvents.find(event => event.almacen_id === id);
+                return {
+                    id,
+                    nombre_evento: eventInfo ? eventInfo.nombre_evento : null
+                };
+            }),
+            Cliente: data_cliente,
+            emitted_time: new Date().toISOString(), // Add emission time
+            expired_time: new Date(new Date().getTime() + 1 * 60 * 1000).toISOString(), 
         };
+
+
+        /*
+        socket.emit('new_order', {
+            ...orderData,
+            emitted_time: new Date().toISOString(),
+            timeout_duration: 30
+        })
+
+
+        socket.on('order_timeout', async (data) => {
+            try {
+                const { orderId } = data;
+                
+                // Remove from current queue
+                await channel.ack(data.message);
+                
+                // Update order status in archive
+                await axios.put(`${service_pedido}/pedido/${orderId}`, {
+                    estado: 'rejected_timeout'
+                });
+                
+                // Notify all clients about the order removal
+                socket.broadcast.emit('order_removed', {
+                    orderId,
+                    reason: 'timeout'
+                });
+                
+                // Re-emit all active orders to ensure synchronization
+                const activeOrders = await axios.get(`${service_pedido}/pedido`);
+                socket.broadcast.emit('sync_update', activeOrders.data);
+            } catch (error) {
+                console.error('Error handling order timeout:', error);
+            }
+        });
+        */
+
         await sendToQueue(response);
         res.status(201).json(response);
         
@@ -263,6 +340,8 @@ export const postInfoPedido = async (req, res) => {
         });
     }
 };
+
+
 
 const processWarehouseRegions = (zonas) => {
     return zonas.map((zona) => {
@@ -369,6 +448,10 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
 
     allWarehouses.sort((a, b) => a.distance - b.distance);
 
+    const nearestWarehouseIds = allWarehouses
+    .slice(0, 3)
+    .map(warehouse => warehouse.id);
+
     // Si encontramos una región, buscar almacenes en esa región
     let warehousesInRegion = [];
     if (containingRegion) {
@@ -388,10 +471,13 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
             }));
     }
 
+
+
     return {
         point: coordinates,
         region: containingRegion || 'El punto no está en ninguna región definida',
         nearestWarehouse,
+        nearestWarehouseIds,
         allWarehouses: allWarehouses,
         warehousesInRegion: warehousesInRegion.length > 0 ? warehousesInRegion : 'No hay almacenes en la región'
     };
