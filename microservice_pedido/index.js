@@ -414,6 +414,62 @@ async function deleteOrderFromArchiveQueue(channel, orderId) {
     }
 }
 
+async function deleteOrderFromSpecificArchiveQueue(channel, queue, orderId) {
+    try {
+        console.log(`[CRITICAL DEBUG] Searching for order ${orderId} in queue ${queue}`);
+        let foundTarget = false;
+        const messages = [];
+        let message;
+        let totalMessagesProcessed = 0;
+
+        // Retrieve ALL messages
+        while ((message = await channel.get(queue, { noAck: false })) !== false) {
+            totalMessagesProcessed++;
+            try {
+                const order = JSON.parse(message.content.toString());
+                console.log(`[CRITICAL DEBUG] Processed order ID: ${order.id}`);
+                
+                // Convert both to strings to ensure strict comparison
+                if (String(order.id) === String(orderId)) {
+                    console.log(`[CRITICAL SUCCESS] Found and removing order ${orderId}`);
+
+                    order.accepted = true;
+                    order.is_rotation = false;
+                    order.taken_at = new Date().toISOString();
+                    order.AlmacenesPendientes = []; // Clear pending stores
+
+
+                    channel.ack(message);
+                    foundTarget = true;
+                } else {
+                    messages.push(message);
+                }
+            } catch (parseError) {
+                console.error('[CRITICAL ERROR] Message parsing failed:', parseError);
+                channel.ack(message);
+            }
+        }
+
+        // Requeue non-target messages
+        for (const msg of messages) {
+            await channel.sendToQueue(queue, msg.content, { persistent: true });
+            channel.ack(msg);
+        }
+
+        console.log(`[CRITICAL SUMMARY] Total messages processed: ${totalMessagesProcessed}`);
+        console.log(`[CRITICAL SUMMARY] Messages requeued: ${messages.length}`);
+
+        if (!foundTarget) {
+            console.error(`[CRITICAL FAILURE] Order ${orderId} NOT FOUND in queue ${queue}`);
+        }
+
+        return foundTarget;
+    } catch (error) {
+        console.error(`[CRITICAL ERROR] Processing queue ${queue}:`, error);
+        throw error;
+    }
+}
+
 
 async function setupConsumer() {
     try {
@@ -422,6 +478,8 @@ async function setupConsumer() {
 
         await setupQueuesAndExchanges(channel);
         console.log('Esperando pedidos...');
+
+        const ORDER_TIMEOUT = 1 * 60 * 1000; // 20 minutos
 
         channel.consume(EXPIRED_ORDERS_QUEUE, async (msg) => {
             if (msg !== null) {
@@ -451,6 +509,13 @@ async function setupConsumer() {
                         );
 
                         console.log(`Pedido ${order.id} reencolado en cola principal para rotación`);
+                        io.emit('pedido_rotado', {
+                            pedidoId: order.id,
+                            almacenActual: nextStore.id,
+                            timestamp: new Date().toISOString(),
+                            rotationAttempts: updatedOrder.rotation_attempts
+                        });
+
                     } else {
                         console.log(`Pedido ${order.id} sin almacenes pendientes, finalizando flujo`);
                         // Aquí podrías emitir un evento de pedido finalizado si es necesario
@@ -479,7 +544,11 @@ async function setupConsumer() {
                     const eventName = currentStore.nombre_evento.toLowerCase().replace(' ', '_');
 
                     // Crear copia del pedido para modificar
-                    const updatedOrder = { ...order };
+                    const updatedOrder = { 
+                        ...order,
+                        timestamp: new Date().toISOString(),
+                        rotation_attempts: (order.rotation_attempts || 0) + 1
+                    };
 
                     // Actualizar la lista de almacenes pendientes
                     updatedOrder.AlmacenesPendientes = order.AlmacenesPendientes.slice(1);
@@ -507,6 +576,36 @@ async function setupConsumer() {
                         { persistent: true }
                     );
 
+                    setTimeout(async () => {
+                        try {
+                            // Check if order is already accepted or has no pending stores
+                            if (!updatedOrder.accepted && 
+                                (!updatedOrder.AlmacenesPendientes || updatedOrder.AlmacenesPendientes.length === 0)) {
+                                console.log(`Pedido ${updatedOrder.id} no aceptado, iniciando rotación`);
+                    
+                                await channel.sendToQueue(
+                                    EXPIRED_ORDERS_QUEUE,
+                                    Buffer.from(JSON.stringify(updatedOrder)),
+                                    { persistent: true }
+                                );
+                    
+                                // Emitir evento de pedido rotado/expirado
+                                io.emit('pedido_rotado', {
+                                    pedidoId: updatedOrder.id,
+                                    almacenActual: currentStore.id,
+                                    timestamp: new Date().toISOString(),
+                                    rotationAttempts: updatedOrder.rotation_attempts
+                                });
+                            } else if (updatedOrder.accepted) {
+                                console.log(`Pedido ${updatedOrder.id} ya fue aceptado, cancelando rotación`);
+                                // Optionally, clear the timeout or add a flag to prevent further processing
+                            }
+                        } catch (error) {
+                            console.error('Error en timeout de rotación:', error);
+                        }
+                    }, ORDER_TIMEOUT);
+                    console.log(`Pedido ${order.id} enviado al almacén ${currentStore.id}`);
+
                     // Emitir el evento con el nombre del almacén
                     io.emit(eventName, updatedOrder);
                     console.log(`Evento ${eventName} emitido con éxito`);
@@ -514,6 +613,7 @@ async function setupConsumer() {
                     console.log('Orden guardada en cola:', getArchiveQueueByAlmacenId(order.almacen_id).queue);
                 } else {
                     console.log('No hay almacenes pendientes para este pedido');
+                    io.emit('pedido_sin_almacenes', order);
                 }
 
                 channel.ack(msg);
@@ -557,10 +657,50 @@ async function setupConsumer() {
                 });
             });
 
-            socket.on('take_order', async (orderId) => {
-                console.log(`[x] Pedido tomado: ${orderId}`);
-                await deleteOrderFromArchiveQueue(channel, orderId);
-                io.emit('order_taken', { id: orderId });
+            socket.on('take_order', async (data) => {
+                try {
+                    const { orderId, almacenId } = data;
+                    console.log(`[x] Pedido tomado: ${orderId} en almacén ${almacenId}`);
+                    
+                    const { queue: archiveQueue } = getArchiveQueueByAlmacenId(almacenId);
+                    console.log(`[DEBUG] Cola de archivo para almacén ${almacenId}: ${archiveQueue}`);
+                    
+                    const orderDeleted = await deleteOrderFromSpecificArchiveQueue(channel, archiveQueue, orderId);
+                    
+                    if (orderDeleted) {
+                        // Clear the order from all other exchanges and queues
+                        await channel.publish(
+                            EXPIRED_ORDERS_EXCHANGE,
+                            'expired',
+                            Buffer.from(JSON.stringify({ 
+                                id: orderId, 
+                                almacenId: almacenId,
+                                accepted: true,
+                                is_rotation: false,
+                                AlmacenesPendientes: []
+                            })),
+                            { persistent: true }
+                        );
+            
+                        io.emit('order_taken', { 
+                            id: orderId, 
+                            almacenId: almacenId 
+                        });
+                    } else {
+                        console.error(`[ERROR] Pedido ${orderId} NO ENCONTRADO definitivamente en la cola de almacén ${almacenId}`);
+                        socket.emit('order_not_found', { 
+                            id: orderId, 
+                            almacenId: almacenId,
+                            error: 'Pedido no encontrado en la cola de archivo'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error en take_order:', error);
+                    socket.emit('take_order_error', {
+                        id: data.orderId,
+                        error: error.message
+                    });
+                }
             });
 
             socket.on('disconnect', async () => {
