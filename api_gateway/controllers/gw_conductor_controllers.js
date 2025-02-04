@@ -133,7 +133,24 @@ export const deleteConductoresControllerGW = async (req, res) => {
     }
 };  
 
+export const getEventoConductores = async (req,res) => {
+    // AXIOS - BD
+    try {
+        const { id } = req.params
+        console.log(id,".....id")
+        //console.log(`${service_conductor}/conductor_evento/${id}`)
+        const response = await axios.get(`${service_conductor}/conductor_evento/${id}`)
+        //console.log(response.data,"---------------client id")
+        if(response && response.data){
+            res.status(200).json(response.data);
+        }else{
+            res.status(404).json({ message: 'Not found '})
+        }
 
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}
 
 
 
