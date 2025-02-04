@@ -13,8 +13,8 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://rabbitmq'//'amqp://localhost';
-console.log("...cola d pedidos en stack.yml")
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
+// console.log("...cola d pedidos en stack.yml")
 console.log(RABBITMQ_URL)
 const QUEUE_NAME = 'colaPedidoRabbit';
 const MAIN_QUEUE = 'micro_pedidos';
@@ -127,6 +127,8 @@ async function setupQueuesAndExchanges() {
         if (!connection || !channel) {
             await setupConnection();
         }
+
+        await channel.assertExchange(DRIVERS_EXCHANGE, 'fanout', { durable: true });
 
         // Rest of your existing setupQueuesAndExchanges logic...
         await channel.assertExchange(ARCHIVE_EXCHANGE, 'direct', {
