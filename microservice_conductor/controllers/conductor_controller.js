@@ -1,4 +1,3 @@
-import modelPedidoDetalle from "../../microservice_pedido/models/pedido_model.js";
 import modelUserConductor from "../models/conductor_model.js"
 export const getAllUsersConductores = async (req, res) => {
     try {
