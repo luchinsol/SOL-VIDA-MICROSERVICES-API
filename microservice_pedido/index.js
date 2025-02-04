@@ -251,168 +251,6 @@ async function getArchivedOrdersByStore(channel, almacenId) {
     return orders;
 }
 
-async function getAllArchivedOrders(channel) {
-    const orders = [];
-    let tempMessages = [];
-    let msg;
-
-    // Obtener todos los mensajes de la cola de archivo
-    while ((msg = await channel.get(ARCHIVE_QUEUE, { noAck: false })) !== false) {
-        try {
-            const order = JSON.parse(msg.content.toString());
-            orders.push(order);
-            tempMessages.push({
-                message: msg,
-                content: msg.content
-            });
-            channel.ack(msg);
-        } catch (error) {
-            console.error('Error parsing archived order:', error);
-            channel.ack(msg);
-        }
-    }
-
-    // Volver a publicar todos los mensajes en la cola de archivo
-    for (const msg of tempMessages) {
-        await channel.sendToQueue(ARCHIVE_QUEUE, msg.content, {
-            persistent: true
-        });
-    }
-
-    return orders;
-}
-
-function emitStoreEvent(order) {
-    if (!order.AlmacenesPendientes || order.AlmacenesPendientes.length === 0) {
-        return false;
-    }
-
-    // Obtener el almacén actual (segundo elemento o siguiente)
-    const currentStore = order.AlmacenesPendientes[1]; // Tomamos el segundo elemento
-    if (!currentStore) return false;
-
-    // Actualizar el almacen_id en la orden
-    order.almacen_id = currentStore.id;
-
-    // Emitir evento específico para el almacén
-    const eventName = `almacen${currentStore.id}`;
-    io.emit(eventName, {
-        ...order,
-        current_store: currentStore.nombre_evento
-    });
-
-    return true;
-}
-
-
-async function setupExpiredOrdersConsumer() {
-    try {
-        if (!connection || !channel) {
-            await setupConnection();
-        }
-
-        function processOrderRotation(order) {
-            // Increment ID for rotation
-            order.id = order.id + 1;
-
-            // If no more stores in AlmacenesPendientes, set to null
-            if (!order.AlmacenesPendientes || order.AlmacenesPendientes.length === 0) {
-                order.AlmacenesPendientes = null;
-            } else {
-                // Update almacen_id with the first element
-                order.almacen_id = order.AlmacenesPendientes[0];
-
-                // Remove the first element from AlmacenesPendientes
-                order.AlmacenesPendientes = order.AlmacenesPendientes.slice(1);
-
-                // Send to main queue
-                channel.sendToQueue(MAIN_QUEUE,
-                    Buffer.from(JSON.stringify(order)),
-                    { persistent: true }
-                );
-
-                console.log('Sent rotated order to main queue');
-            }
-
-            return order;
-        }
-
-        await channel.consume(EXPIRED_ORDERS_QUEUE, async (msg) => {
-            if (msg) {
-                try {
-                    const order = JSON.parse(msg.content.toString());
-                    processOrderRotation(order);
-
-                    // Acknowledge the message
-                    channel.ack(msg);
-                } catch (error) {
-                    console.error('Error processing order rotation:', error);
-                    channel.nack(msg);
-                }
-            }
-        }, { noAck: false });
-
-        console.log('Consumer for expired orders queue set up');
-    } catch (error) {
-        console.error('Error setting up expired orders consumer:', error);
-        throw error;
-    }
-}
-
-
-// Función para eliminar un pedido específico de la cola de archivo
-async function deleteOrderFromArchiveQueue(channel, orderId) {
-    try {
-        let foundTarget = false;
-        let messagesProcessed = 0;
-        const maxMessages = 1000;
-        const tempMessages = [];
-
-        // Procesar todos los mensajes de la cola
-        while (!foundTarget && messagesProcessed < maxMessages) {
-            const message = await channel.get(ARCHIVE_QUEUE, { noAck: false });
-
-            if (!message) break;
-
-            try {
-                const order = JSON.parse(message.content.toString());
-
-                if (order.id === orderId) {
-                    // Encontramos el pedido a eliminar
-                    channel.ack(message);
-                    foundTarget = true;
-                    console.log(`[x] Pedido ${orderId} eliminado de la cola de archivo`);
-                } else {
-                    // Guardar temporalmente los otros mensajes
-                    tempMessages.push({
-                        content: message.content
-                    });
-                    channel.ack(message);
-                }
-            } catch (parseError) {
-                console.error('Error parsing message:', parseError);
-                channel.ack(message);
-            }
-
-            messagesProcessed++;
-        }
-
-        // Republicar los mensajes que no fueron eliminados
-        for (const msg of tempMessages) {
-            await channel.sendToQueue(ARCHIVE_QUEUE, msg.content, {
-                persistent: true
-            });
-        }
-
-        // Actualizar la cola de pedidos activos
-        //await updateActiveOrdersQueue(channel, tempMessages.map(msg => msg.order));
-
-        return foundTarget;
-    } catch (error) {
-        console.error('Error processing archive queue:', error);
-        throw error;
-    }
-}
 
 async function deleteOrderFromSpecificArchiveQueue(channel, queue, orderId) {
     try {
@@ -578,27 +416,36 @@ async function setupConsumer() {
 
                     setTimeout(async () => {
                         try {
-                            // Check if order is already accepted or has no pending stores
-                            if (!updatedOrder.accepted && 
-                                (!updatedOrder.AlmacenesPendientes || updatedOrder.AlmacenesPendientes.length === 0)) {
-                                console.log(`Pedido ${updatedOrder.id} no aceptado, iniciando rotación`);
+                            // Get fresh order data from queue to check current status
+                            const currentQueueData = await channel.get(
+                                getArchiveQueueByAlmacenId(updatedOrder.almacen_id).queue,
+                                { noAck: true }
+                            );
                     
-                                await channel.sendToQueue(
-                                    EXPIRED_ORDERS_QUEUE,
-                                    Buffer.from(JSON.stringify(updatedOrder)),
-                                    { persistent: true }
-                                );
+                            if (currentQueueData) {
+                                const currentOrderState = JSON.parse(currentQueueData.content.toString());
+                                
+                                // Check if order hasn't been accepted yet
+                                if (!currentOrderState.accepted) {
+                                    console.log(`Pedido ${updatedOrder.id} no aceptado, iniciando rotación`);
                     
-                                // Emitir evento de pedido rotado/expirado
-                                io.emit('pedido_rotado', {
-                                    pedidoId: updatedOrder.id,
-                                    almacenActual: currentStore.id,
-                                    timestamp: new Date().toISOString(),
-                                    rotationAttempts: updatedOrder.rotation_attempts
-                                });
-                            } else if (updatedOrder.accepted) {
-                                console.log(`Pedido ${updatedOrder.id} ya fue aceptado, cancelando rotación`);
-                                // Optionally, clear the timeout or add a flag to prevent further processing
+                                    if (updatedOrder.AlmacenesPendientes && updatedOrder.AlmacenesPendientes.length > 0) {
+                                        await channel.sendToQueue(
+                                            EXPIRED_ORDERS_QUEUE,
+                                            Buffer.from(JSON.stringify(updatedOrder)),
+                                            { persistent: true }
+                                        );
+                    
+                                        io.emit('pedido_rotado', {
+                                            pedidoId: updatedOrder.id,
+                                            almacenActual: currentStore.id,
+                                            timestamp: new Date().toISOString(),
+                                            rotationAttempts: updatedOrder.rotation_attempts
+                                        });
+                                    } else {
+                                        io.emit('pedido_sin_almacenes', updatedOrder);
+                                    }
+                                }
                             }
                         } catch (error) {
                             console.error('Error en timeout de rotación:', error);
