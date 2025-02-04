@@ -24,7 +24,7 @@ export const getConductoresControllerGW = async (req, res) => {
         }
 
         const response = await axios.get(`${service_conductor}/conductor`);
-        console.log("Respuesta de la API de pedidos:", response.data);
+        console.log("Respuesta de la API de conductor:", response.data);
 
         if (response && response.data) {
             try {
