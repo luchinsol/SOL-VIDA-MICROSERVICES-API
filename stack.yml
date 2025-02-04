@@ -73,8 +73,6 @@ services:
     image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5010:5010"
-    depends_on:
-      - rabbitmq
     deploy:
       replicas: 1 # Se definen 3 réplicas para este servicio
       restart_policy:
