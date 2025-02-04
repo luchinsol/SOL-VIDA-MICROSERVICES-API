@@ -13,12 +13,12 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
-// console.log("...cola d pedidos en stack.yml")
+const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://localhost';
+console.log("...cola d pedidos en stack.yml")
+
 console.log(RABBITMQ_URL)
-const QUEUE_NAME = 'colaPedidoRabbit';
+
 const MAIN_QUEUE = 'micro_pedidos';
-const ARCHIVE_QUEUE = 'pedidos_archive';
 const DRIVERS_EXCHANGE = 'drivers_exchange';
 const ARCHIVE_EXCHANGE = 'micro_pedidos_exchange';
 const ARCHIVE_ROUTING_KEY = 'pedido.archived';
