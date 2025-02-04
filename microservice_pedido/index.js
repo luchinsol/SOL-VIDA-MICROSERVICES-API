@@ -471,6 +471,7 @@ async function setupConsumer() {
         io.on('connection', async (socket) => {
             console.log(`Cliente conectado: ${socket.id}`);
 
+            //EVENTO INICIAL QUE ASIGNA SU RESPECTIVA COLA A UN CONDUCTOR
             socket.on('register_driver', async (data) => {
                 const almacenId = data.almacenId;
                 const archiveQueue = `pedidos_archive_${almacenId}`;
@@ -488,8 +489,9 @@ async function setupConsumer() {
                 // Bind to store-specific exchange
                 await channel.bindQueue(driverQueue, driverExchange, '');
 
-                // Send initial orders from store-specific archive
+                // FUNCION QUE TE DA UNA COLA EN ESPECIFICA DE ACUERDO AL ALMACEN 
                 const archivedOrders = await getArchivedOrdersByStore(channel, almacenId);
+                //EVENTO QUE TE PERMITE OBTENER LOS PEDIDOS DE FORMA INCICIAL PARA UN DETERMINADO CONDUCTOR
                 socket.emit('initial_orders', archivedOrders);
 
                 // Setup consumer for this driver's queue
