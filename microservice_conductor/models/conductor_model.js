@@ -21,6 +21,16 @@ const modelUserConductor = {
         }
     },
 
+    getConductorUser_Id: async (id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT * FROM public.conductor WHERE usuario_id = $1`, [id]);
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
     createUserConductor: async (conductor) => {
 
         try {

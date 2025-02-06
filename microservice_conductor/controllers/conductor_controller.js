@@ -26,6 +26,20 @@ export const getConductorControllerId = async (req, res) => {
         }
 }
 
+export const getConductorController_Id = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelUserConductor.getConductorUser_Id(id)
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+}
+
 export const createUserConductores = async (req, res) => {
     try {
         const resultado = req.body
