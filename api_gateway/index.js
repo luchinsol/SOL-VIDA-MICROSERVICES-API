@@ -12,7 +12,7 @@ import routerGWCliente from "./routes/gw_cliente_route.js";
 import routerGWPedido from "./routes/gw_pedido_route.js";
 import routerGWConductor from "./routes/gw_conductor_route.js";
 import routerGWUbicacion from "./routes/gw_ubicacion_route.js";
-
+import routerGWNotificacion from "./routes/gw_notificacion_route.js";
 import routerGWAlmacen from "./routes/gw_almacen_routes.js";
 import routerGWAlmacenZona from "./routes/gw_almacen_zona_trabajo_route.js";
 import routerGWLogin from "./routes/gw_login_route.js";
@@ -125,6 +125,7 @@ app.use(verificarToken, routerGWPedido);
 app.use(verificarToken, routerGWUbicacion);
 app.use(verificarToken, routerGWAlmacen);
 app.use(verificarToken, routerGWAlmacenZona);
+app.use(verificarToken,routerGWNotificacion);
 app.use(routerGWLogin);
 app.use(routerGWConductor);
 

@@ -5,53 +5,6 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const service_almacen = process.env.MICRO_ALMACEN
-/*
-export const getAlmacenControllerIdGW = async (req,res) => {
-    
-    // REDIS
-    const cacheKey = `almacen_id_cache`; // Clave específica por ID
-    let cacheData;
-    
-    try {
-        cacheData = await redisClient.get(cacheKey)
-        console.log("Dato de caché:",cacheData)
-    } catch (redisError) {
-        console.error("Error al obtener datos de Redis:",redisError.message)
-    }
-
-    if(cacheData){
-        return res.status(200).json(JSON.parse(cacheData))
-    }
-
-    // AXIOS - BD
-    try {
-        const { id } = req.params
-        //console.log(id,".....id")
-        //console.log(`${URLalmacen}/${id}`)
-        const response = await axios.get(`${URLalmacen}/${id}`)
-        console.log(response.data,"---------------ubicacion id")
-        console.log("....DATA")
-        console.log(response)
-        if(response && response.data){
-
-         /*   try {
-                await redisClient.setEx(cacheKey,3600,JSON.stringify(response.data))
-            } catch (redisSetError) {
-                console.error("Error al guardar datos en Redis:",redisSetError.message)
-            }
-            res.status(200).json(response.data);
-        }else{
-            res.status(404).json({ message: 'Not found '})
-        }
-
-    } catch (error) {
-        res.status(500).json({error:error.message})
-    }
-
-};
-*/
-
-// ****************************************
 
 export const getAlmacenControllerIdGW = async (req, res) => {
   try {
