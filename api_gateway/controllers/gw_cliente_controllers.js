@@ -7,19 +7,6 @@ dotenv.config()
 
 const service_cliente = process.env.MICRO_CLIENTE
 
-const QUEUE_PEDIDOS = 'pedidos_queue';
-const QUEUE_CLIENTE_PEDIDOS = 'cliente_pedidos_queue';
-
-const sendToQueue = async (queue, message) => {
-    const connection = await amqp.connect('amqp://localhost');
-    const channel = await connection.createChannel();
-    await channel.assertQueue(queue, { durable: true });
-    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
-    console.log(`Mensaje enviado a la cola ${queue}:`, message);
-    await channel.close();
-    await connection.close();
-};
-
 export const getClientesControllerGW = async (req, res) => {
     const cacheKey = 'clientes_cache'
 
@@ -87,7 +74,7 @@ export const getClientesControllerIdGW = async (req,res) => {
             } catch (redisSetError) {
                 console.error("Error al guardar datos en Redis:",redisSetError.message)
             }
-            await sendToQueue('clientes_queue', response.data);
+          //  await sendToQueue('clientes_queue', response.data);
             res.status(200).json(response.data);
         }else{
             res.status(404).json({ message: 'Not found '})
