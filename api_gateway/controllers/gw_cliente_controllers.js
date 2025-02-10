@@ -6,6 +6,7 @@ dotenv.config()
 
 
 const service_cliente = process.env.MICRO_CLIENTE
+console.log(service_cliente)
 
 export const getClientesControllerGW = async (req, res) => {
     const cacheKey = 'clientes_cache'
@@ -123,6 +124,27 @@ export const putClienteControllerGW = async (req,res) => {
         
     } catch (error) {
         res.status(500).send('Error Modificar Cliente')
+    }
+}
+
+export const putClienteCalificationControllerGw = async (req,res) =>{
+    try {
+        console.log("...hola")
+        const {id} = req.params
+        const body = req.body
+        console.log(id)
+        console.log(body)
+        const response = await axios.put(`${service_cliente}/cliente_calificacion/${id}`,body)
+        console.log(".....PUT...")
+        console.log(response.data)
+        if(response){
+            res.status(200).json(response.data)
+        }
+        else{
+            res.status(400).json({message:'Invalid input data'})
+        }
+    } catch (error) {
+        res.status(500).send('Error Calificar Cliente')
     }
 }
 
