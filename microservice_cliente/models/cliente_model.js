@@ -87,17 +87,15 @@ const modelCliente = {
     },
     updateCalficationCliente: async (id,newCalification) => {
         try {
-            console.log("....new")
-            console.log(newCalification.calificacion)
+            
             const resultadoCalification =await modelCliente.getClienteUserId(id)
-          console.log(resultadoCalification)
+        
             const {calificacion} = resultadoCalification
-            console.log("calificacion")
-            console.log(calificacion);
+          
 
             var promedioCalification = ((calificacion + newCalification.calificacion)/2.0).toFixed(1)
 
-            console.log(promedioCalification)
+          
 
             if(promedioCalification>5){
                 const resultado = await db_pool.oneOrNone(`
