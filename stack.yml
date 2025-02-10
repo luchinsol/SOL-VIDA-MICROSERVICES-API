@@ -17,6 +17,7 @@ services:
       - microservice_conductor
       - microservice_ubicacion
       - microservice_notificacion
+      - microservice_almacen
     networks:
       - microservices_network
     environment:
