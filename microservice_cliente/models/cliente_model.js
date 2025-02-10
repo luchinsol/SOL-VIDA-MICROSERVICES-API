@@ -84,6 +84,45 @@ const modelCliente = {
         } catch (error) {
             throw new Error(`Error delete data ${error.message}`);
           }
+    },
+    updateCalficationCliente: async (id,newCalification) => {
+        try {
+            console.log("....new")
+            console.log(newCalification.calificacion)
+            const resultadoCalification =await modelCliente.getClienteUserId(id)
+          console.log(resultadoCalification)
+            const {calificacion} = resultadoCalification
+            console.log("calificacion")
+            console.log(calificacion);
+
+            var promedioCalification = ((calificacion + newCalification.calificacion)/2.0).toFixed(1)
+
+            console.log(promedioCalification)
+
+            if(promedioCalification>5){
+                const resultado = await db_pool.oneOrNone(`
+                    UPDATE public.cliente SET calificacion = $1 WHERE id = $2 RETURNING *`,[5.0,id])
+                    if(!resultado){
+                        return null
+                    }
+                    return resultado
+            }
+            else{
+                const resultado = await db_pool.oneOrNone(`
+                    UPDATE public.cliente SET calificacion = $1 WHERE id = $2 RETURNING *`,[promedioCalification,id])
+                    if(!resultado){
+                        return null
+                    }
+                    return resultado
+            }
+
+           
+            
+            
+
+        } catch (error) {
+            throw new Error(`Error update calification ${error}`)
+        }
     }
 
 }

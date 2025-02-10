@@ -68,6 +68,22 @@ export const putClienteController = async (req, res) => {
         }
 };
 
+export const putClienteCalificationController = async(req,res) => {
+  try {
+    const {id} = req.params
+    const newCalificacion = req.body
+    const resultado = await modelCliente.updateCalficationCliente(id,newCalificacion)
+    
+    if(!resultado){
+      return res.status(404).json({message:"Not found"})
+    }
+    res.status(200).json(resultado)
+
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
 export const deleteClienteController = async (req, res) => {
     try {
         const { id } = req.params
