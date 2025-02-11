@@ -221,85 +221,20 @@ ORDER BY id ASC;
         }catch(error){
             throw new Error(`Error put data: ${error.message}`);
         }
-    }
+    },
 
-    /*
-    getPedidos: async (almacen_id) => {
-        try {
-            const pedido_almacen = await db_pool.any(
-                `SELECT * FROM public.pedido WHERE almacen_id = $1`, [almacen_id]
-            )
-            let Almacenes = [1, 2, 3]
-            // Get current date and time
-            const now = new Date();
-
-            // ISO format
-            const isoTime = now.toISOString();  // 2024-12-26T10:30:15.123Z
-
-            // Local time string
-            const localTime = now.toLocaleString();  // 12/26/2024, 10:30:15 AM
-
-            // Custom format using Date methods
-            const customTime = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`; // 10:30:15
-
-            for (var i = 0; i < pedido_almacen.length; i++) {
-                if (pedido_almacen[i].hac - customTime >= 20) {
-                    pedido_almacen[i].hac = customTime
-                    while (pedido_almacen[i].cvr < 2) {
-                        let AlmaX = Almacenes.filter(pedido_almacen[i].almacen_id)
-                        pedido_almacen[i].cvr++
-                        let tempAlmacenes = AlmaX
-                        let newAlmacen = Voronoi(pedido_almacen[i].ubicacion_id, tempAlmacenes)
-                        pedido_almacen[i].almacen_id = newAlmacen
-                        const Almacen_Actual = await db_pool.one(`
-                        UPDATE FROM public.pedido SET almacen_id=$1 where id=$2 RETURNING *`, pedido_almacen[i].almacen_id, pedido_almacen[i].id)
-                        if (Almacen_Actual[i].estado == "en proceso") {
-                            break;
-                        }
-                    }
-                }
+    updatePedidoConductorEstado: async (idPedido, pedido) => {
+        try{
+            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1, estado=$2, almacen_id=$3
+                WHERE id=$4 RETURNING *`, [pedido.conductor_id, pedido.estado, pedido.almacen_id ,idPedido])
+            if (!resultado) {
+                return null;
             }
-
-            // hora actual
-            let horaActual = new Date()
-            let hora = horaActual.getHours()
-
-            let bandeja_entrada = []
-            let almacenes = ['A', 'B', 'C']
-            let hora_entrega = 90
-            for (var i = 0; i < bandeja_entrada.length; i++) {
-                if (bandeja_entrada[i].hora_acumulada - hora === 45) {
-                    bandeja_entrada[i].hora_acumulada = hora;
-
-                    // la cantidad 2 depende de los almacenes menos 1
-                    while (bandeja_entrada[i].cantidad_noentregado < 2) {
-                        let nuevosAlmacenes = almacenes.filter(elemento => elemento !== bandeja_entrada[i].almacen_id);
-                        bandeja_entrada[i].almacen_id = Voronoi(bandeja_entrada[i].ubicacion_id, nuevosAlmacenes)
-                        const result = await db_pool.one(`UPDATE public.pedido SET almacen_id = $1 WHERE id = $2`,
-                            [bandeja_entrada[i].almacen_id, bandeja_entrada[i].id]
-                        )
-
-                        bandeja_entrada[i].cantidad_noentregado++
-
-                        if (bandeja_entrada[i].estado === 'entregado') {
-                            break;
-                        }
-
-
-                    }
-                    // la cantidad depende del número de almacenes
-                    if (bandeja_entrada[i].cantidad_noentregado === 3) {
-                        bandeja_entrada[i].estado = "rezagado"
-                        const rezagado = await db_pool.one(`UPDATE public.pedido SET estado=$1 WHERE id=$2`, [
-                            bandeja_entrada[i].estado, bandeja_entrada[i].id
-                        ])
-                    }
-                }
-            }
-        } catch (error) {
-            throw new Error(`Error Pedido Almacen ${error}`)
+            return resultado;
+        }catch(error){
+            throw new Error(`Error put data: ${error.message}`);
         }
-    }*/
+    }
 
 }
 

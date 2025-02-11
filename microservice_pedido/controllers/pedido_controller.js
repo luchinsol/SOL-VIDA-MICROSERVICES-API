@@ -239,6 +239,20 @@ export const updatePedidoConductores = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const updatePedidoConductoresEstado = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = req.body
+        const response = await modelPedidoDetalle.updatePedidoConductorEstado(id, resultado)
+        if (!response) {
+            return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 /*
 export const getPedidosAlmacen = async (req, res) => {
     try {

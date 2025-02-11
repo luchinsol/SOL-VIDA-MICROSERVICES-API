@@ -94,11 +94,19 @@ export const postInfoPedido = async (req, res) => {
             detalles
         } = req.body;
 
-        let latitud, longitud;
+        let latitud, longitud,id,departamento,provincia,distrito,direccion,cliente,zonaTrabajo;
         try {
             const ubicacionRes = await axios.get(`${service_ubicacion}/ubicacion/${ubicacion_id}`);
+            //console.log(ubicacionRes.data);
+            id = ubicacionRes.data.id;
             latitud = ubicacionRes.data.latitud;
             longitud = ubicacionRes.data.longitud;
+            departamento = ubicacionRes.data.departamento;
+            provincia = ubicacionRes.data.provincia;
+            distrito = ubicacionRes.data.distrito;
+            direccion = ubicacionRes.data.direccion;
+            cliente = ubicacionRes.data.cliente_id;
+            zonaTrabajo = ubicacionRes.data.zona_trabajo_id;
 
             if (!latitud || !longitud) {
                 return res.status(400).json({ message: 'Coordenadas no disponibles' });
@@ -267,10 +275,13 @@ export const postInfoPedido = async (req, res) => {
         const data_cliente = cliente_completo.data 
 
         const warehouseEvents = await fetchWarehouseEvents(almacenes);
-        
+
+        const pedido_completo = await axios.get(`${service_pedido}/pedido/${pedidoId}`);
+        const data_pedido = pedido_completo.data
+
         const response = {
             id: pedidoId,
-            coordenadas: { latitud, longitud },
+            ubicacion: { id,latitud, longitud, departamento, provincia,distrito,direccion, cliente,zonaTrabajo },
             detalles: {
                 promociones,
                 productos
@@ -290,6 +301,7 @@ export const postInfoPedido = async (req, res) => {
             Cliente: data_cliente,
             emitted_time: new Date().toISOString(), // Add emission time
             expired_time: new Date(new Date().getTime() + 1 * 60 * 1000).toISOString(), 
+            pedidoinfo: data_pedido,
         };
 
 
@@ -499,4 +511,31 @@ export const UpdateAlmacenPedidosControllerGW = async (req, res) => {
         res.status(500).send('Error creating order');
     }
 };
+
+
+export const UpdatePedidoConductorEstadoControllerGW = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const response = await axios.put(`${service_pedido}/pedido_estado/${id}`, req.body);
+
+        if (response.status === 200 && response.data) {
+            return res.status(200).json(response.data);
+        } 
+        
+        return res.status(404).json({ message: 'Pedido no encontrado o no actualizado' });
+
+    } catch (error) {
+        if (error.response) {
+            const { status, data } = error.response;
+            
+            if (status === 404) {
+                return res.status(404).json({ message: 'Pedido no encontrado', details: data });
+            }
+        }
+
+        console.error(`Error en UpdatePedidoConductorEstadoControllerGW: ${error.message}`);
+        return res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
 
