@@ -19,6 +19,15 @@ const modelCliente = {
             throw new Error(`Error get data: ${error}`);
         }
     }, 
+    getClienteUser_Id: async (id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT * FROM public.cliente WHERE usuario_id = $1`, [id]);
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    }, 
     postCliente: async (cliente) => {
         try {
             const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
@@ -75,6 +84,43 @@ const modelCliente = {
         } catch (error) {
             throw new Error(`Error delete data ${error.message}`);
           }
+    },
+    updateCalficationCliente: async (id,newCalification) => {
+        try {
+            
+            const resultadoCalification =await modelCliente.getClienteUserId(id)
+        
+            const {calificacion} = resultadoCalification
+          
+
+            var promedioCalification = ((calificacion + newCalification.calificacion)/2.0).toFixed(1)
+
+          
+
+            if(promedioCalification>5){
+                const resultado = await db_pool.oneOrNone(`
+                    UPDATE public.cliente SET calificacion = $1 WHERE id = $2 RETURNING *`,[5.0,id])
+                    if(!resultado){
+                        return null
+                    }
+                    return resultado
+            }
+            else{
+                const resultado = await db_pool.oneOrNone(`
+                    UPDATE public.cliente SET calificacion = $1 WHERE id = $2 RETURNING *`,[promedioCalification,id])
+                    if(!resultado){
+                        return null
+                    }
+                    return resultado
+            }
+
+           
+            
+            
+
+        } catch (error) {
+            throw new Error(`Error update calification ${error}`)
+        }
     }
 
 }

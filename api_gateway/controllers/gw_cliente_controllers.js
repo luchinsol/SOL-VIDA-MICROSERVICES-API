@@ -6,19 +6,7 @@ dotenv.config()
 
 
 const service_cliente = process.env.MICRO_CLIENTE
-
-const QUEUE_PEDIDOS = 'pedidos_queue';
-const QUEUE_CLIENTE_PEDIDOS = 'cliente_pedidos_queue';
-
-const sendToQueue = async (queue, message) => {
-    const connection = await amqp.connect('amqp://localhost');
-    const channel = await connection.createChannel();
-    await channel.assertQueue(queue, { durable: true });
-    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
-    console.log(`Mensaje enviado a la cola ${queue}:`, message);
-    await channel.close();
-    await connection.close();
-};
+console.log(service_cliente)
 
 export const getClientesControllerGW = async (req, res) => {
     const cacheKey = 'clientes_cache'
@@ -87,7 +75,7 @@ export const getClientesControllerIdGW = async (req,res) => {
             } catch (redisSetError) {
                 console.error("Error al guardar datos en Redis:",redisSetError.message)
             }
-            await sendToQueue('clientes_queue', response.data);
+          //  await sendToQueue('clientes_queue', response.data);
             res.status(200).json(response.data);
         }else{
             res.status(404).json({ message: 'Not found '})
@@ -136,6 +124,27 @@ export const putClienteControllerGW = async (req,res) => {
         
     } catch (error) {
         res.status(500).send('Error Modificar Cliente')
+    }
+}
+
+export const putClienteCalificationControllerGw = async (req,res) =>{
+    try {
+        console.log("...hola")
+        const {id} = req.params
+        const body = req.body
+        console.log(id)
+        console.log(body)
+        const response = await axios.put(`${service_cliente}/cliente_calificacion/${id}`,body)
+        console.log(".....PUT...")
+        console.log(response.data)
+        if(response){
+            res.status(200).json(response.data)
+        }
+        else{
+            res.status(400).json({message:'Invalid input data'})
+        }
+    } catch (error) {
+        res.status(500).send('Error Calificar Cliente')
     }
 }
 

@@ -16,6 +16,8 @@ services:
       - microservice_producto
       - microservice_conductor
       - microservice_ubicacion
+      - microservice_notificacion
+      - microservice_almacen
     networks:
       - microservices_network
     environment:
@@ -42,6 +44,19 @@ services:
       - "6379:6379"
     networks:
       - microservices_network
+
+  microservice_notificacion:
+    image: luis101590/microservice_notificacion:latest
+    ports:
+      - "5013:5013"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_notificacion/.env
 
   microservice_almacen:
     image: luis101590/microservice_almacen:latest

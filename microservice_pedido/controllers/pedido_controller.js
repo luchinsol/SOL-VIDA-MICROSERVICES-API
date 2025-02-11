@@ -240,6 +240,7 @@ export const updatePedidoConductores = async (req, res) => {
     }
 };
 
+
 export const updatePedidoConductoresEstado = async (req, res) => {
     try {
         const { id } = req.params
@@ -253,20 +254,16 @@ export const updatePedidoConductoresEstado = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-/*
-export const getPedidosAlmacen = async (req, res) => {
+
+export const getPedidoHistoryConductores = async (req,res) => {
     try {
-        const { id } = req.params
-        const resultado = await modelPedidoDetalle.getPedidos(ALMACEN)
-
-        if (resultado) {
-            res.status(200).json(resultado)
+        const {id,fecha}= req.params
+        const response  = await modelPedidoDetalle.getPedidoHistoryConductor(id,fecha)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
         }
-        else {
-            res.status(404).json({ message: 'Not Found' })
-        }
+        res.status(200).json(response)
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(500).json({error:error.message})
     }
-}*/
-
+}

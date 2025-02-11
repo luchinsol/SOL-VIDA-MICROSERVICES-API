@@ -223,6 +223,76 @@ ORDER BY id ASC;
         }
     },
 
+    getPedidoHistoryConductor: async (id, fecha) => {
+        try {
+            const resultado = await db_pool.manyOrNone(`
+                SELECT 
+                    pp.id, 
+                    pp.cliente_id, 
+                    pp.subtotal, 
+                    pp.descuento, 
+                    pp.total, 
+                    pp.fecha, 
+                    pp.tipo, 
+                    pp.foto, 
+                    pp.estado, 
+                    pp.observacion, 
+                    pp.tipo_pago, 
+                    pp.beneficiado_id, 
+                    pp.ubicacion_id, 
+                    pp.conductor_id, 
+                    pp.almacen_id,
+                    pdp.id AS id_detalle, 
+                    pdp.producto_id, 
+                    pdp.cantidad, 
+                    pdp.promocion_id
+                FROM public.pedido AS pp
+                INNER JOIN public.detalle_pedido AS pdp ON pp.id = pdp.pedido_id
+                WHERE pp.conductor_id = $1
+                AND pp.estado = 'entregado'
+                AND DATE(pp.fecha) = $2
+                ORDER BY pp.id, pdp.id;
+            `, [id, fecha]);
+    
+            // Agrupar los pedidos
+            const pedidosAgrupados = resultado.reduce((acc, row) => {
+                // Buscar si el pedido ya existe en el array acumulador
+                let pedido = acc.find(p => p.id === row.id);
+    
+                if (!pedido) {
+                    // Si no existe, creamos la estructura del pedido
+                    pedido = {
+                        id: row.id,
+                        cliente: row.cliente_id,
+                        total: row.total,
+                        fecha:row.fecha,
+                        tipo:row.tipo,
+                        estado:row.estado,
+                        ubicacion:row.ubicacion_id,
+                        detalles_pedido: []
+                    };
+                    acc.push(pedido);
+                }
+    
+                // Agregamos el detalle de pedido a la lista
+                pedido.detalles_pedido.push({
+                    id: row.id_detalle,
+                    producto_id: row.producto_id,
+                    cantidad: row.cantidad,
+                    promocion_id: row.promocion_id
+                });
+    
+                return acc;
+            }, []);
+    
+          
+            return pedidosAgrupados;
+    
+        } catch (error) {
+            throw new Error(`Error get data ${error}`);
+        }
+    },
+
     updatePedidoConductorEstado: async (idPedido, pedido) => {
         try{
             const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1, estado=$2, almacen_id=$3
