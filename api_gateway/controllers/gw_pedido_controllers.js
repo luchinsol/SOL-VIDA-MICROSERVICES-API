@@ -44,6 +44,84 @@ const sendToQueue = async (pedido) => {
     }
   };
 
+
+  export const getPedidoHistoryConductorControllerGW = async (req, res) => {
+    try {
+        const { id, fecha } = req.params;
+        console.log("......dentro de ");
+
+        // 1️⃣ Obtener historial de pedidos
+        const response = await axios.get(`${service_pedido}/pedido_history/${id}/${fecha}`);
+        if (!response.data || response.data.length === 0) {
+            return res.status(404).json({ message: 'Data not found' });
+        }
+
+        const pedidos = response.data;
+     
+
+        // 2️⃣ Obtener información de los clientes (IDs únicos)
+        const clienteIds = [...new Set(pedidos.map(p => p.cliente))];
+        const clienteRequests = clienteIds.map(cid => axios.get(`${service_cliente}/cliente/${cid}`));
+
+        const clienteResponses = await Promise.all(clienteRequests);
+        const clientes = clienteResponses.reduce((acc, res) => {
+            acc[res.data.id] = res.data.nombre; // Guardamos en un diccionario { id: nombre }
+            return acc;
+        }, {});
+        
+
+        // 3️⃣ Obtener detalles de productos en paralelo
+        const productIds = [...new Set(pedidos.flatMap(p => p.detalles_pedido.map(d => d.producto_id)))];
+        const productRequests = productIds.map(pid => axios.get(`${service_producto}/producto/${pid}`));
+
+        const productResponses = await Promise.all(productRequests);
+        const productos = productResponses.reduce((acc, res) => {
+            acc[res.data.id] = res.data.nombre; // Guardamos en un diccionario { id: nombre }
+            return acc;
+        }, {});
+
+        // 4️⃣ Obtener detalles de promociones en paralelo
+        const promoIds = [...new Set(pedidos.flatMap(p => p.detalles_pedido.map(d => d.promocion_id).filter(pid => pid !== null)))];
+        const promoRequests = promoIds.map(pid => axios.get(`${service_producto}/promocion/${pid}`));
+
+        const promoResponses = await Promise.all(promoRequests);
+        const promociones = promoResponses.reduce((acc, res) => {
+            acc[res.data.id] = res.data.nombre; // Guardamos en un diccionario { id: nombre }
+            return acc;
+        }, {});
+
+        // 5️⃣ Obtener ubicaciones en paralelo
+        const ubicacionIds = [...new Set(pedidos.map(p => p.ubicacion).filter(uid => uid !== null))];
+        const ubicacionRequests = ubicacionIds.map(uid => axios.get(`${service_ubicacion}/ubicacion/${uid}`));
+       
+        const ubicacionResponses = await Promise.all(ubicacionRequests);
+        const ubicaciones = ubicacionResponses.reduce((acc, res) => {
+            acc[res.data.id] = res.data; // Guardamos el objeto de la ubicación
+            return acc;
+        }, {});
+
+        // 6️⃣ Construir respuesta final con nombres de productos, clientes, promociones y ubicaciones
+        const pedidosCompletos = pedidos.map(pedido => ({
+            ...pedido,
+            cliente_nombre: clientes[pedido.cliente] || 'Desconocido',
+            ubicacion: ubicaciones[pedido.ubicacion] || null, // Agregamos la ubicación
+            detalles_pedido: pedido.detalles_pedido.map(detalle => ({
+                ...detalle,
+                producto_nombre: detalle.promocion_id
+                    ? promociones[detalle.promocion_id] || 'Promoción desconocida'
+                    : productos[detalle.producto_id] || 'Producto desconocido'
+            }))
+        }));
+
+        res.status(200).json(pedidosCompletos);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+  
+  
 export const getPedidosControllerGW = async (req, res) => {
     console.log("......get pedido controller");
     const cacheKey = 'pedidos_cache';

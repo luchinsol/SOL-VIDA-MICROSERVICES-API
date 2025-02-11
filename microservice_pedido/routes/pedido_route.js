@@ -1,4 +1,4 @@
-import { updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId } from "../controllers/pedido_controller.js";
+import { updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores } from "../controllers/pedido_controller.js";
 import express from 'express'
 
 const routerPedido = express.Router()
@@ -30,5 +30,6 @@ routerPedido.put('/pedido_almacen/:id',updatePedidoAlmacenController)
 routerPedido.put('/pedido_precio/:id',updatePedidoPrecios)
 //PEDIDO ACTUALIZADO
 routerPedido.put('/pedido_conductor/:id',updatePedidoConductores)
+routerPedido.get('/pedido_history/:id/:fecha',getPedidoHistoryConductores)
 
 export default routerPedido

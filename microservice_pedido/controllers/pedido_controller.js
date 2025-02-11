@@ -239,6 +239,19 @@ export const updatePedidoConductores = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getPedidoHistoryConductores = async (req,res) => {
+    try {
+        const {id,fecha}= req.params
+        const response  = await modelPedidoDetalle.getPedidoHistoryConductor(id,fecha)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}
 /*
 export const getPedidosAlmacen = async (req, res) => {
     try {
