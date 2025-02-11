@@ -97,7 +97,7 @@ app.use(morgan("combined"));
 function verificarToken(req, res, next) {
   
 
-  if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor")) {
+  if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor") || req.path.startsWith("/apigw/v1/pedido_estado")) {
     return next();
   }
 
