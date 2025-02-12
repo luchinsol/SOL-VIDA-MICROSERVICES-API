@@ -113,6 +113,10 @@ const sendToQueue = async (pedido) => {
             }))
         }));
 
+        if(!pedidosCompletos || pedidosCompletos.length === 0){
+            return res.status(404).json({message:'Data not found'})
+        }
+
         res.status(200).json(pedidosCompletos);
     } catch (error) {
         res.status(500).json({ error: error.message });
