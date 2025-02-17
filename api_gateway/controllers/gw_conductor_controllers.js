@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const service_conductor = process.env.MICRO_CONDUCTOR
+const service_pedido = process.env.MICRO_PEDIDO
 
 export const getConductoresControllerGW = async (req, res) => {
     console.log("......get conductor controller");
@@ -152,6 +153,57 @@ export const getEventoConductores = async (req,res) => {
     }
 }
 
+// Cantidad de pedidos conductor
+
+export const getConductorPedidos = async (req, res) => {
+    try {
+        const { idconductor } = req.params;
+        const cacheKey = `pedidos_conductor_${idconductor}`;
+
+        // Intentar obtener la respuesta desde Redis
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            return res.status(200).json(JSON.parse(cachedData)); // Devolver caché
+        }
+
+        // Si no hay caché, hacer la petición a la BD
+        const response = await axios.get(`${service_pedido}/pedido_conteo/${idconductor}`);
+        if (response && response.data) {
+            await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
+            return res.status(200).json(response.data);
+        } else {
+            return res.status(404).json({ message: "Not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Último pedido entregado
+
+export const getLastPedido = async (req, res) => {
+    try {
+        const { idconductor } = req.params;
+        const cacheKey = `pedido_ultimo_${idconductor}`;
+
+        // Intentar obtener la respuesta desde Redis
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            return res.status(200).json(JSON.parse(cachedData)); // Devolver caché
+        }
+
+        // Si no hay caché, hacer la petición a la BD
+        const response = await axios.get(`${service_pedido}/pedido_conductor/${idconductor}`);
+        if (response && response.data) {
+            await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
+            return res.status(200).json(response.data);
+        } else {
+            return res.status(404).json({ message: "Not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 
 
