@@ -160,11 +160,31 @@ WHERE conductor_id = $1 AND estado = 'entregado';`, [id])
 
         try {
             const resultado = await db_pool.oneOrNone(`
-               SELECT * 
-FROM public.pedido
-WHERE conductor_id = $1 AND estado = 'entregado'
-ORDER BY fecha DESC
-LIMIT 1;`, [id])
+              SELECT 
+                    pp.id, 
+                    pp.cliente_id, 
+                    pp.subtotal, 
+                    pp.descuento, 
+                    pp.total, 
+                    pp.fecha, 
+                    pp.tipo, 
+                    pp.foto, 
+                    pp.estado, 
+                    pp.observacion, 
+                    pp.tipo_pago, 
+                    pp.beneficiado_id, 
+                    pp.ubicacion_id, 
+                    pp.conductor_id, 
+                    pp.almacen_id,
+                    pdp.id AS id_detalle, 
+                    pdp.producto_id, 
+                    pdp.cantidad, 
+                    pdp.promocion_id
+                FROM public.pedido AS pp
+                INNER JOIN public.detalle_pedido AS pdp ON pp.id = pdp.pedido_id
+                WHERE pp.conductor_id = 3
+                AND pp.estado = 'entregado'
+                ORDER BY pp.id DESC LIMIT 1;`, [id])
             return resultado
         } catch (error) {
             throw new Error(`Error get data: ${error}`);

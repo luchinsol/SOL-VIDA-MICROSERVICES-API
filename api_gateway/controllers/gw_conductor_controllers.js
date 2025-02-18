@@ -6,6 +6,7 @@ dotenv.config()
 
 const service_conductor = process.env.MICRO_CONDUCTOR
 const service_pedido = process.env.MICRO_PEDIDO
+const service_cliente = process.env.MICRO_CLIENTE
 
 export const getConductoresControllerGW = async (req, res) => {
     console.log("......get conductor controller");
@@ -189,21 +190,43 @@ export const getLastPedido = async (req, res) => {
     try {
        
         const { idconductor } = req.params;
-         /*
-        const cacheKey = `pedido_ultimo_${idconductor}`;
-        
-        // Intentar obtener la respuesta desde Redis
-       const cachedData = await redisClient.get(cacheKey);
-        if (cachedData) {
-            return res.status(200).json(JSON.parse(cachedData)); // Devolver caché
-        }*/
-
+    
         // Si no hay caché, hacer la petición a la BD
-        const response = await axios.get(`${service_pedido}/pedido_conductor/${idconductor}`);
-        console.log(".....GW ",response.data)
+       // const response = await axios.get(`${service_pedido}/pedido_conductor/${idconductor}`);
+       const response = await axios
+       .get(`${service_pedido}/pedido_conductor/${idconductor}`)
+       .catch((error) => {
+         if (error.response) {
+           console.log("Error en la respuesta:", error.response.status);
+            
+         } else {
+           console.log("Error en la solicitud:", error.message);
+         }
+         return null; // Retorna null para manejar el error sin romper la ejecución
+        });
+ 
+        if (!response || !response.data || response.data.length === 0) {
+          return res.status(404).json({ message: "Pedidos no encontrados" });
+        }
+
+        const pedidolast = response.data
+        const conductorID = pedidolast.cliente_id        
+        
+        const cliente = await axios.get(`${service_cliente}/cliente/${conductorID}`)
+        const clientelast = cliente.data
+
         if (response && response.data) {
           //  await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
-            return res.status(200).json(response.data);
+            return res.status(200).json({
+                id:pedidolast.id,
+                tipo:pedidolast.tipo,
+                total:pedidolast.total,
+                fecha:pedidolast.fecha,
+                estado:pedidolast.estado
+            ,cliente:{
+                nombre:clientelast.nombre,
+                foto:clientelast.foto_cliente
+            }});
         } else {
             return res.status(404).json({ message: "Not found" });
         }
