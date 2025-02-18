@@ -182,7 +182,7 @@ WHERE conductor_id = $1 AND estado = 'entregado';`, [id])
                     pdp.promocion_id
                 FROM public.pedido AS pp
                 INNER JOIN public.detalle_pedido AS pdp ON pp.id = pdp.pedido_id
-                WHERE pp.conductor_id = 3
+                WHERE pp.conductor_id = $1
                 AND pp.estado = 'entregado'
                 ORDER BY pp.id DESC LIMIT 1;`, [id])
             return resultado
