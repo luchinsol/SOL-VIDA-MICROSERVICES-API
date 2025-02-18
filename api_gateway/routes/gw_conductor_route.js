@@ -9,6 +9,6 @@ routerGWConductor.post('/apigw/v1/conductor',postConductoresControllerGW)
 routerGWConductor.put('/apigw/v1/conductor/:id',putConductoresControllerGW)
 routerGWConductor.delete('/apigw/v1/conductor/:id',deleteConductoresControllerGW)
 routerGWConductor.get('/apigw/v1/conductor_evento/:id',getEventoConductores)
-routerGWConductor.get('apigw/v1/conductor_pedidos/:id',getConductorPedidos)
-routerGWConductor.get('/apigw/v1/conductor_lastpedido/:id',getLastPedido)
+routerGWConductor.get('/apigw/v1/conductor_pedidos/:idconductor',getConductorPedidos)
+routerGWConductor.get('/apigw/v1/conductor_lastpedido/:idconductor',getLastPedido)
 export default routerGWConductor

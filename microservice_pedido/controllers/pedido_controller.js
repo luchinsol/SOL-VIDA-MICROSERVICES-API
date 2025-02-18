@@ -155,6 +155,7 @@ export const getDetallePedidosAll = async (req, res) => {
 //CONTEO DE PEDIDOS
 export const getPedidosConteos = async (req, res) => {
     try {
+        
         const { id } = req.params
         const resultado = await modelPedidoDetalle.getPedidosCount(id)
 

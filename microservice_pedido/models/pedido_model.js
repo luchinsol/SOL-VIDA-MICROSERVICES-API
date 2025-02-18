@@ -144,6 +144,7 @@ ORDER BY det.producto_id ASC ;`, [id])
 
     //ESTE ENDPOINT CUENTA CON LO SIGUIENTE EL NUMERO TOTAL DE PEDIDOS
     getPedidosCount: async (id) => {
+        
         try {
             const resultado = await db_pool.oneOrNone(`
                SELECT COUNT(*) AS total_pedidos
@@ -156,6 +157,7 @@ WHERE conductor_id = $1 AND estado = 'entregado';`, [id])
     },
     //ENDPOINT DEL ULTIMO PEDIDO
     getPedidosConductorInfo: async (id) => {
+
         try {
             const resultado = await db_pool.oneOrNone(`
                SELECT * 
