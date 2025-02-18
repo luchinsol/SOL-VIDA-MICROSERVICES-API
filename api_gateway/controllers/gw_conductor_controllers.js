@@ -157,19 +157,23 @@ export const getEventoConductores = async (req,res) => {
 
 export const getConductorPedidos = async (req, res) => {
     try {
+        
         const { idconductor } = req.params;
-        const cacheKey = `pedidos_conductor_${idconductor}`;
+        
+        /*const cacheKey = `pedidos_conductor_${idconductor}`;
 
         // Intentar obtener la respuesta desde Redis
         const cachedData = await redisClient.get(cacheKey);
         if (cachedData) {
             return res.status(200).json(JSON.parse(cachedData)); // Devolver caché
-        }
+        }*/
 
         // Si no hay caché, hacer la petición a la BD
         const response = await axios.get(`${service_pedido}/pedido_conteo/${idconductor}`);
+    
+        
         if (response && response.data) {
-            await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
+           // await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
             return res.status(200).json(response.data);
         } else {
             return res.status(404).json({ message: "Not found" });
@@ -183,19 +187,22 @@ export const getConductorPedidos = async (req, res) => {
 
 export const getLastPedido = async (req, res) => {
     try {
+       
         const { idconductor } = req.params;
+         /*
         const cacheKey = `pedido_ultimo_${idconductor}`;
-
+        
         // Intentar obtener la respuesta desde Redis
-        const cachedData = await redisClient.get(cacheKey);
+       const cachedData = await redisClient.get(cacheKey);
         if (cachedData) {
             return res.status(200).json(JSON.parse(cachedData)); // Devolver caché
-        }
+        }*/
 
         // Si no hay caché, hacer la petición a la BD
         const response = await axios.get(`${service_pedido}/pedido_conductor/${idconductor}`);
+        console.log(".....GW ",response.data)
         if (response && response.data) {
-            await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
+          //  await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
             return res.status(200).json(response.data);
         } else {
             return res.status(404).json({ message: "Not found" });
