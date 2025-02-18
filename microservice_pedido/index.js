@@ -13,7 +13,7 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://localhost';
+const RABBITMQ_URL = process.env.RABBITMQ_URL// 'amqp://localhost';
 console.log("...cola d pedidos en stack.yml")
 
 console.log(RABBITMQ_URL)
@@ -384,9 +384,12 @@ async function setupConsumer() {
                     const eventName = currentStore.nombre_evento.toLowerCase().replace(' ', '_');
 
                     // Crear copia del pedido para modificar
+                    const now = new Date();
                     const updatedOrder = { 
                         ...order,
                         timestamp: new Date().toISOString(),
+                        emitted_time: now.toISOString(),
+                        expired_time: new Date(now.getTime() + ORDER_TIMEOUT).toISOString(),    
                         rotation_attempts: (order.rotation_attempts || 0) + 1
                     };
 
@@ -442,11 +445,22 @@ async function setupConsumer() {
                                             pedidoId: updatedOrder.id,
                                             almacenActual: currentStore.id,
                                             timestamp: new Date().toISOString(),
-                                            rotationAttempts: updatedOrder.rotation_attempts
+                                            rotationAttempts: updatedOrder.rotation_attempts,
+                                            emitted_time: updatedOrder.emitted_time,
+                                            expired_time: updatedOrder.expired_time,
+                                            almacen_id: updatedOrder.almacen_id,
+                                            current_store: updatedOrder.current_store
                                         });
+                                        //io.emit(eventName, updatedOrder);
                                     } else {
-                                        io.emit('pedido_sin_almacenes', updatedOrder);
-                                    }
+                                        // Si no hay más almacenes, emitir evento de finalización
+                                        console.log(`Pedido ${updatedOrder.id} sin más almacenes disponibles`);
+                                        io.emit('pedido_sin_almacenes', {
+                                            ...updatedOrder,
+                                            estado: 'finalizado',
+                                            mensaje: 'No hay más almacenes disponibles'
+                                        });
+                                    }   
                                 }
                             }
                         } catch (error) {
@@ -533,7 +547,7 @@ async function setupConsumer() {
                             { persistent: true }
                         );
             
-                        io.emit('order_taken', { 
+                        socket.emit('order_taken', { 
                             id: orderId, 
                             almacenId: almacenId 
                         });
