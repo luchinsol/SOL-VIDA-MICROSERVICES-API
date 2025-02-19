@@ -24,7 +24,7 @@ export const getNotificacionAlmacenGW = async (req,res) => {
 export const postNotificacionAlmacenGW = async (req,res)=>{
     try {
         const data = req.body
-        const response = await axios.post(`${service_notificacion}/notificacion`,response)
+        const response = await axios.post(`${service_notificacion}/notificacion`,data)
         if(response && response.data){
             res.status(201).json(response.data)
         }
