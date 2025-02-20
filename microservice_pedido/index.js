@@ -61,7 +61,7 @@ app_micro_pedido.use('/api/v1', routerPedido);
 io.on('connection', (socket) => {
     console.log('Cliente conectado');
 
-    // Enviar órdenes pendientes al cliente cuando se conecta
+   /* // Enviar órdenes pendientes al cliente cuando se conecta
     socket.emit('update_orders', pendingOrders);
 
     // Manejar solicitud de sincronización después de reconexión
@@ -76,8 +76,8 @@ io.on('connection', (socket) => {
                 socket.emit('sync_update', newOrders);
             }
         }
-    });
-
+    });*/
+/*
     socket.on('order_received', (data) => {
         const { orderId } = data;
         if (pendingAcks.has(orderId)) {
@@ -85,7 +85,7 @@ io.on('connection', (socket) => {
             pendingAcks.delete(orderId);
             socket.emit('order_confirmed', { orderId, status: 'confirmed' });
         }
-    });
+    });*/
 
     socket.on('disconnect', () => {
         console.log('Cliente desconectado');
@@ -508,14 +508,14 @@ async function setupConsumer() {
                 // FUNCION QUE TE DA UNA COLA EN ESPECIFICA DE ACUERDO AL ALMACEN 
                 const archivedOrders = await getArchivedOrdersByStore(channel, almacenId);
                 //EVENTO QUE TE PERMITE OBTENER LOS PEDIDOS DE FORMA INCICIAL PARA UN DETERMINADO CONDUCTOR
-                socket.emit('initial_orders', archivedOrders);
+                io.emit('initial_orders', archivedOrders);
 
                 // Setup consumer for this driver's queue
                 channel.consume(driverQueue, (msg) => {
                     if (msg) {
                         const order = JSON.parse(msg.content.toString());
                         if (order.almacen_id === almacenId) {
-                            socket.emit('new_order', order);
+                            io.emit('new_order', order);
                         }
                         channel.ack(msg);
                     }
@@ -547,13 +547,13 @@ async function setupConsumer() {
                             { persistent: true }
                         );
             
-                        socket.emit('order_taken', { 
+                        io.emit('order_taken', { 
                             id: orderId, 
                             almacenId: almacenId 
                         });
                     } else {
                         console.error(`[ERROR] Pedido ${orderId} NO ENCONTRADO definitivamente en la cola de almacén ${almacenId}`);
-                        socket.emit('order_not_found', { 
+                        io.emit('order_not_found', { 
                             id: orderId, 
                             almacenId: almacenId,
                             error: 'Pedido no encontrado en la cola de archivo'
@@ -561,7 +561,7 @@ async function setupConsumer() {
                     }
                 } catch (error) {
                     console.error('Error en take_order:', error);
-                    socket.emit('take_order_error', {
+                    io.emit('take_order_error', {
                         id: data.orderId,
                         error: error.message
                     });
@@ -600,7 +600,7 @@ async function setupConsumer() {
                     }
                 } catch (error) {
                     console.error('Error en manejo de pedido rechazado:', error);
-                    socket.emit('error_rotation', {
+                    io.emit('error_rotation', {
                         error: error.message,
                         timestamp: new Date().toISOString()
                     });
