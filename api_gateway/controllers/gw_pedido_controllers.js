@@ -61,7 +61,7 @@ export const getPedidoAlmacenControllerGW = async (req,res) => {
     if (!response || !response.data || response.data.length === 0) {
       return res.status(404).json({ message: "Pedidos no encontrados" });
     }
-    res.status(200).json(response)
+    res.status(200).json(response.data)
     
   } catch (error) {
     res.status(500).json({error:error.message})
