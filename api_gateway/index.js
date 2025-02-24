@@ -68,7 +68,8 @@ app.use(morgan("combined"));
 function verificarToken(req, res, next) {
   
 
-  if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor") || req.path.startsWith("/apigw/v1/pedido_estado")) {
+  if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/ping" ||
+     req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor") || req.path.startsWith("/apigw/v1/pedido_estado")) {
     return next();
   }
 
@@ -100,6 +101,9 @@ app.use(verificarToken,routerGWNotificacion);
 app.use(routerGWLogin);
 app.use(routerGWConductor);
 
+app.get("/apigw/v1/ping", (req, res) => {
+  res.status(200).json({ message: "pong" });
+});
 
 const PORT = process.env.PORT_APIGW;
 app.listen(PORT, async () => {
