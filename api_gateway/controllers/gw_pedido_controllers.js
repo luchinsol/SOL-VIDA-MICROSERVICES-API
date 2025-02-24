@@ -46,9 +46,9 @@ const sendToQueue = async (pedido) => {
 
 export const getPedidoAlmacenControllerGW = async (req,res) => {
   try {
-    const {idalmacen} = req.params
+    const {idalmacen,estado} = req.params
     const response = await axios
-    .get(`${service_pedido}/pedido/almacen/${idalmacen}`)
+    .get(`${service_pedido}/pedido/almacen/${idalmacen}/${estado}`)
     .catch((error) =>{
       if(error.response){
         console.log("Error en la respuesta",error.response.status)

@@ -2,8 +2,9 @@ import modelPedidoDetalle from "../models/pedido_model.js";
 
 export const getPedidosAlmacenControllerID = async (req,res) =>{
     try {
-        const {idalmacen} = req.params
-        const resultado = await modelPedidoDetalle.getPedidosAlmacen(idalmacen)
+        const {idalmacen,estado} = req.params
+        const id = parseInt(idalmacen,10)
+        const resultado = await modelPedidoDetalle.getPedidosAlmacen(id,estado)
         if(!resultado){
             return res.status(404).json({message:"Data not found"})
         }

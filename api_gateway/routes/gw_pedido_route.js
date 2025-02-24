@@ -4,7 +4,7 @@ import express from 'express'
 
 const routerGWPedido = express.Router()
 
-routerGWPedido.get('/apigw/v1/pedido/almacen/:idalmacen',getPedidoAlmacenControllerGW)
+routerGWPedido.get('/apigw/v1/pedido/almacen/:idalmacen/:estado',getPedidoAlmacenControllerGW)
 routerGWPedido.get('/apigw/v1/pedido',getPedidosControllerGW)
 routerGWPedido.post('/apigw/v1/pedido',postInfoPedido)
 routerGWPedido.put('/apigw/v1/pedido/:id',UpdateAlmacenPedidosControllerGW)

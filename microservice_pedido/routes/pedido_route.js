@@ -5,7 +5,7 @@ import express from 'express'
 const routerPedido = express.Router()
 //TABLA PEDIDO
 
-routerPedido.get('/pedido/almacen/:idalmacen',getPedidosAlmacenControllerID)
+routerPedido.get('/pedido/almacen/:idalmacen/:estado',getPedidosAlmacenControllerID)
 routerPedido.get('/pedido',getPedidoController)
 routerPedido.get('/pedido/:id',getPedidoControllerId)
 routerPedido.post('/pedido',postPedidoController)
