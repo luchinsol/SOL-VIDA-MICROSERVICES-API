@@ -15,8 +15,8 @@ const service_zonapromocion = process.env.MICRO_ZONAPROMOCION;
 const service_cliente = process.env.MICRO_CLIENTE;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 const MAIN_QUEUE = "micro_pedidos";
-//const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
-const RABBITMQ_URL = process.env.RABBITMQ_URL;
+const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+//const RABBITMQ_URL = process.env.RABBITMQ_URL;
 
 const sendToQueue = async (pedido) => {
   try {
@@ -753,3 +753,38 @@ export const UpdatePedidoConductorEstadoControllerGW = async (req, res) => {
     return res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+export const UpdatePedidoCanceladosControllerGW = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await axios.put(
+      `${service_pedido}/pedido_anulado/${id}`,
+      req.body
+    );
+
+    if (response.status === 200 && response.data) {
+      return res.status(200).json(response.data);
+    }
+
+    return res
+      .status(404)
+      .json({ message: "Pedido no encontrado o no actualizado" });
+  } catch (error) {
+    if (error.response) {
+      const { status, data } = error.response;
+
+      if (status === 404) {
+        return res
+          .status(404)
+          .json({ message: "Pedido no encontrado", details: data });
+      }
+    }
+
+    console.error(
+      `Error en UpdatePedidoCanceladosControllerGW: ${error.message}`
+    );
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+

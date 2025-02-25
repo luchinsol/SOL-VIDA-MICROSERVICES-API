@@ -1,4 +1,6 @@
-import { updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
+
+import { updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
+
 
 import express from 'express'
 
@@ -36,6 +38,8 @@ routerPedido.put('/pedido_conductor/:id',updatePedidoConductores)
 //ENDPOINT PARA ACTUALIZAR TODOS LOS PEDIDOS CON SU RESPECTIVO ALMACEN Y PEDIDOS
 routerPedido.put('/pedido_estado/:id',updatePedidoConductoresEstado)
 routerPedido.get('/pedido_history/:id/:fecha',getPedidoHistoryConductores)
+//ENDPOINT QUE SIRVE PARA RECHAZAR UN PEDIDO
+routerPedido.put('/pedido_anulado/:id',updatePedidoCancelados)
 
 
 export default routerPedido
