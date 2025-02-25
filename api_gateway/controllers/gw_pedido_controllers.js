@@ -15,8 +15,8 @@ const service_zonapromocion = process.env.MICRO_ZONAPROMOCION;
 const service_cliente = process.env.MICRO_CLIENTE;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 const MAIN_QUEUE = "micro_pedidos";
-const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
-//const RABBITMQ_URL = process.env.RABBITMQ_URL;
+//const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+const RABBITMQ_URL = process.env.RABBITMQ_URL;
 
 const sendToQueue = async (pedido) => {
   try {

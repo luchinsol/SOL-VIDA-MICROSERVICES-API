@@ -13,7 +13,9 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = 'amqp://localhost';//process.env.RABBITMQ_URL//
+//const RABBITMQ_URL = 'amqp://localhost'
+const RABBITMQ_URL = process.env.RABBITMQ_URL//
+
 console.log("...cola d pedidos en stack.yml")
 
 console.log(RABBITMQ_URL)
