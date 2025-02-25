@@ -100,7 +100,7 @@ io.on('connection', (socket) => {
         socket.emit('test_connection_response', { status: 'ok' });
     });
 
-
+// YA ESTA LISTO HASTA AQUI
 
     
 });
