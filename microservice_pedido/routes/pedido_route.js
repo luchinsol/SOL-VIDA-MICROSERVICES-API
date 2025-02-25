@@ -1,9 +1,13 @@
-import { updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores } from "../controllers/pedido_controller.js";
+
+import { updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
+
 
 import express from 'express'
 
 const routerPedido = express.Router()
 //TABLA PEDIDO
+
+routerPedido.get('/pedido/almacen/:idalmacen/:estado',getPedidosAlmacenControllerID)
 routerPedido.get('/pedido',getPedidoController)
 routerPedido.get('/pedido/:id',getPedidoControllerId)
 routerPedido.post('/pedido',postPedidoController)
