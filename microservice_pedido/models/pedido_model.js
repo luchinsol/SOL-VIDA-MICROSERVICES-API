@@ -1,6 +1,7 @@
 import { db_pool } from '../config.js'
 import amqp from 'amqplib';
-const RABBITMQ_URL ='amqp://rabbitmq';// 'amqp://localhost';
+import { io } from '../index.js'
+const RABBITMQ_URL = 'amqp://rabbitmq';// 'amqp://localhost';
 const QUEUE_NAME = 'new_orders';
 
 // Función para conectar y obtener un canal de RabbitMQ
@@ -38,7 +39,7 @@ const modelPedidoDetalle = {
             const resultado = await db_pool.one(`
                 INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
                  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago,pedido.ubicacion_id]);
+                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago, pedido.ubicacion_id]);
             return resultado;
         } catch (error) {
             throw new Error(`Error post data ${error}`);
@@ -89,7 +90,7 @@ const modelPedidoDetalle = {
             const resultado = await db_pool.one(`
                 INSERT INTO public.detalle_pedido (pedido_id,producto_id,cantidad,promocion_id)
                  VALUES ($1,$2,$3,$4) RETURNING *`,
-                [pedido.pedido_id, pedido.producto_id, pedido.cantidad,pedido.promocion_id])
+                [pedido.pedido_id, pedido.producto_id, pedido.cantidad, pedido.promocion_id])
             return resultado
         } catch (error) {
             throw new Error(`Error post data ${error}`);
@@ -144,7 +145,7 @@ ORDER BY det.producto_id ASC ;`, [id])
 
     //ESTE ENDPOINT CUENTA CON LO SIGUIENTE EL NUMERO TOTAL DE PEDIDOS
     getPedidosCount: async (id) => {
-        
+
         try {
             const resultado = await db_pool.oneOrNone(`
                SELECT COUNT(*) AS total_pedidos
@@ -218,7 +219,7 @@ ORDER BY id ASC;
             throw new Error(`Error put data: ${error.message}`);
         }
     },
-    
+
     updatePedidoPrecio: async (idPedido, pedido) => {
         try {
             const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET subtotal=$1, total =$2
@@ -233,14 +234,14 @@ ORDER BY id ASC;
     },
 
     updatePedidoConductor: async (idPedido, pedido) => {
-        try{
+        try {
             const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1
                 WHERE id=$2 RETURNING *`, [pedido.conductor_id, idPedido])
             if (!resultado) {
                 return null;
             }
             return resultado;
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error put data: ${error.message}`);
         }
     },
@@ -275,27 +276,27 @@ ORDER BY id ASC;
                 AND DATE(pp.fecha) = $2
                 ORDER BY pp.id, pdp.id;
             `, [id, fecha]);
-    
+
             // Agrupar los pedidos
             const pedidosAgrupados = resultado.reduce((acc, row) => {
                 // Buscar si el pedido ya existe en el array acumulador
                 let pedido = acc.find(p => p.id === row.id);
-    
+
                 if (!pedido) {
                     // Si no existe, creamos la estructura del pedido
                     pedido = {
                         id: row.id,
                         cliente: row.cliente_id,
                         total: row.total,
-                        fecha:row.fecha,
-                        tipo:row.tipo,
-                        estado:row.estado,
-                        ubicacion:row.ubicacion_id,
+                        fecha: row.fecha,
+                        tipo: row.tipo,
+                        estado: row.estado,
+                        ubicacion: row.ubicacion_id,
                         detalles_pedido: []
                     };
                     acc.push(pedido);
                 }
-    
+
                 // Agregamos el detalle de pedido a la lista
                 pedido.detalles_pedido.push({
                     id: row.id_detalle,
@@ -303,30 +304,53 @@ ORDER BY id ASC;
                     cantidad: row.cantidad,
                     promocion_id: row.promocion_id
                 });
-    
+
                 return acc;
             }, []);
-    
-          
+
+
             return pedidosAgrupados;
-    
+
         } catch (error) {
             throw new Error(`Error get data ${error}`);
         }
     },
 
     updatePedidoConductorEstado: async (idPedido, pedido) => {
-        try{
+        try {
             const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1, estado=$2, almacen_id=$3
-                WHERE id=$4 RETURNING *`, [pedido.conductor_id, pedido.estado, pedido.almacen_id ,idPedido])
+                WHERE id=$4 RETURNING *`, [pedido.conductor_id, pedido.estado, pedido.almacen_id, idPedido])
             if (!resultado) {
                 return null;
             }
             return resultado;
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error put data: ${error.message}`);
         }
-    }
+    },
+
+    // modelPedidoDetalle.js (agregar logs clave)
+    updatePedidoCancelado: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.oneOrNone(
+                `UPDATE public.pedido SET estado = 'anulado', observacion = $1
+            WHERE id = $2 RETURNING *`,
+                [pedido.observacion, idPedido]
+            );
+
+            if (!resultado) return null;
+
+            // 👇 Agregar logs críticos aquí
+            console.log('[MODEL] Emitiendo pedido_anulado:', resultado.id);
+            console.log('[MODEL] Instancia de io disponible?', !!io); // Debe ser true
+
+            io.emit('pedido_anulado', resultado); // <-- Emite el evento
+
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    },
 
 }
 

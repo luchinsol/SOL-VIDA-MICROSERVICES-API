@@ -1,4 +1,4 @@
-import { UpdatePedidoConductorEstadoControllerGW,postInfoPedido,UpdateAlmacenPedidosControllerGW,getPedidosControllerGW, getPedidoHistoryConductorControllerGW} from '../controllers/gw_pedido_controllers.js'
+import { UpdatePedidoCanceladosControllerGW,UpdatePedidoConductorEstadoControllerGW,postInfoPedido,UpdateAlmacenPedidosControllerGW,getPedidosControllerGW, getPedidoHistoryConductorControllerGW} from '../controllers/gw_pedido_controllers.js'
 
 import express from 'express'
 
@@ -9,5 +9,6 @@ routerGWPedido.post('/apigw/v1/pedido',postInfoPedido)
 routerGWPedido.put('/apigw/v1/pedido/:id',UpdateAlmacenPedidosControllerGW)
 routerGWPedido.put('/apigw/v1/pedido_estado/:id',UpdatePedidoConductorEstadoControllerGW)
 routerGWPedido.get('/apigw/v1/pedido_history/:id/:fecha',getPedidoHistoryConductorControllerGW)
+routerGWPedido.put('/apigw/v1/pedido_anulado/:id',UpdatePedidoCanceladosControllerGW)
 
 export default routerGWPedido  
