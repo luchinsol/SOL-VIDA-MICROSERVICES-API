@@ -13,7 +13,7 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL// 'amqp://localhost';
+const RABBITMQ_URL = 'amqp://localhost';//process.env.RABBITMQ_URL//
 console.log("...cola d pedidos en stack.yml")
 
 console.log(RABBITMQ_URL)
@@ -61,31 +61,31 @@ app_micro_pedido.use('/api/v1', routerPedido);
 io.on('connection', (socket) => {
     console.log('Cliente conectado');
 
-   /* // Enviar órdenes pendientes al cliente cuando se conecta
-    socket.emit('update_orders', pendingOrders);
-
-    // Manejar solicitud de sincronización después de reconexión
-    socket.on('sync_request', ({ lastOrderTimestamp }) => {
-        console.log('Sync request received with timestamp:', lastOrderTimestamp);
-        if (lastOrderTimestamp) {
-            const newOrders = Array.from(orderHistory.values())
-                .filter(order => new Date(order.timestamp) > new Date(lastOrderTimestamp));
-
-            if (newOrders.length > 0) {
-                console.log('Sending missed orders:', newOrders.length);
-                socket.emit('sync_update', newOrders);
+    /* // Enviar órdenes pendientes al cliente cuando se conecta
+     socket.emit('update_orders', pendingOrders);
+ 
+     // Manejar solicitud de sincronización después de reconexión
+     socket.on('sync_request', ({ lastOrderTimestamp }) => {
+         console.log('Sync request received with timestamp:', lastOrderTimestamp);
+         if (lastOrderTimestamp) {
+             const newOrders = Array.from(orderHistory.values())
+                 .filter(order => new Date(order.timestamp) > new Date(lastOrderTimestamp));
+ 
+             if (newOrders.length > 0) {
+                 console.log('Sending missed orders:', newOrders.length);
+                 socket.emit('sync_update', newOrders);
+             }
+         }
+     });*/
+    /*
+        socket.on('order_received', (data) => {
+            const { orderId } = data;
+            if (pendingAcks.has(orderId)) {
+                console.log('Order acknowledged:', orderId);
+                pendingAcks.delete(orderId);
+                socket.emit('order_confirmed', { orderId, status: 'confirmed' });
             }
-        }
-    });*/
-/*
-    socket.on('order_received', (data) => {
-        const { orderId } = data;
-        if (pendingAcks.has(orderId)) {
-            console.log('Order acknowledged:', orderId);
-            pendingAcks.delete(orderId);
-            socket.emit('order_confirmed', { orderId, status: 'confirmed' });
-        }
-    });*/
+        });*/
 
     socket.on('disconnect', () => {
         console.log('Cliente desconectado');
@@ -100,33 +100,220 @@ io.on('connection', (socket) => {
         socket.emit('test_connection_response', { status: 'ok' });
     });
 
-// YA ESTA LISTO HASTA AQUI
 
-    
+    console.log(`Cliente conectado: ${socket.id}`);
+
+    //EVENTO INICIAL QUE ASIGNA SU RESPECTIVA COLA A UN CONDUCTOR
+    socket.on('register_driver', async (data) => {
+        const almacenId = data.almacenId;
+        const archiveQueue = `pedidos_archive_${almacenId}`;
+        const driverExchange = `drivers_exchange_${almacenId}`;
+
+        console.log(`Conductor registrado para almacén ${almacenId}`);
+
+        // Create unique queue for this driver
+        const driverQueue = `driver_queue_${socket.id}`;
+        await channel.assertQueue(driverQueue, {
+            exclusive: true,
+            autoDelete: true
+        });
+
+        // Bind to store-specific exchange
+        await channel.bindQueue(driverQueue, driverExchange, '');
+
+        // FUNCION QUE TE DA UNA COLA EN ESPECIFICA DE ACUERDO AL ALMACEN 
+        const archivedOrders = await getArchivedOrdersByStore(channel, almacenId);
+        //EVENTO QUE TE PERMITE OBTENER LOS PEDIDOS DE FORMA INCICIAL PARA UN DETERMINADO CONDUCTOR
+        io.emit('initial_orders', archivedOrders);
+
+        // Setup consumer for this driver's queue
+        channel.consume(driverQueue, (msg) => {
+            if (msg) {
+                const order = JSON.parse(msg.content.toString());
+                if (order.almacen_id === almacenId) {
+                    io.emit('new_order', order);
+                }
+                channel.ack(msg);
+            }
+        });
+    });
+
+    socket.on('take_order', async (data) => {
+        try {
+            const { orderId, almacenId } = data;
+            console.log(`[x] Pedido tomado: ${orderId} en almacén ${almacenId}`);
+
+            const { queue: archiveQueue } = getArchiveQueueByAlmacenId(almacenId);
+            console.log(`[DEBUG] Cola de archivo para almacén ${almacenId}: ${archiveQueue}`);
+
+            const orderDeleted = await deleteOrderFromSpecificArchiveQueue(channel, archiveQueue, orderId);
+
+            if (orderDeleted) {
+                // Clear the order from all other exchanges and queues
+                await channel.publish(
+                    EXPIRED_ORDERS_EXCHANGE,
+                    'expired',
+                    Buffer.from(JSON.stringify({
+                        id: orderId,
+                        almacenId: almacenId,
+                        accepted: true,
+                        is_rotation: false,
+                        AlmacenesPendientes: []
+                    })),
+                    { persistent: true }
+                );
+
+                io.emit('order_taken', {
+                    id: orderId,
+                    almacenId: almacenId
+                });
+            } else {
+                console.error(`[ERROR] Pedido ${orderId} NO ENCONTRADO definitivamente en la cola de almacén ${almacenId}`);
+                io.emit('order_not_found', {
+                    id: orderId,
+                    almacenId: almacenId,
+                    error: 'Pedido no encontrado en la cola de archivo'
+                });
+            }
+        } catch (error) {
+            console.error('Error en take_order:', error);
+            io.emit('take_order_error', {
+                id: data.orderId,
+                error: error.message
+            });
+        }
+    });
+
+    // Dentro de io.on('connection', (socket) => { ... })
+    // Dentro de io.on('connection', (socket) => { ... })
+
+    /*
+    socket.on('pedido_anulado', async (data) => {
+        try {
+            console.log('[SOCKET] Evento pedido_anulado recibido:', data); // 🟡 Verifica si llega aquí
+
+            const almacenId = data.almacen_id;
+            const { queue: archiveQueue } = getArchiveQueueByAlmacenId(almacenId);
+
+            console.log('[SOCKET] Buscando en cola:', archiveQueue);
+            const orderDeleted = await deleteOrderFromSpecificArchiveQueue(channel, archiveQueue, data.id);
+
+            io.emit('anulando_pedido', {
+                id: data.id,
+                success: orderDeleted,
+                almacenId
+            });
+
+        } catch (error) {
+            console.error('[SOCKET] Error en pedido_anulado:', error);
+        }
+    });
+*/
+
+    socket.on('disconnect', async () => {
+        console.log(`Conductor desconectado: ${socket.id}`);
+        // Queue will be auto-deleted due to autoDelete: true
+    });
+
+    socket.on('pedido_rechazado', async (data) => {
+        try {
+            const pedidoData = typeof data === 'string' ? JSON.parse(data) : data;
+            console.log("LOGS IMPORTANTES----->>");
+            console.log(data);
+            // Verificar si hay almacenes pendientes
+            if (pedidoData.AlmacenesPendientes && pedidoData.AlmacenesPendientes.length > 0) {
+                // Publicar en el exchange de pedidos expirados
+                await channel.publish(
+                    EXPIRED_ORDERS_EXCHANGE,
+                    'expired',
+                    Buffer.from(JSON.stringify(pedidoData)),
+                    { persistent: true }
+                );
+
+                console.log(`Pedido ${pedidoData.id} enviado a cola de expirados para rotación`);
+
+                // Notificar a todos los conductores que el pedido expiró globalmente
+                io.emit('pedido_expirado_global', {
+                    pedidoId: pedidoData.id,
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                console.log('No hay más almacenes disponibles');
+                io.emit('pedido_sin_almacenes', pedidoData);
+            }
+        } catch (error) {
+            console.error('Error en manejo de pedido rechazado:', error);
+            io.emit('error_rotation', {
+                error: error.message,
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+
+    socket.on('procesando_anulacion', async (data) => {
+        try {
+            console.log('[SOCKET] Evento procesando_anulacion recibido:', data); // 🟡 Verifica si llega aquí
+
+            const almacenId = data.almacen_id;
+            const { queue: archiveQueue } = getArchiveQueueByAlmacenId(almacenId);
+
+            console.log('[SOCKET] Buscando en cola:', archiveQueue);
+            const orderDeleted = await deleteOrderFromSpecificArchiveQueue(channel, archiveQueue, data.id);
+
+            io.emit('anulando_pedido', {
+                id: data.id,
+                success: orderDeleted,
+                almacenId
+            });
+
+        } catch (error) {
+            console.error('[SOCKET] Error en procesando_anulacion:', error);
+        }
+    });
+
+
 });
+
+
+
+
+
+//});
 
 async function setupConnection() {
     try {
-        // Use global variables instead of local ones
         connection = await amqp.connect(RABBITMQ_URL);
         channel = await connection.createChannel();
 
-        console.log('RabbitMQ connection established successfully');
+        // Manejadores de eventos
+        connection.on('error', (err) => {
+            console.error('Error en conexión RabbitMQ:', err);
+            setTimeout(setupConnection, 5000);
+        });
 
+        connection.on('close', () => {
+            console.log('Conexión RabbitMQ cerrada. Reconectando...');
+            setTimeout(setupConnection, 5000);
+        });
+
+        console.log('Conexión RabbitMQ establecida');
+        await setupQueuesAndExchanges();
+        await setupConsumer(); // ⬅️ Ahora channel ya está inicializado
         return { connection, channel };
     } catch (error) {
-        console.error('Error establishing RabbitMQ connection:', error);
+        console.error('Error al conectar a RabbitMQ:', error);
+        setTimeout(setupConnection, 5000);
         throw error;
     }
 }
 
-
 async function setupQueuesAndExchanges() {
     try {
         // Ensure connection exists
+        /*
         if (!connection || !channel) {
             await setupConnection();
-        }
+        }*/
 
         await channel.assertExchange(DRIVERS_EXCHANGE, 'fanout', { durable: true });
 
@@ -268,7 +455,7 @@ async function deleteOrderFromSpecificArchiveQueue(channel, queue, orderId) {
             try {
                 const order = JSON.parse(message.content.toString());
                 console.log(`[CRITICAL DEBUG] Processed order ID: ${order.id}`);
-                
+
                 // Convert both to strings to ensure strict comparison
                 if (String(order.id) === String(orderId)) {
                     console.log(`[CRITICAL SUCCESS] Found and removing order ${orderId}`);
@@ -313,10 +500,12 @@ async function deleteOrderFromSpecificArchiveQueue(channel, queue, orderId) {
 
 async function setupConsumer() {
     try {
-        const connection = await amqp.connect(RABBITMQ_URL);
-        const channel = await connection.createChannel();
+        if (!channel) throw new Error('Canal no disponible');
 
-        await setupQueuesAndExchanges(channel);
+        //const connection = await amqp.connect(RABBITMQ_URL);
+        //const channel = await connection.createChannel();
+
+        await setupQueuesAndExchanges();
         console.log('Esperando pedidos...');
 
         const ORDER_TIMEOUT = 1 * 60 * 1000; // 20 minutos
@@ -385,11 +574,11 @@ async function setupConsumer() {
 
                     // Crear copia del pedido para modificar
                     const now = new Date();
-                    const updatedOrder = { 
+                    const updatedOrder = {
                         ...order,
                         timestamp: new Date().toISOString(),
                         emitted_time: now.toISOString(),
-                        expired_time: new Date(now.getTime() + ORDER_TIMEOUT).toISOString(),    
+                        expired_time: new Date(now.getTime() + ORDER_TIMEOUT).toISOString(),
                         rotation_attempts: (order.rotation_attempts || 0) + 1
                     };
 
@@ -426,21 +615,21 @@ async function setupConsumer() {
                                 getArchiveQueueByAlmacenId(updatedOrder.almacen_id).queue,
                                 { noAck: true }
                             );
-                    
+
                             if (currentQueueData) {
                                 const currentOrderState = JSON.parse(currentQueueData.content.toString());
-                                
+
                                 // Check if order hasn't been accepted yet
                                 if (!currentOrderState.accepted) {
                                     console.log(`Pedido ${updatedOrder.id} no aceptado, iniciando rotación`);
-                    
+
                                     if (updatedOrder.AlmacenesPendientes && updatedOrder.AlmacenesPendientes.length > 0) {
                                         await channel.sendToQueue(
                                             EXPIRED_ORDERS_QUEUE,
                                             Buffer.from(JSON.stringify(updatedOrder)),
                                             { persistent: true }
                                         );
-                    
+
                                         io.emit('pedido_rotado', {
                                             pedidoId: updatedOrder.id,
                                             almacenActual: currentStore.id,
@@ -460,7 +649,7 @@ async function setupConsumer() {
                                             estado: 'finalizado',
                                             mensaje: 'No hay más almacenes disponibles'
                                         });
-                                    }   
+                                    }
                                 }
                             }
                         } catch (error) {
@@ -484,132 +673,10 @@ async function setupConsumer() {
         });
 
         // Handle socket connections
-        io.on('connection', async (socket) => {
-            console.log(`Cliente conectado: ${socket.id}`);
-
-            //EVENTO INICIAL QUE ASIGNA SU RESPECTIVA COLA A UN CONDUCTOR
-            socket.on('register_driver', async (data) => {
-                const almacenId = data.almacenId;
-                const archiveQueue = `pedidos_archive_${almacenId}`;
-                const driverExchange = `drivers_exchange_${almacenId}`;
-
-                console.log(`Conductor registrado para almacén ${almacenId}`);
-
-                // Create unique queue for this driver
-                const driverQueue = `driver_queue_${socket.id}`;
-                await channel.assertQueue(driverQueue, {
-                    exclusive: true,
-                    autoDelete: true
-                });
-
-                // Bind to store-specific exchange
-                await channel.bindQueue(driverQueue, driverExchange, '');
-
-                // FUNCION QUE TE DA UNA COLA EN ESPECIFICA DE ACUERDO AL ALMACEN 
-                const archivedOrders = await getArchivedOrdersByStore(channel, almacenId);
-                //EVENTO QUE TE PERMITE OBTENER LOS PEDIDOS DE FORMA INCICIAL PARA UN DETERMINADO CONDUCTOR
-                io.emit('initial_orders', archivedOrders);
-
-                // Setup consumer for this driver's queue
-                channel.consume(driverQueue, (msg) => {
-                    if (msg) {
-                        const order = JSON.parse(msg.content.toString());
-                        if (order.almacen_id === almacenId) {
-                            io.emit('new_order', order);
-                        }
-                        channel.ack(msg);
-                    }
-                });
-            });
-
-            socket.on('take_order', async (data) => {
-                try {
-                    const { orderId, almacenId } = data;
-                    console.log(`[x] Pedido tomado: ${orderId} en almacén ${almacenId}`);
-                    
-                    const { queue: archiveQueue } = getArchiveQueueByAlmacenId(almacenId);
-                    console.log(`[DEBUG] Cola de archivo para almacén ${almacenId}: ${archiveQueue}`);
-                    
-                    const orderDeleted = await deleteOrderFromSpecificArchiveQueue(channel, archiveQueue, orderId);
-                    
-                    if (orderDeleted) {
-                        // Clear the order from all other exchanges and queues
-                        await channel.publish(
-                            EXPIRED_ORDERS_EXCHANGE,
-                            'expired',
-                            Buffer.from(JSON.stringify({ 
-                                id: orderId, 
-                                almacenId: almacenId,
-                                accepted: true,
-                                is_rotation: false,
-                                AlmacenesPendientes: []
-                            })),
-                            { persistent: true }
-                        );
-            
-                        io.emit('order_taken', { 
-                            id: orderId, 
-                            almacenId: almacenId 
-                        });
-                    } else {
-                        console.error(`[ERROR] Pedido ${orderId} NO ENCONTRADO definitivamente en la cola de almacén ${almacenId}`);
-                        io.emit('order_not_found', { 
-                            id: orderId, 
-                            almacenId: almacenId,
-                            error: 'Pedido no encontrado en la cola de archivo'
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error en take_order:', error);
-                    io.emit('take_order_error', {
-                        id: data.orderId,
-                        error: error.message
-                    });
-                }
-            });
-
-            socket.on('disconnect', async () => {
-                console.log(`Conductor desconectado: ${socket.id}`);
-                // Queue will be auto-deleted due to autoDelete: true
-            });
-
-            socket.on('pedido_rechazado', async (data) => {
-                try {
-                    const pedidoData = typeof data === 'string' ? JSON.parse(data) : data;
-        
-                    // Verificar si hay almacenes pendientes
-                    if (pedidoData.AlmacenesPendientes && pedidoData.AlmacenesPendientes.length > 0) {
-                        // Publicar en el exchange de pedidos expirados
-                        await channel.publish(
-                            EXPIRED_ORDERS_EXCHANGE,
-                            'expired',
-                            Buffer.from(JSON.stringify(pedidoData)),
-                            { persistent: true }
-                        );
-        
-                        console.log(`Pedido ${pedidoData.id} enviado a cola de expirados para rotación`);
-        
-                        // Notificar a todos los conductores que el pedido expiró globalmente
-                        io.emit('pedido_expirado_global', {
-                            pedidoId: pedidoData.id,
-                            timestamp: new Date().toISOString()
-                        });
-                    } else {
-                        console.log('No hay más almacenes disponibles');
-                        io.emit('pedido_sin_almacenes', pedidoData);
-                    }
-                } catch (error) {
-                    console.error('Error en manejo de pedido rechazado:', error);
-                    io.emit('error_rotation', {
-                        error: error.message,
-                        timestamp: new Date().toISOString()
-                    });
-                }
-            });
-        });
+        //io.on('connection', async (socket) => {
 
     } catch (error) {
-        console.error('Error al configurar el consumidor:', error);
+        console.error('Error en consumidor:', error);
         setTimeout(setupConsumer, 10000);
     }
 }
@@ -623,7 +690,7 @@ console.log(RABBITMQ_URL)
 server.listen(PORT, async () => {
     console.log(`Microservice PEDIDO_DETALLE running http://localhost:${PORT}`);
     await setupConnection();
-    await setupConsumer();
+    //await setupConsumer();
     //await setupExpiredOrdersConsumer(); // Add this line
 });
 
