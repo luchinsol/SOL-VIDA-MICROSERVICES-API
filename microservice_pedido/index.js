@@ -100,6 +100,7 @@ io.on('connection', (socket) => {
         socket.emit('test_connection_response', { status: 'ok' });
     });
 
+
     console.log(`Cliente conectado: ${socket.id}`);
 
     //EVENTO INICIAL QUE ASIGNA SU RESPECTIVA COLA A UN CONDUCTOR
@@ -269,6 +270,7 @@ io.on('connection', (socket) => {
             console.error('[SOCKET] Error en procesando_anulacion:', error);
         }
     });
+
 
 });
 
