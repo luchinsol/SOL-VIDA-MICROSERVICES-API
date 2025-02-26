@@ -13,6 +13,15 @@ async function getRabbitMQChannel() {
 }
 
 const modelPedidoDetalle = {
+    getPedidosAlmacen: async (almaid,estado) => {
+        try {
+            const pedidosAlmacen = db_pool.any(`
+                SELECT * FROM public.pedido WHERE almacen_id = $1 AND estado = $2`,[almaid,estado])
+                return pedidosAlmacen
+        } catch (error) {
+            throw new Error(`Error query get ${error}`)
+        }
+    },
     getPedido: async () => {
         try {
             const resultado = await db_pool.any(`

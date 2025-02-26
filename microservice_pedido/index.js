@@ -100,6 +100,7 @@ io.on('connection', (socket) => {
         socket.emit('test_connection_response', { status: 'ok' });
     });
 
+
     console.log(`Cliente conectado: ${socket.id}`);
 
     //EVENTO INICIAL QUE ASIGNA SU RESPECTIVA COLA A UN CONDUCTOR
@@ -269,6 +270,7 @@ io.on('connection', (socket) => {
             console.error('[SOCKET] Error en procesando_anulacion:', error);
         }
     });
+
 
 });
 
@@ -506,7 +508,7 @@ async function setupConsumer() {
         await setupQueuesAndExchanges();
         console.log('Esperando pedidos...');
 
-        const ORDER_TIMEOUT = 1 * 60 * 1000; // 20 minutos
+        const ORDER_TIMEOUT = 21 * 60 * 1000; // 20 minutos
 
         channel.consume(EXPIRED_ORDERS_QUEUE, async (msg) => {
             if (msg !== null) {
