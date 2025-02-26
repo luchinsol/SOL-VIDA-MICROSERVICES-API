@@ -67,7 +67,17 @@ const modelAuth = {
         } catch (error) {
             throw new Error(`Error query get: ${error}`)
         }
-    }
+    },
+    getTelefono: async(id) => {
+        try{
+            const resultado = await db_pool.oneOrNone(`
+                SELECT * FROM public.usuario WHERE id = $1`,[id]
+            );
+            return resultado;
+        }catch(error){
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
 }
 
 export default modelAuth

@@ -13,6 +13,7 @@ const service_producto = process.env.MICRO_PRODUCTO;
 const service_zonaproducto = process.env.MICRO_ZONAPRODUCTO;
 const service_zonapromocion = process.env.MICRO_ZONAPROMOCION;
 const service_cliente = process.env.MICRO_CLIENTE;
+const service_auth = process.env.MICRO_AUTH;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 const MAIN_QUEUE = "micro_pedidos";
 //const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
@@ -456,12 +457,23 @@ export const postInfoPedido = async (req, res) => {
     );
     const data_cliente = cliente_completo.data;
 
+    const usuario= data_cliente.usuario_id;
+
+    const telefono_response = await axios.get(`${service_auth}/user_telefono/${usuario}`);
+    const data_telefono = telefono_response.data; // Store the telephone data
+
     const warehouseEvents = await fetchWarehouseEvents(almacenes);
 
     const pedido_completo = await axios.get(
       `${service_pedido}/pedido/${pedidoId}`
     );
     const data_pedido = pedido_completo.data;
+
+    const cliente_con_telefono_email = {
+      ...data_cliente,
+      telefono: data_telefono.telefono,  
+      email: data_telefono.email         
+    };
 
     const response = {
       id: pedidoId,
@@ -494,7 +506,7 @@ export const postInfoPedido = async (req, res) => {
           nombre_evento: eventInfo ? eventInfo.nombre_evento : null,
         };
       }),
-      Cliente: data_cliente,
+      Cliente: cliente_con_telefono_email,
       emitted_time: new Date().toISOString(), // Add emission time
       expired_time: new Date(
         new Date().getTime() + 1 * 60 * 1000
