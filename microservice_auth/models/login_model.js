@@ -29,7 +29,7 @@ const modelAuth = {
                 }
                 
                 // CONDUCTOR
-                else if(existsUser.rol_id === 2){
+                else if(existsUser.rol_id === 5){
                     if(existsUser && await bcrypt.compare(credenciales.contrasena,existsUser.contrasena)){
                         const tokenUser = jwt.sign({user:existsUser},SECRET_KEY)
                         return {existsUser,tokenUser}
