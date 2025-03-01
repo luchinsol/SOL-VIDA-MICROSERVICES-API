@@ -17,7 +17,7 @@ export const postLoginController = async (req, res) => {
         console.log("response----------",response.data)
         if (response && response.data.tokenUser) {
             // CONDUCTOR
-            if(response.data.existsUser.rol_id == 2){
+            if(response.data.existsUser.rol_id == 5){
                 console.log("cond")
                 const id_user = response.data.existsUser.id
                 const res_cond=await axios.get(`${service_conductor}/conductor_user/${id_user}`)
