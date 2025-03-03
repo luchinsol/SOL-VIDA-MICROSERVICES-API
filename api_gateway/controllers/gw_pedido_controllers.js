@@ -326,8 +326,8 @@ export const postInfoPedido = async (req, res) => {
         // Calculate price based on promotion
         const precio = await axios.get(
           promocion_id
-            ? `${service_zonaproducto}/precioZonaProducto/${regionId}/${promocion_id}`
-            : `${service_zonapromocion}/preciopromo/${regionId}/${producto_id}`
+            ? `${service_zonapromocion}/preciopromo/${regionId}/${producto_id}`
+            : `${service_zonaproducto}/precioZonaProducto/${regionId}/${promocion_id}` 
         );
 
         const precioFinal = precio.data.precio;
