@@ -46,9 +46,9 @@ const modelPedidoDetalle = {
     postPedido: async (pedido) => {
         try {
             const resultado = await db_pool.one(`
-                INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago, pedido.ubicacion_id]);
+                INSERT INTO public.pedido (cliente_id,descuento,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+                [pedido.cliente_id, pedido.descuento, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago, pedido.ubicacion_id]);
             return resultado;
         } catch (error) {
             throw new Error(`Error post data ${error}`);

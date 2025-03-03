@@ -228,9 +228,7 @@ export const postInfoPedido = async (req, res) => {
   try {
     const {
       cliente_id,
-      subtotal,
       descuento,
-      total,
       fecha,
       tipo,
       estado,
@@ -276,9 +274,7 @@ export const postInfoPedido = async (req, res) => {
       axios.get(`${service_almacen}/almacen`),
       axios.post(`${service_pedido}/pedido`, {
         cliente_id,
-        subtotal,
         descuento,
-        total,
         fecha,
         tipo,
         estado,
@@ -422,7 +418,7 @@ export const postInfoPedido = async (req, res) => {
       (sum, detail) => sum + detail.subtotal,
       0
     );
-    const descuentoCupon = resultado.data.descuento;
+    const descuentoCupon = resultado.data.descuento;//LOGICA DE CLIENTE - CUPON O CODIGO?
     const precioFinal = subTotal - descuentoCupon;
 
     await axios.put(`${service_pedido}/pedido_precio/${pedidoId}`, {
