@@ -141,7 +141,6 @@ io.on('connection', (socket) => {
     socket.on('take_order', async (data) => {
         try {
             const startTime = Date.now();  // 🔹 Inicia el tiempo de ejecución
-            console.log(`[x] Pedido tomado: ${orderId} en almacén ${almacenId}`);
 
             const operationStart = Date.now();
 
