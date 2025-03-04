@@ -140,16 +140,28 @@ io.on('connection', (socket) => {
 
     socket.on('take_order', async (data) => {
         try {
+            const startTime = Date.now();  // 🔹 Inicia el tiempo de ejecución
+            console.log(`[x] Pedido tomado: ${orderId} en almacén ${almacenId}`);
+
+            const operationStart = Date.now();
+
             const { orderId, almacenId } = data;
             console.log(`[x] Pedido tomado: ${orderId} en almacén ${almacenId}`);
 
             const { queue: archiveQueue } = getArchiveQueueByAlmacenId(almacenId);
             console.log(`[DEBUG] Cola de archivo para almacén ${almacenId}: ${archiveQueue}`);
 
+            console.log(`⏳ Tiempo en obtener cola: ${Date.now() - operationStart} ms`);
+            const deleteStart = Date.now();
+
             const orderDeleted = await deleteOrderFromSpecificArchiveQueue(channel, archiveQueue, orderId);
+
+            console.log(`⏳ Tiempo en eliminar pedido: ${Date.now() - deleteStart} ms`);
+
 
             if (orderDeleted) {
                 // Clear the order from all other exchanges and queues
+                const publishStart = Date.now();
                 await channel.publish(
                     EXPIRED_ORDERS_EXCHANGE,
                     'expired',
@@ -162,7 +174,7 @@ io.on('connection', (socket) => {
                     })),
                     { persistent: true }
                 );
-
+                console.log(`⏳ Tiempo en publicar expiración: ${Date.now() - publishStart} ms`);
                 io.emit('order_taken', {
                     id: orderId,
                     almacenId: almacenId
