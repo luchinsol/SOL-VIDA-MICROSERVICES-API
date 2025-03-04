@@ -40,7 +40,7 @@ const modelUserConductor = {
                     usuario_id, nombres, apellidos, dni, fecha_nacimiento, n_licencia, n_soat, foto_licencia,
                      foto_soat, foto_otros, valoración, latitud, longitud, estado_registro, estado_trabajo, nivel, evento_id
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
                 ) RETURNING *
             `, [
                 conductor.usuario_id, conductor.nombres,conductor.apellidos ,conductor.dni, conductor.fecha_nacimiento, 
