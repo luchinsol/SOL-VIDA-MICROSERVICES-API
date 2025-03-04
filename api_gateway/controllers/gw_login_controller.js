@@ -34,9 +34,9 @@ export const postNewUserConductorControllerGW = async (req, res) => {
     if(responseConductor.data.message === 'Invalid input data'){
       return res.status(400).json({message:responseConductor.data.message})
     }
-    res.status(201).json(responseConductor.data)
+    res.status(201).json({user:response.data,conductor:responseConductor.data})
   } catch (error) {
-    throw new Error(`Error post new user ${error}`);
+    res.status(500).json({error:error.message})
   }
 };
 
