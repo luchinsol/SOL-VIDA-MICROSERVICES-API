@@ -229,7 +229,7 @@ export const getLastPedido = async (req, res) => {
       });
     if (
       !responseUbicacion ||
-      responseUbicacion.data ||
+      !responseUbicacion.data ||
       responseUbicacion.data.length == 0
     ) {
       return res.status(404).json({ message: "Data not found" });
