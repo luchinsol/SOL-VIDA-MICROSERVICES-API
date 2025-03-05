@@ -248,8 +248,8 @@ export const getLastPedido = async (req, res) => {
 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
+      Math.cos((refLat * Math.PI) / 180) *
+        Math.cos((ubicaciondata.latitud * Math.PI) / 180) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
 
