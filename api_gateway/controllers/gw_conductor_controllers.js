@@ -234,9 +234,27 @@ export const getLastPedido = async (req, res) => {
     ) {
       return res.status(404).json({ message: "Data not found" });
     }
-    const ubicaciondata = responseUbicacion.data
+    const ubicaciondata = responseUbicacion.data;
     const pedidolast = response.data;
     const conductorID = pedidolast.cliente_id;
+
+    // CALCULAR DISTANCIA
+    const refLat = -16.398791269800043; // AREQUIPA
+    const refLon = -71.53690424714978;
+
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = ((ubicaciondata.latitud - refLat) * Math.PI) / 180;
+    const dLon = ((ubicaciondata.longitud - refLon) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanciafinal = R * c;
 
     const cliente = await axios.get(
       `${service_cliente}/cliente/${conductorID}`
@@ -251,8 +269,7 @@ export const getLastPedido = async (req, res) => {
         total: pedidolast.total,
         fecha: pedidolast.fecha,
         estado: pedidolast.estado,
-        latitud: ubicaciondata.latitud,
-        longitud: ubicaciondata.longitud,
+        distanciakm: distanciafinal,
         cliente: {
           nombre: clientelast.nombre,
           foto: clientelast.foto_cliente,
