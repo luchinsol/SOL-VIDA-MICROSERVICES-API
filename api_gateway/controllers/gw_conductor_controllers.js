@@ -234,7 +234,7 @@ export const getLastPedido = async (req, res) => {
     ) {
       return res.status(404).json({ message: "Data not found" });
     }
-
+    const ubicaciondata = responseUbicacion.data
     const pedidolast = response.data;
     const conductorID = pedidolast.cliente_id;
 
@@ -251,8 +251,8 @@ export const getLastPedido = async (req, res) => {
         total: pedidolast.total,
         fecha: pedidolast.fecha,
         estado: pedidolast.estado,
-        latitud: responseUbicacion.latitud,
-        longitud: responseUbicacion.longitud,
+        latitud: ubicaciondata.latitud,
+        longitud: ubicaciondata.longitud,
         cliente: {
           nombre: clientelast.nombre,
           foto: clientelast.foto_cliente,
