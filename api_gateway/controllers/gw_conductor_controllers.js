@@ -198,87 +198,89 @@ export const getLastPedido = async (req, res) => {
   try {
     const { idconductor } = req.params;
 
-    // Si no hay caché, hacer la petición a la BD
-    // const response = await axios.get(`${service_pedido}/pedido_conductor/${idconductor}`);
+    // Obtener el último pedido del conductor
     const response = await axios
       .get(`${service_pedido}/pedido_conductor/${idconductor}`)
       .catch((error) => {
-        if (error.response) {
-          console.log("Error en la respuesta:", error.response.status);
-        } else {
-          console.log("Error en la solicitud:", error.message);
-        }
-        return null; // Retorna null para manejar el error sin romper la ejecución
+        console.log(
+          "Error en la solicitud de pedido:",
+          error.response ? error.response.status : error.message
+        );
+        return null;
       });
 
-    if (!response || !response.data || response.data.length === 0) {
+    if (!response || !response.data || Object.keys(response.data).length === 0) {
       return res.status(404).json({ message: "Pedidos no encontrados" });
     }
 
-    const ubicacionID = response.data.ubicacion_id;
+    const pedidolast = response.data;
+    const ubicacionID = pedidolast.ubicacion_id;
 
+    // Obtener la ubicación del pedido
     const responseUbicacion = await axios
       .get(`${service_ubicacion}/ubicacion/${ubicacionID}`)
       .catch((error) => {
-        if (error.response) {
-          console.log("Error en la respuesta:", error.response.status);
-        } else {
-          console.log("Error en la solicitud:", error.message);
-        }
-        return null; // Retorna null para manejar el error sin romper la ejecución
+        console.log(
+          "Error en la solicitud de ubicación:",
+          error.response ? error.response.status : error.message
+        );
+        return null;
       });
-    if (
-      !responseUbicacion ||
-      !responseUbicacion.data ||
-      responseUbicacion.data.length == 0
-    ) {
-      return res.status(404).json({ message: "Data not found" });
+
+    let distanciafinal = 0; // Valor por defecto en caso de no haber ubicación
+    if (responseUbicacion && responseUbicacion.data) {
+      const ubicaciondata = responseUbicacion.data;
+
+      if (ubicaciondata.latitud && ubicaciondata.longitud) {
+        // Cálculo de distancia solo si las coordenadas existen
+        const refLat = -16.398791269800043; // AREQUIPA
+        const refLon = -71.53690424714978;
+        const R = 6371;
+
+        const dLat = ((ubicaciondata.latitud - refLat) * Math.PI) / 180;
+        const dLon = ((ubicaciondata.longitud - refLon) * Math.PI) / 180;
+
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((refLat * Math.PI) / 180) *
+            Math.cos((ubicaciondata.latitud * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        distanciafinal = R * c;
+      }
     }
-    const ubicaciondata = responseUbicacion.data;
-    const pedidolast = response.data;
+
     const conductorID = pedidolast.cliente_id;
 
-    // CALCULAR DISTANCIA
-    const refLat = -16.398791269800043; // AREQUIPA
-    const refLon = -71.53690424714978;
-
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = ((ubicaciondata.latitud - refLat) * Math.PI) / 180;
-    const dLon = ((ubicaciondata.longitud - refLon) * Math.PI) / 180;
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((refLat * Math.PI) / 180) *
-        Math.cos((ubicaciondata.latitud * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanciafinal = R * c;
-
-    const cliente = await axios.get(
-      `${service_cliente}/cliente/${conductorID}`
-    );
-    const clientelast = cliente.data;
-
-    if (response && response.data) {
-      //  await redisClient.setEx(cacheKey, 30, JSON.stringify(response.data)); // Cache por 30s
-      return res.status(200).json({
-        id: pedidolast.id,
-        tipo: pedidolast.tipo,
-        total: pedidolast.total,
-        fecha: pedidolast.fecha,
-        estado: pedidolast.estado,
-        distanciakm: distanciafinal,
-        cliente: {
-          nombre: clientelast.nombre,
-          foto: clientelast.foto_cliente,
-        },
+    // Obtener datos del cliente
+    const cliente = await axios
+      .get(`${service_cliente}/cliente/${conductorID}`)
+      .catch((error) => {
+        console.log(
+          "Error en la solicitud del cliente:",
+          error.response ? error.response.status : error.message
+        );
+        return null;
       });
-    } else {
-      return res.status(404).json({ message: "Not found" });
-    }
+
+    const clientelast = cliente && cliente.data ? cliente.data : { nombre: "Desconocido", foto_cliente: null };
+
+    return res.status(200).json({
+      id: pedidolast.id,
+      tipo: pedidolast.tipo,
+      total: pedidolast.total,
+      fecha: pedidolast.fecha,
+      estado: pedidolast.estado,
+      distanciakm: distanciafinal, // Siempre tendrá un valor
+      cliente: {
+        nombre: clientelast.nombre,
+        foto: clientelast.foto_cliente,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
+
