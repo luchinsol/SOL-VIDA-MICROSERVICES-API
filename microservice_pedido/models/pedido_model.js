@@ -41,7 +41,15 @@ const modelPedidoDetalle = {
         }
     },
 
-
+    getPedidoConductorId: async (id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT conductor_id FROM public.pedido WHERE id=$1`, [id]);
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
 
     postPedido: async (pedido) => {
         try {
