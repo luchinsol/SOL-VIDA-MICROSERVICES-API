@@ -224,6 +224,26 @@ export const getPedidosControllerGW = async (req, res) => {
   }
 };
 
+
+export const getPedidoCondControllerGW = async (req, res) => {
+  try {
+    // Si no hay datos en caché, hacer la solicitud a la API
+    const {id} = req.params
+    const response = await axios.get(`${service_pedido}/pedido_cond/${id}`);
+    console.log("Respuesta de la API de pedidos:", response.data);
+
+    if (response && response.data) {
+      res.status(200).json(response.data);
+    } else {
+      res.status(404).json({ message: "Not Found" });
+    }
+  } catch (error) {
+    console.error("Error al obtener pedidos:", error.message);
+    res.status(500).send("Error pedido conductor id");
+  }
+};
+
+
 export const postInfoPedido = async (req, res) => {
   try {
     const {

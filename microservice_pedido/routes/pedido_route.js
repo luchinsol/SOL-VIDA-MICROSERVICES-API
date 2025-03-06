@@ -1,5 +1,5 @@
 
-import { updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
+import { getPedidoConductorControllerId,updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
 
 
 import express from 'express'
@@ -10,6 +10,7 @@ const routerPedido = express.Router()
 routerPedido.get('/pedido/almacen/:idalmacen/:estado',getPedidosAlmacenControllerID)
 routerPedido.get('/pedido',getPedidoController)
 routerPedido.get('/pedido/:id',getPedidoControllerId)
+routerPedido.get('/pedido_cond/:id',getPedidoConductorControllerId)
 routerPedido.post('/pedido',postPedidoController)
 routerPedido.put('/pedido/:id',updatePedidoController)
 routerPedido.delete('/pedido/:id',deletePedidoController)
