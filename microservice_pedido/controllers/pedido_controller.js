@@ -41,6 +41,8 @@ export const getPedidoControllerId = async (req, res) => {
     }
 };
 
+
+//ENDPOINT QUE TRAE EL ID DEL PEDIDO CON EL ID DEL CONDCUTOR
 export const getPedidoConductorControllerId = async (req, res) => {
     try {
         const { id } = req.params

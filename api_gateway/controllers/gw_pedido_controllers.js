@@ -224,7 +224,7 @@ export const getPedidosControllerGW = async (req, res) => {
   }
 };
 
-
+//ENDPOINT QUE VERIFICA PEDIDO CON CONDUCTOR ID
 export const getPedidoCondControllerGW = async (req, res) => {
   try {
     // Si no hay datos en caché, hacer la solicitud a la API

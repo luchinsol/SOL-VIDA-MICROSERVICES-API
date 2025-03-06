@@ -66,9 +66,6 @@ app.use(morgan("combined"));
 
 // Middleware para verificar el token
 function verificarToken(req, res, next) {
-  
-
-
   if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/ping" ||
      req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor") || req.path.startsWith("/apigw/v1/pedido_estado")|| req.path.startsWith("/apigw/v1/pedido_anulado")) {
 
@@ -94,12 +91,12 @@ function verificarToken(req, res, next) {
 }
 
 // ROUTES GW
-app.use(verificarToken, routerGWCliente);
-app.use(verificarToken, routerGWPedido);
-app.use(verificarToken, routerGWUbicacion);
-app.use(verificarToken, routerGWAlmacen);
-app.use(verificarToken, routerGWAlmacenZona);
-app.use(verificarToken,routerGWNotificacion);
+app.use(routerGWCliente);
+app.use(routerGWPedido);
+app.use(routerGWUbicacion);
+app.use(routerGWAlmacen);
+app.use(routerGWAlmacenZona);
+app.use(routerGWNotificacion);
 app.use(routerGWLogin);
 app.use(routerGWConductor);
 

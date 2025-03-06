@@ -41,6 +41,7 @@ const modelPedidoDetalle = {
         }
     },
 
+    //ENDPOINT QUE RELACIONA EL ID DEL PEDIDO CON EL ID DEL CONDUCTOR
     getPedidoConductorId: async (id) => {
         try {
             const resultado = await db_pool.oneOrNone(`
