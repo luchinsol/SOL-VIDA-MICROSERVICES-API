@@ -8,6 +8,7 @@ const routerGWPedido = express.Router()
 
 routerGWPedido.get('/apigw/v1/pedido/almacen/:idalmacen/:estado',getPedidoAlmacenControllerGW)
 routerGWPedido.get('/apigw/v1/pedido',getPedidosControllerGW)
+//ENDPOINT PARA TRAER EL ID DEL CONDUCTOR CON EL ID DEL PEDIDO
 routerGWPedido.get('/apigw/v1/pedido_cond/:id',getPedidoCondControllerGW)
 routerGWPedido.post('/apigw/v1/pedido',postInfoPedido)
 routerGWPedido.put('/apigw/v1/pedido/:id',UpdateAlmacenPedidosControllerGW)

@@ -10,6 +10,7 @@ const routerPedido = express.Router()
 routerPedido.get('/pedido/almacen/:idalmacen/:estado',getPedidosAlmacenControllerID)
 routerPedido.get('/pedido',getPedidoController)
 routerPedido.get('/pedido/:id',getPedidoControllerId)
+//PEDIDO QUE VERIFICA EL ID DEL CODNCUTOR CON EL PEDIDO
 routerPedido.get('/pedido_cond/:id',getPedidoConductorControllerId)
 routerPedido.post('/pedido',postPedidoController)
 routerPedido.put('/pedido/:id',updatePedidoController)
