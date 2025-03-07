@@ -10,6 +10,36 @@ const service_cliente = process.env.MICRO_CLIENTE;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 console.log(service_auth);
 
+export const postNewUserCLienteControllerGW = async (req, res) => {
+  try {
+    const newUserCredencial = req.body;
+    const response = await axios.post(
+      `${service_auth}/user_new`,
+
+      newUserCredencial.user
+    );
+    if (response.data.message === "User exist!") {
+      return res.status(400).json({ message: response.data.message });
+    }
+
+    const usuarioId = response.data.id;
+
+    const responseCliente = await axios.post(
+      `${service_cliente}/cliente`,
+      {
+        usuario_id: usuarioId,
+        ...newUserCredencial.cliente,
+      }
+    );
+    if(responseCliente.data.message === 'Invalid input data'){
+      return res.status(400).json({message:responseCliente.data.message})
+    }
+    res.status(201).json({user:response.data,conductor:responseCliente.data})
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+};
+
 export const postNewUserConductorControllerGW = async (req, res) => {
   try {
     const newUserCredencial = req.body;
