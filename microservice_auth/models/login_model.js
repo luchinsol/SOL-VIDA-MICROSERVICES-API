@@ -1,4 +1,4 @@
-import { db_pool } from "../login_config.js";
+import { db_pool, db_aguaSol } from "../login_config.js";
 import bcrypt, { hash } from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -116,12 +116,8 @@ const modelAuth = {
   },
   getTelefono: async (id) => {
     try {
-      const resultado = await db_pool.oneOrNone(
-        `
-                SELECT * FROM public.usuario WHERE id = $1`,
-        [id]
-      );
-      return resultado;
+      const resultadoAguaSol = await db_aguaSol.oneOrNone(`SELECT * FROM relaciones.usuario WHERE id = $1`,[id]);
+      return resultadoAguaSol;
     } catch (error) {
       throw new Error(`Error get data: ${error}`);
     }
