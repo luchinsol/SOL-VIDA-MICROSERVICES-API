@@ -116,7 +116,7 @@ const modelAuth = {
   },
   getTelefono: async (id) => {
     try {
-      const resultadoAguaSol = await db_aguaSol.oneOrNone(`SELECT * FROM relaciones.usuario WHERE id = $1`,[id]);
+      const resultadoAguaSol = await db_aguaSol.oneOrNone(`SELECT * FROM personal.usuario WHERE id = $1`,[id]);
       return resultadoAguaSol;
     } catch (error) {
       throw new Error(`Error get data: ${error}`);
