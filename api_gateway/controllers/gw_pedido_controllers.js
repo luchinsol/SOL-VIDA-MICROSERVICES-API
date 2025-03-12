@@ -435,7 +435,7 @@ export const postInfoPedido = async (req, res) => {
     );
 
     const subTotal = detallesProcessed.reduce(
-      (sum, detail) => sum + detail.subtotal,
+      (sum, detail) => sum + detail.total,
       0
     );
     const descuentoCupon = resultado.data.descuento;//LOGICA DE CLIENTE - CUPON O CODIGO?
