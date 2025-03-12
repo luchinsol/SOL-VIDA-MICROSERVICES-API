@@ -519,7 +519,7 @@ async function setupConsumer() {
         await setupQueuesAndExchanges();
         console.log('Esperando pedidos...');
 
-        const ORDER_TIMEOUT = 5 * 60 * 1000; // 20 minutos
+        const ORDER_TIMEOUT = 30 * 60 * 1000; // 20 minutos
 
         channel.consume(EXPIRED_ORDERS_QUEUE, async (msg) => {
             if (msg !== null) {
