@@ -435,9 +435,17 @@ export const postInfoPedido = async (req, res) => {
     );
 
     const subTotal = detallesProcessed.reduce(
-      (sum, detail) => sum + detail.total,
+      (sum, detail) => {
+        // Si es una promoción, usar 'subtotal'
+        if ("productos" in detail) {
+          return sum + detail.subtotal;
+        }
+        // Si es un producto simple, usar 'total'
+        return sum + detail.total;
+      },
       0
     );
+
     const descuentoCupon = resultado.data.descuento;//LOGICA DE CLIENTE - CUPON O CODIGO?
     const precioFinal = subTotal - descuentoCupon;
 
