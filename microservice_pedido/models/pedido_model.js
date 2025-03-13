@@ -1,4 +1,4 @@
-import { db_pool } from '../config.js'
+import { db_aguaSol, db_cliente, db_pool } from '../config.js'
 import amqp from 'amqplib';
 import { io } from '../index.js'
 const RABBITMQ_URL = 'amqp://rabbitmq';// 'amqp://localhost';
@@ -336,16 +336,70 @@ ORDER BY id ASC;
 
     updatePedidoConductorEstado: async (idPedido, pedido) => {
         try {
-            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1, estado=$2, almacen_id=$3
-                WHERE id=$4 RETURNING *`, [pedido.conductor_id, pedido.estado, pedido.almacen_id, idPedido])
-            if (!resultado) {
-                return null;
-            }
+            const resultado = await db_pool.oneOrNone(
+                `UPDATE public.pedido 
+                 SET conductor_id=$1, estado=$2, almacen_id=$3
+                 WHERE id=$4 RETURNING *`,
+                [pedido.conductor_id, pedido.estado, pedido.almacen_id, idPedido]
+            );
+    
+            if (!resultado) return null;
+    
+            // Buscar el pedido en la base de datos del microservicio de pedidos
+            const busqueda = await db_pool.oneOrNone(
+                `SELECT * FROM public.pedido WHERE id =$1`, 
+                [idPedido]
+            );
+    
+            if (!busqueda) return null;
+    
+            // Obtener la información del cliente desde el microservicio de clientes
+            const clienteMicro = await db_cliente.oneOrNone(
+                `SELECT * FROM public.cliente WHERE id = $1`, 
+                [busqueda.cliente_id]
+            );
+    
+            if (!clienteMicro) return null;
+    
+            // Buscar en la base de datos de Aguasol al cliente con sus datos
+            const busquedaAguaSolCliente = await db_aguaSol.oneOrNone(
+                `SELECT * FROM ventas.cliente 
+                 WHERE nombre = $1 AND apellidos = $2 AND codigo = $3`,
+                [clienteMicro.nombre, clienteMicro.apellidos, clienteMicro.codigo]
+            );
+    
+            if (!busquedaAguaSolCliente) return null;
+    
+            // Buscar el pedido en la base de datos de Aguasol
+            const busquedaAguaSolPedido = await db_aguaSol.oneOrNone(
+                `SELECT * FROM ventas.pedido 
+                 WHERE cliente_id = $1 AND estado IN ('pendiente', 'en proceso') 
+                 ORDER BY id DESC LIMIT 1`,
+                [busquedaAguaSolCliente.id]
+            );            
+    
+            if (!busquedaAguaSolPedido) return null;
+    
+            // Actualizar el pedido en la base de datos de Aguasol
+            const result = await db_aguaSol.oneOrNone(
+                `UPDATE ventas.pedido 
+                 SET estado = $1, foto=$2, observacion=$3, tipo_pago=$4 
+                 WHERE id = $5 RETURNING *`,
+                [
+                    pedido.estado,
+                    null, // Si se necesita una foto, este valor debe ser dinámico
+                    'conforme',
+                    'efectivo',
+                    busquedaAguaSolPedido.id
+                ]
+            );
+    
             return resultado;
         } catch (error) {
-            throw new Error(`Error put data: ${error.message}`);
+            throw new Error(`Error al actualizar el pedido: ${error.message}`);
         }
     },
+    
 
     // modelPedidoDetalle.js (agregar logs clave)
     updatePedidoCancelado: async (idPedido, pedido) => {
