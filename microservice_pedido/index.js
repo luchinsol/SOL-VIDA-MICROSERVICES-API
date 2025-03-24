@@ -536,9 +536,9 @@ async function setupConsumer() {
                             ...order,
                             almacen_id: nextStore.id,
                             AlmacenesPendientes: order.AlmacenesPendientes,
-                            rotated_at: new Date().toISOString(),
-                            is_rotation: true,
-                            current_store: nextStore
+                            //rotated_at: new Date().toISOString(),
+                            //is_rotation: true,
+                            //current_store: nextStore
                         };
 
                         // Publicar en la cola principal para continuar el flujo
@@ -618,7 +618,7 @@ async function setupConsumer() {
                         Buffer.from(JSON.stringify(updatedOrder)),
                         { persistent: true }
                     );
-
+/*
                     setTimeout(async () => {
                         try {
                             // Get fresh order data from queue to check current status
@@ -667,12 +667,13 @@ async function setupConsumer() {
                             console.error('Error en timeout de rotación:', error);
                         }
                     }, ORDER_TIMEOUT);
+*/
                     console.log(`Pedido ${order.id} enviado al almacén ${currentStore.id}`);
 
                     // Emitir el evento con el nombre del almacén
                     io.emit(eventName, updatedOrder);
                     console.log(`Evento ${eventName} emitido con éxito`);
-                    console.log(updatedOrder);
+                    //console.log(updatedOrder);
                     console.log('Orden guardada en cola:', getArchiveQueueByAlmacenId(order.almacen_id).queue);
                 } else {
                     console.log('No hay almacenes pendientes para este pedido');

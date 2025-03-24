@@ -290,7 +290,7 @@ ORDER BY id ASC;
                 FROM public.pedido AS pp
                 INNER JOIN public.detalle_pedido AS pdp ON pp.id = pdp.pedido_id
                 WHERE pp.conductor_id = $1
-                AND pp.estado = 'entregado'
+                AND pp.estado = 'en proceso'
                 AND DATE(pp.fecha) = $2
                 ORDER BY pp.id, pdp.id;
             `, [id, fecha]);
