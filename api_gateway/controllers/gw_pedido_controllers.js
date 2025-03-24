@@ -108,6 +108,19 @@ export const getPedidoHistoryConductorControllerGW = async (req, res) => {
       return acc;
     }, {});
 
+    const telefonoRequests = clienteIds.map((cid) =>
+      axios
+        .get(`${service_auth}/user_telefono/${cid}`)
+        .then((res) => ({ id: cid, telefono: res.data }))
+        .catch(() => ({ id: cid, telefono: null })) // En caso de error, asigna null
+    );
+
+    const telefonos = await Promise.all(telefonoRequests);
+    const clienteTelefonos = telefonos.reduce((acc, { id, telefono }) => {
+      acc[id] = telefono;
+      return acc;
+    }, {});
+
     // 3️⃣ Obtener detalles de productos en paralelo
     const productIds = [
       ...new Set(
@@ -165,6 +178,7 @@ export const getPedidoHistoryConductorControllerGW = async (req, res) => {
     const pedidosCompletos = pedidos.map((pedido) => ({
       ...pedido,
       cliente_nombre: clientes[pedido.cliente] || "Desconocido",
+      cliente_telefono: clienteTelefonos[pedido.cliente].telefono || "No disponible",
       ubicacion: ubicaciones[pedido.ubicacion] || null, // Agregamos la ubicación
       detalles_pedido: pedido.detalles_pedido.map((detalle) => ({
         ...detalle,
