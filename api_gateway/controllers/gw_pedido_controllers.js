@@ -103,16 +103,23 @@ export const getPedidoHistoryConductorControllerGW = async (req, res) => {
 
     const clienteResponses = await Promise.all(clienteRequests);
 
-    const clientes = clienteResponses.reduce((acc, res) => {
-      acc[res.data.id] = res.data.nombre; // Guardamos en un diccionario { id: nombre }
-      return acc;
-    }, {});
+    const clientes = {};
+    const usuarioIds = {};
 
-    const telefonoRequests = clienteIds.map((cid) =>
+    clienteResponses.forEach((res) => {
+      const data_cliente = res.data;
+      clientes[data_cliente.id] = data_cliente.nombre;
+      usuarioIds[data_cliente.id] = data_cliente.usuario_id; // Guardamos el usuario_id
+    });
+
+    const telefonoRequests = Object.values(usuarioIds).map((uid) =>
       axios
-        .get(`${service_auth}/user_telefono/${cid}`)
-        .then((res) => ({ id: cid, telefono: res.data }))
-        .catch(() => ({ id: cid, telefono: null })) // En caso de error, asigna null
+        .get(`${service_auth}/user_telefono/${uid}`)
+        .then((res) => ({ 
+          id: uid, 
+          telefono: res.data.telefono || null  // Asegúrate de extraer el teléfono correctamente
+        }))
+        .catch(() => ({ id: uid, telefono: null }))
     );
 
     const telefonos = await Promise.all(telefonoRequests);
@@ -178,7 +185,7 @@ export const getPedidoHistoryConductorControllerGW = async (req, res) => {
     const pedidosCompletos = pedidos.map((pedido) => ({
       ...pedido,
       cliente_nombre: clientes[pedido.cliente] || "Desconocido",
-      cliente_telefono: clienteTelefonos[pedido.cliente].telefono || "No disponible",
+      cliente_telefono: clienteTelefonos[usuarioIds[pedido.cliente]] || "No disponible",
       ubicacion: ubicaciones[pedido.ubicacion] || null, // Agregamos la ubicación
       detalles_pedido: pedido.detalles_pedido.map((detalle) => ({
         ...detalle,
