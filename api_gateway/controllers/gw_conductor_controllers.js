@@ -8,6 +8,7 @@ const service_conductor = process.env.MICRO_CONDUCTOR;
 const service_pedido = process.env.MICRO_PEDIDO;
 const service_cliente = process.env.MICRO_CLIENTE;
 const service_ubicacion = process.env.MICRO_UBICACION;
+const service_auth = process.env.MICRO_AUTH;
 
 export const getConductoresControllerGW = async (req, res) => {
   console.log("......get conductor controller");
@@ -283,4 +284,46 @@ export const getLastPedido = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+//ENPOINT QUE TRAE TODA LA INFO DE LOS PROVEEDORES
+export const getProveedoresControllerGW = async (req, res) => {
+  try {
+    console.log("Obteniendo lista de conductores...");
+    
+    // Fetch conductores
+    const responseconductores = await axios.get(`${service_conductor}/conductor`);
+    
+    // Process conductores to add phone numbers and pending orders
+    const conductoresEnriquecidos = await Promise.all(
+      responseconductores.data.map(async (conductor) => {
+        try {
+          // Fetch phone number for each conductor
+          const telefonoResponse = await axios.get(`${service_auth}/user_telefonodistri/${conductor.usuario_id}`);
+          
+          // Fetch pending orders for each conductor
+          const pedidosResponse = await axios.get(`${service_pedido}/pedido_distribuidores/${conductor.evento_id}`);
+          
+          // Return enriched conductor object
+          return {
+            ...conductor,
+            telefono: telefonoResponse.data.telefono || 'No disponible',
+            total_pedidos_pendientes: pedidosResponse.data.total_pedidos_pendientes || 0
+          };
+        } catch (error) {
+          console.error(`Error procesando conductor ${conductor.usuario_id}:`, error.message);
+          return {
+            ...conductor,
+            telefono: 'No disponible',
+            total_pedidos_pendientes: 0
+          };
+        }
+      })
+    );
 
+    // Return enriched conductores list
+    return res.status(200).json(conductoresEnriquecidos);
+
+  } catch (error) {
+    console.error("Error al obtener conductores:", error.message);
+    return res.status(500).json({ error: "Error al obtener conductores" });
+  }
+};

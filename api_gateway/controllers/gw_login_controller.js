@@ -112,6 +112,14 @@ export const postLoginController = async (req, res) => {
           res.status(404).json({ message: "Not found" });
         }
       }
+      //CENTRAL
+      else if (response.data.existsUser.rol_id == 3) {
+        console.log("CENTRAL");
+        res.status(201).json({
+          user: response.data.existsUser,
+          token: response.data.tokenUser
+        });
+      }
     } else {
       res.status(400).json({ message: "Invalid input data" });
     }

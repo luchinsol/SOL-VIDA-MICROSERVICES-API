@@ -53,7 +53,25 @@ const modelAuth = {
           } else {
             return { message: "Invalid credentials!" };
           }
-        } else {
+        } 
+        
+        //CENTRAL
+        else if (existsUser.rol_id === 3) {
+          if (
+            existsUser &&
+            (await bcrypt.compare(
+              credenciales.contrasena,
+              existsUser.contrasena
+            ))
+          ) {
+            const tokenUser = jwt.sign({ user: existsUser }, SECRET_KEY);
+            return { existsUser, tokenUser };
+          } else {
+            return { message: "Invalid credentials!" };
+          }
+        } 
+        
+        else {
           return { message: "Roule not authorized!" };
         }
       } else {
@@ -117,6 +135,14 @@ const modelAuth = {
   getTelefono: async (id) => {
     try {
       const resultadoAguaSol = await db_aguaSol.oneOrNone(`SELECT * FROM personal.usuario WHERE id = $1`,[id]);
+      return resultadoAguaSol;
+    } catch (error) {
+      throw new Error(`Error get data: ${error}`);
+    }
+  },
+  getTelefonoDistribuidor: async (id) => {
+    try {
+      const resultadoAguaSol = await db_pool.oneOrNone(`SELECT telefono FROM public.usuario WHERE id = $1`,[id]);
       return resultadoAguaSol;
     } catch (error) {
       throw new Error(`Error get data: ${error}`);

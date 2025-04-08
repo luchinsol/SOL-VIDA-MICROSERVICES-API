@@ -13,7 +13,7 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://localhost';//
+const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://localhost';// 
 console.log("...cola d pedidos en stack.yml")
 
 console.log(RABBITMQ_URL)
@@ -33,10 +33,6 @@ const EXPIRED_ORDERS_EXCHANGE = 'expired_orders_exchange';
 
 
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    },
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 2000,
@@ -44,7 +40,7 @@ const io = new Server(server, {
     transports: ['websocket', 'polling']
 });
 
-server.setTimeout(120000);
+//server.setTimeout(120000);
 
 // Store para órdenes pendientes y confirmaciones
 let pendingOrders = [];
@@ -60,32 +56,6 @@ app_micro_pedido.use('/api/v1', routerPedido);
 
 io.on('connection', (socket) => {
     console.log('Cliente conectado');
-
-    /* // Enviar órdenes pendientes al cliente cuando se conecta
-     socket.emit('update_orders', pendingOrders);
- 
-     // Manejar solicitud de sincronización después de reconexión
-     socket.on('sync_request', ({ lastOrderTimestamp }) => {
-         console.log('Sync request received with timestamp:', lastOrderTimestamp);
-         if (lastOrderTimestamp) {
-             const newOrders = Array.from(orderHistory.values())
-                 .filter(order => new Date(order.timestamp) > new Date(lastOrderTimestamp));
- 
-             if (newOrders.length > 0) {
-                 console.log('Sending missed orders:', newOrders.length);
-                 socket.emit('sync_update', newOrders);
-             }
-         }
-     });*/
-    /*
-        socket.on('order_received', (data) => {
-            const { orderId } = data;
-            if (pendingAcks.has(orderId)) {
-                console.log('Order acknowledged:', orderId);
-                pendingAcks.delete(orderId);
-                socket.emit('order_confirmed', { orderId, status: 'confirmed' });
-            }
-        });*/
 
     socket.on('disconnect', () => {
         console.log('Cliente desconectado');
@@ -283,8 +253,117 @@ io.on('connection', (socket) => {
     });
 
 
-});
+    // Añade este evento en la sección de socket.on
+    socket.on('rotacion_manual', async (data) => {
 
+        console.log("EN ROTACION MANUAL----->");
+       try {
+            console.log(`[🔥] Evento recibido! Pedido ${data.pedidoId}`);
+            console.log(`[🚚] Rotando de almacén ${data.almacenActual} a ${data.almacenDestino}`);
+            // Get basic data
+            const { pedidoId, almacenActual, almacenDestino } = data;
+            console.log(`[ROTACIÓN MANUAL] Iniciando rotación del pedido ${pedidoId} de almacén ${almacenActual} a ${almacenDestino}`);
+            
+            // 1. Get source queue based on current almacen
+            const { queue: sourceQueue } = getArchiveQueueByAlmacenId(parseInt(almacenActual));
+            console.log(`[ROTACIÓN MANUAL] Buscando en cola de origen: ${sourceQueue}`);
+            
+            // 2. Find and extract the target order
+            let foundOrder = null;
+            let tempMessages = [];
+            let message;
+            
+            // Process all messages from the source queue
+            console.log(`[ROTACIÓN MANUAL] Extrayendo mensajes de cola ${sourceQueue}`);
+            while ((message = await channel.get(sourceQueue, { noAck: false })) !== false) {
+                try {
+                    const order = JSON.parse(message.content.toString());
+                    
+                    // Check if this is our target order by comparing IDs as strings
+                    if (String(order.id) === String(pedidoId)) {
+                        console.log(`[ROTACIÓN MANUAL] ✅ Encontrado pedido ${pedidoId} en cola ${sourceQueue}`);
+                        foundOrder = order;
+                        channel.ack(message); // Remove it from the queue
+                    } else {
+                        // Store other messages to re-queue them later
+                        tempMessages.push({
+                            content: message.content,
+                            message: message
+                        });
+                    }
+                } catch (parseError) {
+                    console.error('[ROTACIÓN MANUAL] Error al parsear mensaje:', parseError);
+                    channel.ack(message);
+                }
+            }
+            
+            // Re-queue all non-target messages
+            for (const msg of tempMessages) {
+                await channel.sendToQueue(sourceQueue, msg.content, { persistent: true });
+                channel.ack(msg.message);
+            }
+            
+            // Handle case where order wasn't found
+            if (!foundOrder) {
+                console.error(`[ROTACIÓN MANUAL] ❌ Pedido ${pedidoId} NO ENCONTRADO en cola ${sourceQueue}`);
+                io.emit('rotacion_manual_error', {
+                    pedidoId,
+                    error: `Pedido no encontrado en la cola del almacén ${almacenActual}`,
+                    timestamp: new Date().toISOString()
+                });
+                return;
+            }
+            
+            // 3. Update the order with new destination information
+            console.log(`[ROTACIÓN MANUAL] Actualizando pedido para almacén destino: ${almacenDestino}`);
+            
+            // Create a store object for the destination
+            const destinationStore = {
+                id: parseInt(almacenDestino),
+                nombre_evento: `almacen ${almacenDestino}`
+            };
+            
+            const updatedOrder = {
+                ...foundOrder,
+                almacen_id: parseInt(almacenDestino),
+                rotated_at: new Date().toISOString(),
+                is_rotation: true,
+                rotation_attempts: (foundOrder.rotation_attempts || 0) + 1,
+                // Replace AlmacenesPendientes with just the destination store
+                AlmacenesPendientes: [destinationStore]
+            };
+            
+            console.log(`[ROTACIÓN MANUAL] AlmacenesPendientes actualizado:`, updatedOrder.AlmacenesPendientes);
+            
+            // 4. Send the updated order to the main queue for processing
+            await channel.sendToQueue(
+                MAIN_QUEUE,
+                Buffer.from(JSON.stringify(updatedOrder)),
+                { persistent: true }
+            );
+            
+            console.log(`[ROTACIÓN MANUAL] ✅ Pedido ${pedidoId} enviado a cola principal para asignación a almacén ${almacenDestino}`);
+            
+            // 5. Notify about successful rotation
+            io.emit('rotacion_manual_completada', {
+                pedidoId: pedidoId,
+                almacenAnterior: almacenActual,
+                almacenActual: almacenDestino,
+                timestamp: new Date().toISOString()
+            });
+            
+        } catch (error) {
+            console.error('[ROTACIÓN MANUAL] Error:', error);
+            io.emit('rotacion_manual_error', {
+                pedidoId: data.pedidoId,
+                error: error.message,
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+
+
+});
 
 
 

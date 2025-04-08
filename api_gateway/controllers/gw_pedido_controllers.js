@@ -201,6 +201,107 @@ export const getPedidoHistoryConductorControllerGW = async (req, res) => {
   }
 };
 
+//ENDPOINT PARA LA CENTRAL TOTAL DE PEDIDOS PENDIENTES
+export const getPedidoPendientesControllerGW = async (req,res) => {
+  try {
+    const response = await axios
+    .get(`${service_pedido}/pedido_pendientes`)
+    .catch((error) =>{
+      if(error.response){
+        console.log("Error en la respuesta",error.response.status)
+      }
+      else{
+        console.log("Error en la solicitud", error.message)
+      }
+      return null
+    });
+    if (!response || !response.data || response.data.length === 0) {
+      return res.status(404).json({ message: "Pedidos no encontrados" });
+    }
+    res.status(200).json(response.data)
+    
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+//ENDPOINT PARA LA CENTRAL TOTAL DE PEDIDOS EN PROCESO
+export const getEnProcesoControllerGW = async (req,res) => {
+  try {
+    const response = await axios
+    .get(`${service_pedido}/pedido_enproceso`)
+    .catch((error) =>{
+      if(error.response){
+        console.log("Error en la respuesta",error.response.status)
+      }
+      else{
+        console.log("Error en la solicitud", error.message)
+      }
+      return null
+    });
+    if (!response || !response.data || response.data.length === 0) {
+      return res.status(404).json({ message: "Pedidos no encontrados" });
+    }
+    res.status(200).json(response.data)
+    
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+
+
+//ENDPOINT PARA LA CENTRAL TOTAL DE PEDIDOS ENTREGADOS
+export const getPedidoEntregadosControllerGW = async (req,res) => {
+  try {
+    const response = await axios
+    .get(`${service_pedido}/pedido_entregado`)
+    .catch((error) =>{
+      if(error.response){
+        console.log("Error en la respuesta",error.response.status)
+      }
+      else{
+        console.log("Error en la solicitud", error.message)
+      }
+      return null
+    });
+    if (!response || !response.data || response.data.length === 0) {
+      return res.status(404).json({ message: "Pedidos no encontrados" });
+    }
+    res.status(200).json(response.data)
+    
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+//ENDPOINT PARA LOS PEDIDOS SEMANALES TOTALES
+export const getPedidoSemanalGW = async (req,res) => {
+  try {
+    const response = await axios
+    .get(`${service_pedido}/pedido_semanal`)
+    .catch((error) =>{
+      if(error.response){
+        console.log("Error en la respuesta",error.response.status)
+      }
+      else{
+        console.log("Error en la solicitud", error.message)
+      }
+      return null
+    });
+    if (!response || !response.data || response.data.length === 0) {
+      return res.status(404).json({ message: "Pedidos no encontrados" });
+    }
+    res.status(200).json(response.data)
+    
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+
+
+
 export const getPedidosControllerGW = async (req, res) => {
   console.log("......get pedido controller");
   const cacheKey = "pedidos_cache";
@@ -760,6 +861,463 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
   };
 }
 
+
+//CONTROLLER PARA TRAER TODOS LOS PEDIDOS EN PROCESO PARA LA CENTRAL
+export const getEnprocesoControllerGW = async (req, res) => {
+  try {
+    // 1. Obtener todos los pedidos en proceso
+    const pedidosResponse = await axios.get(`${service_pedido}/pedido_distribuidor_enproceso`);
+    
+    if (!pedidosResponse.data || !Array.isArray(pedidosResponse.data)) {
+      return res.status(404).json({ message: "No se encontraron pedidos en proceso" });
+    }
+    
+    // 2. Enriquecer cada pedido con información adicional
+    const pedidosEnriquecidos = await Promise.all(
+      pedidosResponse.data.map(async (pedido) => {
+        try {
+          // Obtener información del cliente usando cliente_id del pedido
+          const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`);
+          const clienteData = clienteResponse.data;
+          
+          // Obtener información del teléfono usando usuario_id del cliente
+          let telefonoData = null;
+          if (clienteData && clienteData.usuario_id) {
+            const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`);
+            telefonoData = telefonoResponse.data;
+          }
+          
+          // Obtener información de ubicación usando ubicacion_id del pedido
+          let ubicacionData = null;
+          if (pedido.ubicacion_id) {
+            const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
+            ubicacionData = ubicacionResponse.data;
+          }
+          
+          // Obtener información del conductor usando conductor_id del pedido
+          let conductorData = null;
+          if (pedido.conductor_id) {
+            const conductorResponse = await axios.get(`${service_conductor}/conductor/${pedido.conductor_id}`);
+            conductorData = conductorResponse.data;
+          }
+          
+          // Combinar toda la información en un solo objeto
+          return {
+            ...pedido,
+            cliente: clienteData || null,
+            telefono: telefonoData || null,
+            ubicacion: ubicacionData || null,
+            conductor: conductorData || null
+          };
+        } catch (error) {
+          console.error(`Error al enriquecer pedido ${pedido.id}:`, error.message);
+          // Si falla alguna de las peticiones para un pedido en particular, devolvemos el pedido original
+          return pedido;
+        }
+      })
+    );
+    
+    res.status(200).json(pedidosEnriquecidos);
+    
+  } catch (error) {
+    console.error("Error al obtener pedidos en proceso:", error.message);
+    res.status(500).json({
+      message: "Error al procesar la solicitud de pedidos en proceso",
+      error: error.message
+    });
+  }
+};
+
+
+//CONTROLLER PARA TRAER TODOS LOS PEDIDOS EN PROCESO PARA LA CENTRAL
+export const getPendienteControllerGW = async (req, res) => {
+  try {
+    // 1. Obtener todos los pedidos en proceso
+    const pedidosResponse = await axios.get(`${service_pedido}/pedido_distribuidor_pendiente`);
+    
+    if (!pedidosResponse.data || !Array.isArray(pedidosResponse.data)) {
+      return res.status(404).json({ message: "No se encontraron pedidos pendientes" });
+    }
+    
+    // 2. Enriquecer cada pedido con información adicional
+    const pedidosEnriquecidos = await Promise.all(
+      pedidosResponse.data.map(async (pedido) => {
+        try {
+          // Obtener información del cliente usando cliente_id del pedido
+          const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`);
+          const clienteData = clienteResponse.data;
+          
+          // Obtener información del teléfono usando usuario_id del cliente
+          let telefonoData = null;
+          if (clienteData && clienteData.usuario_id) {
+            const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`);
+            telefonoData = telefonoResponse.data;
+          }
+          
+          // Obtener información de ubicación usando ubicacion_id del pedido
+          let ubicacionData = null;
+          if (pedido.ubicacion_id) {
+            const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
+            ubicacionData = ubicacionResponse.data;
+          }
+          
+          // Obtener información del distribuidor usando almacen_id del pedido
+          let distribuidorData = null;
+          if (pedido.almacen_id) {
+            const distribuidorResponse = await axios.get(`${service_conductor}/distribuidor_almacen/${pedido.almacen_id}`);
+            distribuidorData = distribuidorResponse.data;
+          }
+          
+          // Obtener información del almacén usando almacen_id del pedido
+          let almacenData = null;
+          if (pedido.almacen_id) {
+            const almacenResponse = await axios.get(`${service_almacen}/almacen/${pedido.almacen_id}`);
+            almacenData = almacenResponse.data;
+          }
+          
+          // Combinar toda la información en un solo objeto
+          return {
+            ...pedido,
+            cliente: clienteData || null,
+            telefono: telefonoData || null,
+            ubicacion: ubicacionData || null,
+            distribuidor: distribuidorData || null,
+            almacen: almacenData || null
+          };
+        } catch (error) {
+          console.error(`Error al enriquecer pedido ${pedido.id}:`, error.message);
+          // Si falla alguna de las peticiones para un pedido en particular, devolvemos el pedido original
+          return pedido;
+        }
+      })
+    );
+    
+    res.status(200).json(pedidosEnriquecidos);
+    
+  } catch (error) {
+    console.error("Error al obtener pedidos en proceso:", error.message);
+    res.status(500).json({
+      message: "Error al procesar la solicitud de pedidos en proceso",
+      error: error.message
+    });
+  }
+};
+
+
+export const getEntregadosControllerGW = async (req, res) => {
+  try {
+    // 1. Obtener todos los pedidos en proceso
+    const pedidosResponse = await axios.get(`${service_pedido}/pedido_distribuidor_entregado`);
+    
+    if (!pedidosResponse.data || !Array.isArray(pedidosResponse.data)) {
+      
+      return res.status(404).json({ message: "No se encontraron pedidos entregados" });
+    }
+    
+    // 2. Enriquecer cada pedido con información adicional
+    const pedidosEnriquecidos = await Promise.all(
+      pedidosResponse.data.map(async (pedido) => {
+        try {
+          // Obtener información del cliente usando cliente_id del pedido
+          const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`);
+          const clienteData = clienteResponse.data;
+          
+          // Obtener información del teléfono usando usuario_id del cliente
+          let telefonoData = null;
+          if (clienteData && clienteData.usuario_id) {
+            const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`);
+            telefonoData = telefonoResponse.data;
+          }
+
+          
+          
+          // Obtener información de ubicación usando ubicacion_id del pedido
+          let ubicacionData = null;
+          if (pedido.ubicacion_id) {
+            const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
+            ubicacionData = ubicacionResponse.data;
+          }
+
+          
+
+          // Obtener información del distribuidor usando conductor_id del pedido
+          let distribuidorData = null;
+          if (pedido.conductor_id) {
+            const distribuidorResponse = await axios.get(`${service_conductor}/conductor/${pedido.conductor_id}`);
+            distribuidorData = distribuidorResponse.data;
+          }
+
+          //console.log("PEDIDOS ENTREGADOS CONTROLLER GW **************");
+          //console.log(distribuidorData);
+
+          //console.log(...pedido,clienteData,telefonoData,ubicacionData,distribuidorData);
+          
+          // Combinar toda la información en un solo objeto
+          return {
+            ...pedido,
+            cliente: clienteData || null,
+            telefono: telefonoData || null,
+            ubicacion: ubicacionData || null,
+            distribuidor: distribuidorData || null
+          };
+        } catch (error) {
+          console.error(`Error al enriquecer pedido ${pedido.id}:`, error.message);
+          // Si falla alguna de las peticiones para un pedido en particular, devolvemos el pedido original
+          return pedido;
+        }
+      })
+    );
+    
+    res.status(200).json(pedidosEnriquecidos);
+    
+  } catch (error) {
+    console.error("Error al obtener pedidos en proceso:", error.message);
+    res.status(500).json({ 
+      message: "Error al procesar la solicitud de pedidos en proceso", 
+      error: error.message 
+    });
+  }
+};
+
+export const getDistribuidorTotalControllerGW = async (req,res) => {
+  try {
+    const response = await axios
+    .get(`${service_pedido}/pedido_distribuidor_total`)
+    .catch((error) =>{
+      if(error.response){
+        console.log("Error en la respuesta",error.response.status)
+      }
+      else{
+        console.log("Error en la solicitud", error.message)
+      }
+      return null
+    });
+    if (!response || !response.data || response.data.length === 0) {
+      return res.status(404).json({ message: "Pedidos no encontrados" });
+    }
+    res.status(200).json(response.data)
+    
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+
+export const getDistribuidorConteoTotalControllerGW = async (req, res) => {
+  try {
+    const { fecha } = req.params;
+    const response = await axios
+      .get(`${service_pedido}/pedido_distribuidor_conteo/${fecha}`)
+      .catch((error) => {
+        if (error.response) {
+          console.log("Error en la respuesta", error.response.status);
+        } else {
+          console.log("Error en la solicitud", error.message);
+        }
+        return null;
+      });
+
+    // Definir almacenes esperados
+    const almacenesEsperados = [1, 2, 3];
+    let datos = response && response.data ? response.data : [];
+
+    // Convertir los datos en un objeto para fácil acceso
+    const datosMap = new Map(datos.map((item) => [item.almacen_id, item]));
+
+    // Construir la respuesta asegurando que todos los almacenes estén presentes
+    const resultadoCompleto = await Promise.all(
+      almacenesEsperados.map(async (almacen_id) => {
+        const total_pedidos = datosMap.has(almacen_id) ? datosMap.get(almacen_id).total_pedidos : "0";
+        
+        // Nueva consulta al endpoint de conductor
+        let conductorResponse = await axios
+          .get(`${service_conductor}/distribuidor_almacen/${almacen_id}`)
+          .catch((error) => {
+            console.log(`Error obteniendo datos del almacén ${almacen_id}`, error.message);
+            return { data: null };
+          });
+
+        // Filtrar distribuidores para eliminar "Demo Demo"
+        const distribuidorFiltrado = (conductorResponse.data || []).filter(
+          (d) => d.nombres !== "Demo" || d.apellidos !== "Demo"
+        );
+
+        return {
+          almacen_id,
+          total_pedidos,
+          distribuidor: distribuidorFiltrado,
+        };
+      })
+    );
+
+    res.status(200).json(resultadoCompleto);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getDistribudoresConteoControllerGW = async (req, res) => {
+  try {
+    const { fecha, id } = req.params;
+    
+    // 1️⃣ Primera consulta: Obtener pedidos del distribuidor
+    const response = await axios.get(`${service_pedido}/pedido_distribuidor_conteo_pedidos/${fecha}/${id}`);
+    
+    if (!response.data || response.data.length === 0) {
+      return res.status(404).json({ message: "No hay pedidos disponibles" });
+    }
+    
+    // Procesar todos los pedidos en lugar de solo el primero
+    const pedidos = response.data;
+    
+    // Obtener datos adicionales para cada pedido
+    const resultados = await Promise.all(pedidos.map(async (pedido) => {
+      // 2️⃣ Segunda consulta: Obtener datos del almacén
+      const almacenData = await axios.get(`${service_almacen}/almacen/${pedido.almacen_id}`).catch(() => null);
+      
+      // 3️⃣ Tercera consulta: Obtener datos del cliente
+      const clienteData = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`).catch(() => null);
+      
+      // 4️⃣ Cuarta consulta: Obtener dirección del cliente
+      const direccionData = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`).catch(() => null);
+      
+      // 5️⃣ Quinta consulta: Obtener teléfono del usuario del cliente (solo si hay datos del cliente)
+      let telefonoData = null;
+      if (clienteData && clienteData.data) {
+        telefonoData = await axios.get(`${service_auth}/user_telefono/${clienteData.data.usuario_id}`).catch(() => null);
+      }
+      
+      // Retornar resultado combinado para este pedido
+      return {
+        pedido: pedido || "No hay datos disponibles",
+        almacen: almacenData?.data || "No hay datos disponibles",
+        cliente: clienteData?.data || "No hay datos disponibles",
+        direccion: direccionData?.data || "No hay datos disponibles",
+        telefono: telefonoData?.data || "No hay datos disponibles",
+      };
+    }));
+    
+    res.status(200).json(resultados);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getPedidosInfoDetalles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // 1️⃣ Obtener pedidos del distribuidor
+    const response = await axios.get(`${service_pedido}/allpedidodetalle/${id}`);
+    const pedidos = response.data;
+    
+    if (!pedidos || pedidos.length === 0) {
+      return res.status(404).json({ message: "No hay pedidos disponibles" });
+    }
+    
+    // 2️⃣ Obtener información del cliente y ubicación (solo de un pedido, asumiendo que todos tienen el mismo cliente y ubicación)
+    /*
+    const { cliente_id, ubicacion_id } = pedidos[0];
+    const [clienteResponse, ubicacionResponse] = await Promise.all([
+      axios.get(`${service_cliente}/cliente/${cliente_id}`),
+      axios.get(`${service_ubicacion}/ubicacion/${ubicacion_id}`)
+    ]);
+    
+    const clienteInfo = clienteResponse.data;
+    const direccion = ubicacionResponse.data;*/
+    
+    // 3️⃣ Obtener información de productos o promociones
+    const detallesPedidos = await Promise.all(pedidos.map(async pedido => {
+      let productoInfo;
+      if (pedido.promocion_id === null) {
+        const productoResponse = await axios.get(`${service_producto}/producto/${pedido.producto_id}`);
+        productoInfo = productoResponse.data;
+      } else {
+        const promocionResponse = await axios.get(`${service_producto}/promocion/${pedido.promocion_id}`);
+        productoInfo = promocionResponse.data;
+      }
+      
+      return {
+        ...pedido,
+        productoInfo
+      };
+    }));
+    
+    // 4️⃣ Responder con la data consolidada
+    res.status(200).json({
+      detallesPedidos
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getPedidosPrimeraFecha = async (req, res) => {
+  try {
+    
+    const response = await axios.get(`${service_pedido}/primera_fecha`);
+    const primeraFecha = response.data;
+    
+    if (!primeraFecha || (!primeraFecha.mes_anio && !primeraFecha.anio_mes)) {
+      return res.status(404).json({ message: "No hay información de la primera fecha disponible" });
+    }
+    
+    res.status(200).json({
+      primeraFecha,
+      mensaje: `La primera fecha de registro de pedidos fue en ${primeraFecha.mes_anio}`
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+export const getInformePedidos = async (req, res) => {
+  try {
+    const { mesAnio } = req.params;
+    
+    // Realiza todas las peticiones en paralelo usando Promise.all
+    const [
+      reporteDiasResponse,
+      reporteTotalMesResponse,
+      reporteDiasClienteResponse,
+      reporteTotalMesClienteResponse
+    ] = await Promise.all([
+      axios.get(`${service_pedido}/ventas_diarias/${mesAnio}`),
+      axios.get(`${service_pedido}/ventas_totales/${mesAnio}`),
+      axios.get(`${service_cliente}/usuarios_por_dia/${mesAnio}`),
+      axios.get(`${service_cliente}/usuarios_totales/${mesAnio}`)
+    ]);
+
+    // Extrae los datos de cada respuesta
+    const reporteDias = reporteDiasResponse.data;
+    const reporteTotalMes = reporteTotalMesResponse.data;
+    const reporteDiasCliente = reporteDiasClienteResponse.data;
+    const reporteTotalMesCliente = reporteTotalMesClienteResponse.data;
+
+    // Construye el objeto de respuesta con todos los datos
+    const informe = {
+      ventas: {
+        por_dia: reporteDias,
+        total_mes: reporteTotalMes
+      },
+      usuarios: {
+        por_dia: reporteDiasCliente,
+        total_mes: reporteTotalMesCliente
+      },
+      periodo: mesAnio
+    };
+
+    // Envía la respuesta
+    res.status(200).json(informe);
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const UpdateAlmacenPedidosControllerGW = async (req, res) => {
   try {
     const { id } = req.params;
@@ -845,3 +1403,69 @@ export const UpdatePedidoCanceladosControllerGW = async (req, res) => {
 };
 
 
+export const UpdatePedidoRotacionControllerGW = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await axios.put(
+      `${service_pedido}/pedido_rotacion/${id}`,
+      req.body
+    );
+
+    if (response.status === 200 && response.data) {
+      return res.status(200).json(response.data);
+    }
+
+    return res
+      .status(404)
+      .json({ message: "Pedido no rotado manualmente" });
+  } catch (error) {
+    if (error.response) {
+      const { status, data } = error.response;
+
+      if (status === 404) {
+        return res
+          .status(404)
+          .json({ message: "Pedido no encontrado durante rotacion", details: data });
+      }
+    }
+
+    console.error(
+      `Error en UpdatePedidoRotacionControllerGW: ${error.message}`
+    );
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+
+export const UpdatePedidoDistribuidorAlmacenControllerGW = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await axios.put(
+      `${service_pedido}/pedido_distribuidor_almacen/${id}`,
+      req.body
+    );
+
+    if (response.status === 200 && response.data) {
+      return res.status(200).json(response.data);
+    }
+
+    return res
+      .status(404)
+      .json({ message: "Pedido no encontrado" });
+  } catch (error) {
+    if (error.response) {
+      const { status, data } = error.response;
+
+      if (status === 404) {
+        return res
+          .status(404)
+          .json({ message: "Pedido no encontrado", details: data });
+      }
+    }
+
+    console.error(
+      `Error en UpdatePedidoDistribuidorAlmacenControllerGW: ${error.message}`
+    );
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
