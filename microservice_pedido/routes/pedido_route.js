@@ -1,5 +1,5 @@
 
-import { getPedidoConductorControllerId,updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
+import { getPrimeraFechaPedido,getVentasDiariasMes,getVentasTotalesMes,updatePedidoDistribuidores,updatePedidoRotacionesManual,getPedidosDistribuidoresResumen,getConteoTotalDistribuidoresPedidos,getConteoTotalPedidosDistribuidor,getPedidosEntregadosDistribuidores,getPedidosPendientesDistribuidor,getPedidosEnProcesoDistribuidores,getPedidosDistribuidor,getPedidoTotalesCentral,getPedidoCentralPendientes,getPedidoCentralEnProcesos,getPedidoCentralEntregados,getPedidoConductorControllerId,updatePedidoCancelados,updatePedidoConductoresEstado,updatePedidoConductores,updatePedidoPrecios,updatePedidoAlmacenController,getDetallePedidosAll,deletePedidoDetalleController,updatePedidoDetallesController,postDetallePedidos,getDetallePedidosId,getPedidosSinConductores,getPedidosConductorInfos,getPedidosConteos,getDetallePedidos,getPedidoController, postPedidoController,updatePedidoController,deletePedidoController,getPedidoControllerId, getPedidoHistoryConductores, getPedidosAlmacenControllerID } from "../controllers/pedido_controller.js";
 
 
 import express from 'express'
@@ -39,9 +39,28 @@ routerPedido.put('/pedido_precio/:id',updatePedidoPrecios)
 routerPedido.put('/pedido_conductor/:id',updatePedidoConductores)
 //ENDPOINT PARA ACTUALIZAR TODOS LOS PEDIDOS CON SU RESPECTIVO ALMACEN Y PEDIDOS
 routerPedido.put('/pedido_estado/:id',updatePedidoConductoresEstado)
+//ENDPOINT PARA TRAER TODOS LOS PEDIDOS EN T
 routerPedido.get('/pedido_history/:id/:fecha',getPedidoHistoryConductores)
+routerPedido.get('/pedido_pendientes',getPedidoCentralPendientes)
+routerPedido.get('/pedido_enproceso',getPedidoCentralEnProcesos)
+routerPedido.get('/pedido_entregado',getPedidoCentralEntregados)
+routerPedido.get('/pedido_distribuidores/:id',getPedidosDistribuidor)
+//ENDPOINT DE PEDIDOS TOTALES POR SEMANA
+routerPedido.get('/pedido_semanal',getPedidoTotalesCentral)
 //ENDPOINT QUE SIRVE PARA RECHAZAR UN PEDIDO
 routerPedido.put('/pedido_anulado/:id',updatePedidoCancelados)
-
+//ROTACION MANUAL IMPLEMENTACION
+routerPedido.put('/pedido_rotacion/:id',updatePedidoRotacionesManual)
+routerPedido.put('/pedido_distribuidor_almacen/:id',updatePedidoDistribuidores)
+//LISTADO DE PEDIDOS PENDIENTES DISTRIBUIDOR
+routerPedido.get('/pedido_distribuidor_enproceso',getPedidosEnProcesoDistribuidores)
+routerPedido.get('/pedido_distribuidor_pendiente',getPedidosPendientesDistribuidor)
+routerPedido.get('/pedido_distribuidor_entregado',getPedidosEntregadosDistribuidores)
+routerPedido.get('/pedido_distribuidor_total',getConteoTotalPedidosDistribuidor)
+routerPedido.get('/pedido_distribuidor_conteo/:fecha',getConteoTotalDistribuidoresPedidos)
+routerPedido.get('/pedido_distribuidor_conteo_pedidos/:fecha/:id',getPedidosDistribuidoresResumen)
+routerPedido.get('/ventas_diarias/:mesAnio', getVentasDiariasMes);
+routerPedido.get('/ventas_totales/:mesAnio', getVentasTotalesMes);
+routerPedido.get('/primera_fecha', getPrimeraFechaPedido);
 
 export default routerPedido

@@ -40,6 +40,32 @@ export const getClienteController_Id = async (req, res) => {
       }
 };
 
+export const getUsuariosTotalesMes = async (req, res) => {
+  try {
+      const { mesAnio } = req.params;
+      const response = await modelCliente.getUsuariosTotalesMes(mesAnio);
+      if (!response || !response.total_usuarios) {
+          return res.status(404).json({ message: "Data not found" });
+      }
+      res.status(200).json(response);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+export const getUsuariosPorDiaMes = async (req, res) => {
+  try {
+      const { mesAnio } = req.params;
+      const response = await modelCliente.getUsuariosPorDiaMes(mesAnio);
+      if (!response || response.length === 0) {
+          return res.status(404).json({ message: "Data not found" });
+      }
+      res.status(200).json(response);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
 export const postClienteController = async (req, res) => {
     try {
         const resultado = req.body

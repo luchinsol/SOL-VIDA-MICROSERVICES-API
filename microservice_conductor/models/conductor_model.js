@@ -4,12 +4,17 @@ const modelUserConductor = {
     getAllUsersConductor: async () => {
         try {
             const resultado = await db_pool.any(
-                `select * from public.conductor`)
-            return resultado
+                `SELECT * 
+                 FROM public.conductor 
+                 WHERE nivel = 'admin' 
+                 ORDER BY id ASC;`
+            );
+            return resultado;
         } catch (error) {
             throw new Error(`Error get data: ${error}`);
         }
     },
+    
 
     getConductorUserId: async (id) => {
         try {
@@ -149,7 +154,15 @@ WHERE
             throw new Error(`Error get data: ${error}`);
         }
     },
-    
+ 
+    getDistribuidorAlmacen: async(id) => {
+        try{
+            const resultado = await db_pool.manyOrNone(`SELECT nombres, apellidos FROM public.conductor WHERE evento_id = $1 AND nivel = 'admin'`,[id]);
+            return resultado
+        }catch(error){
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
 }
 
 export default modelUserConductor;
