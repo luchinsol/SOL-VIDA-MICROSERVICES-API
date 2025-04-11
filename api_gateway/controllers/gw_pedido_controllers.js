@@ -825,7 +825,7 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
   allWarehouses.sort((a, b) => a.distance - b.distance);
 
   const nearestWarehouseIds = allWarehouses
-    .slice(0, 3)
+    .slice(0, 4)
     .map((warehouse) => warehouse.id);
 
   // Si encontramos una región, buscar almacenes en esa región
@@ -875,50 +875,47 @@ export const getEnprocesoControllerGW = async (req, res) => {
     // 2. Enriquecer cada pedido con información adicional
     const pedidosEnriquecidos = await Promise.all(
       pedidosResponse.data.map(async (pedido) => {
-        try {
-          // Obtener información del cliente usando cliente_id del pedido
-          const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`);
-          const clienteData = clienteResponse.data;
-          
-          // Obtener información del teléfono usando usuario_id del cliente
-          let telefonoData = null;
-          if (clienteData && clienteData.usuario_id) {
-            const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`);
-            telefonoData = telefonoResponse.data;
-          }
-          
-          // Obtener información de ubicación usando ubicacion_id del pedido
-          let ubicacionData = null;
-          if (pedido.ubicacion_id) {
-            const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
-            ubicacionData = ubicacionResponse.data;
-          }
-          
-          // Obtener información del conductor usando conductor_id del pedido
-          let conductorData = null;
-          if (pedido.conductor_id) {
-            const conductorResponse = await axios.get(`${service_conductor}/conductor/${pedido.conductor_id}`);
-            conductorData = conductorResponse.data;
-          }
-          
-          // Combinar toda la información en un solo objeto
-          return {
-            ...pedido,
-            cliente: clienteData || null,
-            telefono: telefonoData || null,
-            ubicacion: ubicacionData || null,
-            conductor: conductorData || null
-          };
-        } catch (error) {
-          console.error(`Error al enriquecer pedido ${pedido.id}:`, error.message);
-          // Si falla alguna de las peticiones para un pedido en particular, devolvemos el pedido original
-          return pedido;
+        // Obtener información del cliente usando cliente_id del pedido
+        const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`)
+          .catch(() => ({ data: "No hay datos disponibles" }));
+        const clienteData = clienteResponse.data;
+        
+        // Obtener información del teléfono usando usuario_id del cliente
+        let telefonoData = "No hay datos disponibles";
+        if (clienteData && clienteData !== "No hay datos disponibles" && clienteData.usuario_id) {
+          const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          telefonoData = telefonoResponse.data;
         }
+        
+        // Obtener información de ubicación usando ubicacion_id del pedido
+        let ubicacionData = "No hay datos disponibles";
+        if (pedido.ubicacion_id) {
+          const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          ubicacionData = ubicacionResponse.data;
+        }
+        
+        // Obtener información del conductor usando conductor_id del pedido
+        let conductorData = "No hay datos disponibles";
+        if (pedido.conductor_id) {
+          const conductorResponse = await axios.get(`${service_conductor}/conductor/${pedido.conductor_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          conductorData = conductorResponse.data;
+        }
+        
+        // Combinar toda la información en un solo objeto
+        return {
+          ...pedido,
+          cliente: clienteData || "No hay datos disponibles",
+          telefono: telefonoData || "No hay datos disponibles",
+          ubicacion: ubicacionData || "No hay datos disponibles",
+          conductor: conductorData || "No hay datos disponibles"
+        };
       })
     );
     
     res.status(200).json(pedidosEnriquecidos);
-    
   } catch (error) {
     console.error("Error al obtener pedidos en proceso:", error.message);
     res.status(500).json({
@@ -932,7 +929,7 @@ export const getEnprocesoControllerGW = async (req, res) => {
 //CONTROLLER PARA TRAER TODOS LOS PEDIDOS EN PROCESO PARA LA CENTRAL
 export const getPendienteControllerGW = async (req, res) => {
   try {
-    // 1. Obtener todos los pedidos en proceso
+    // 1. Obtener todos los pedidos pendientes
     const pedidosResponse = await axios.get(`${service_pedido}/pedido_distribuidor_pendiente`);
     
     if (!pedidosResponse.data || !Array.isArray(pedidosResponse.data)) {
@@ -942,62 +939,61 @@ export const getPendienteControllerGW = async (req, res) => {
     // 2. Enriquecer cada pedido con información adicional
     const pedidosEnriquecidos = await Promise.all(
       pedidosResponse.data.map(async (pedido) => {
-        try {
-          // Obtener información del cliente usando cliente_id del pedido
-          const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`);
-          const clienteData = clienteResponse.data;
-          
-          // Obtener información del teléfono usando usuario_id del cliente
-          let telefonoData = null;
-          if (clienteData && clienteData.usuario_id) {
-            const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`);
-            telefonoData = telefonoResponse.data;
-          }
-          
-          // Obtener información de ubicación usando ubicacion_id del pedido
-          let ubicacionData = null;
-          if (pedido.ubicacion_id) {
-            const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
-            ubicacionData = ubicacionResponse.data;
-          }
-          
-          // Obtener información del distribuidor usando almacen_id del pedido
-          let distribuidorData = null;
-          if (pedido.almacen_id) {
-            const distribuidorResponse = await axios.get(`${service_conductor}/distribuidor_almacen/${pedido.almacen_id}`);
-            distribuidorData = distribuidorResponse.data;
-          }
-          
-          // Obtener información del almacén usando almacen_id del pedido
-          let almacenData = null;
-          if (pedido.almacen_id) {
-            const almacenResponse = await axios.get(`${service_almacen}/almacen/${pedido.almacen_id}`);
-            almacenData = almacenResponse.data;
-          }
-          
-          // Combinar toda la información en un solo objeto
-          return {
-            ...pedido,
-            cliente: clienteData || null,
-            telefono: telefonoData || null,
-            ubicacion: ubicacionData || null,
-            distribuidor: distribuidorData || null,
-            almacen: almacenData || null
-          };
-        } catch (error) {
-          console.error(`Error al enriquecer pedido ${pedido.id}:`, error.message);
-          // Si falla alguna de las peticiones para un pedido en particular, devolvemos el pedido original
-          return pedido;
+        // Obtener información del cliente usando cliente_id del pedido
+        const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`)
+          .catch(() => ({ data: "No hay datos disponibles" }));
+        const clienteData = clienteResponse.data;
+        
+        // Obtener información del teléfono usando usuario_id del cliente
+        let telefonoData = "No hay datos disponibles";
+        if (clienteData && clienteData !== "No hay datos disponibles" && clienteData.usuario_id) {
+          const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          telefonoData = telefonoResponse.data;
         }
+        
+        // Obtener información de ubicación usando ubicacion_id del pedido
+        let ubicacionData = "No hay datos disponibles";
+        if (pedido.ubicacion_id) {
+          const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          ubicacionData = ubicacionResponse.data;
+        }
+        
+        // Obtener información del distribuidor usando almacen_id del pedido
+        let distribuidorData = "No hay datos disponibles";
+        if (pedido.almacen_id) {
+          const distribuidorResponse = await axios.get(`${service_conductor}/distribuidor_almacen/${pedido.almacen_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          distribuidorData = distribuidorResponse.data;
+        }
+        
+        // Obtener información del almacén usando almacen_id del pedido
+        let almacenData = "No hay datos disponibles";
+        if (pedido.almacen_id) {
+          const almacenResponse = await axios.get(`${service_almacen}/almacen/${pedido.almacen_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          almacenData = almacenResponse.data;
+        }
+        
+        // Combinar toda la información en un solo objeto
+        return {
+          ...pedido,
+          cliente: clienteData || "No hay datos disponibles",
+          telefono: telefonoData || "No hay datos disponibles",
+          ubicacion: ubicacionData || "No hay datos disponibles",
+          distribuidor: distribuidorData || "No hay datos disponibles",
+          almacen: almacenData || "No hay datos disponibles"
+        };
       })
     );
     
     res.status(200).json(pedidosEnriquecidos);
     
   } catch (error) {
-    console.error("Error al obtener pedidos en proceso:", error.message);
+    console.error("Error al obtener pedidos pendientes:", error.message);
     res.status(500).json({
-      message: "Error al procesar la solicitud de pedidos en proceso",
+      message: "Error al procesar la solicitud de pedidos pendientes",
       error: error.message
     });
   }
@@ -1006,75 +1002,63 @@ export const getPendienteControllerGW = async (req, res) => {
 
 export const getEntregadosControllerGW = async (req, res) => {
   try {
-    // 1. Obtener todos los pedidos en proceso
+    // 1. Obtener todos los pedidos entregados
     const pedidosResponse = await axios.get(`${service_pedido}/pedido_distribuidor_entregado`);
     
     if (!pedidosResponse.data || !Array.isArray(pedidosResponse.data)) {
-      
       return res.status(404).json({ message: "No se encontraron pedidos entregados" });
     }
     
     // 2. Enriquecer cada pedido con información adicional
     const pedidosEnriquecidos = await Promise.all(
       pedidosResponse.data.map(async (pedido) => {
-        try {
-          // Obtener información del cliente usando cliente_id del pedido
-          const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`);
-          const clienteData = clienteResponse.data;
-          
-          // Obtener información del teléfono usando usuario_id del cliente
-          let telefonoData = null;
-          if (clienteData && clienteData.usuario_id) {
-            const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`);
-            telefonoData = telefonoResponse.data;
-          }
-
-          
-          
-          // Obtener información de ubicación usando ubicacion_id del pedido
-          let ubicacionData = null;
-          if (pedido.ubicacion_id) {
-            const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
-            ubicacionData = ubicacionResponse.data;
-          }
-
-          
-
-          // Obtener información del distribuidor usando conductor_id del pedido
-          let distribuidorData = null;
-          if (pedido.conductor_id) {
-            const distribuidorResponse = await axios.get(`${service_conductor}/conductor/${pedido.conductor_id}`);
-            distribuidorData = distribuidorResponse.data;
-          }
-
-          //console.log("PEDIDOS ENTREGADOS CONTROLLER GW **************");
-          //console.log(distribuidorData);
-
-          //console.log(...pedido,clienteData,telefonoData,ubicacionData,distribuidorData);
-          
-          // Combinar toda la información en un solo objeto
-          return {
-            ...pedido,
-            cliente: clienteData || null,
-            telefono: telefonoData || null,
-            ubicacion: ubicacionData || null,
-            distribuidor: distribuidorData || null
-          };
-        } catch (error) {
-          console.error(`Error al enriquecer pedido ${pedido.id}:`, error.message);
-          // Si falla alguna de las peticiones para un pedido en particular, devolvemos el pedido original
-          return pedido;
+        // Obtener información del cliente usando cliente_id del pedido
+        const clienteResponse = await axios.get(`${service_cliente}/cliente/${pedido.cliente_id}`)
+          .catch(() => ({ data: "No hay datos disponibles" }));
+        const clienteData = clienteResponse.data;
+        
+        // Obtener información del teléfono usando usuario_id del cliente
+        let telefonoData = "No hay datos disponibles";
+        if (clienteData && clienteData !== "No hay datos disponibles" && clienteData.usuario_id) {
+          const telefonoResponse = await axios.get(`${service_auth}/user_telefono/${clienteData.usuario_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          telefonoData = telefonoResponse.data;
         }
+        
+        // Obtener información de ubicación usando ubicacion_id del pedido
+        let ubicacionData = "No hay datos disponibles";
+        if (pedido.ubicacion_id) {
+          const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          ubicacionData = ubicacionResponse.data;
+        }
+        
+        // Obtener información del distribuidor usando conductor_id del pedido
+        let distribuidorData = "No hay datos disponibles";
+        if (pedido.conductor_id) {
+          const distribuidorResponse = await axios.get(`${service_conductor}/conductor/${pedido.conductor_id}`)
+            .catch(() => ({ data: "No hay datos disponibles" }));
+          distribuidorData = distribuidorResponse.data;
+        }
+        
+        // Combinar toda la información en un solo objeto
+        return {
+          ...pedido,
+          cliente: clienteData || "No hay datos disponibles",
+          telefono: telefonoData || "No hay datos disponibles",
+          ubicacion: ubicacionData || "No hay datos disponibles",
+          distribuidor: distribuidorData || "No hay datos disponibles"
+        };
       })
     );
     
     res.status(200).json(pedidosEnriquecidos);
     
   } catch (error) {
-    console.error("Error al obtener pedidos en proceso:", error.message);
-    res.status(500).json({ 
-      message: "Error al procesar la solicitud de pedidos en proceso", 
-      error: error.message 
+    console.error("Error al obtener pedidos entregados:", error.message);
+    res.status(500).json({
+      message: "Error al procesar la solicitud de pedidos entregados",
+      error: error.message
     });
   }
 };
@@ -1107,7 +1091,7 @@ export const getDistribuidorConteoTotalControllerGW = async (req, res) => {
   try {
     const { fecha } = req.params;
     const response = await axios
-      .get(`${service_pedido}/pedido_distribuidor_conteo/${fecha}`)
+      .get(`${service_pedido}//${fecha}`)
       .catch((error) => {
         if (error.response) {
           console.log("Error en la respuesta", error.response.status);
@@ -1118,7 +1102,7 @@ export const getDistribuidorConteoTotalControllerGW = async (req, res) => {
       });
 
     // Definir almacenes esperados
-    const almacenesEsperados = [1, 2, 3];
+    const almacenesEsperados = [1, 2, 3, 4];
     let datos = response && response.data ? response.data : [];
 
     // Convertir los datos en un objeto para fácil acceso
