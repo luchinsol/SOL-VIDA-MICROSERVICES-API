@@ -13,7 +13,7 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://localhost';// 
+const RABBITMQ_URL = process.env.RABBITMQ_URL// 'amqp://localhost';//
 console.log("...cola d pedidos en stack.yml")
 
 console.log(RABBITMQ_URL)
@@ -26,9 +26,11 @@ const EXPIRED_ORDERS_QUEUE = 'pedidos_expirados_queue';
 const ARCHIVE_QUEUE_1 = 'pedidos_archive_1';
 const ARCHIVE_QUEUE_2 = 'pedidos_archive_2';
 const ARCHIVE_QUEUE_3 = 'pedidos_archive_3';
+const ARCHIVE_QUEUE_4 = 'pedidos_archive_4';
 const DRIVERS_EXCHANGE_1 = 'drivers_exchange_1';
 const DRIVERS_EXCHANGE_2 = 'drivers_exchange_2';
 const DRIVERS_EXCHANGE_3 = 'drivers_exchange_3';
+const DRIVERS_EXCHANGE_4 = 'drivers_exchange_4';
 const EXPIRED_ORDERS_EXCHANGE = 'expired_orders_exchange';
 
 
@@ -422,6 +424,10 @@ async function setupQueuesAndExchanges() {
             durable: true
         });
 
+        await channel.assertExchange(DRIVERS_EXCHANGE_4, 'fanout', {
+            durable: true
+        });
+
         await channel.assertExchange(EXPIRED_ORDERS_EXCHANGE, 'direct', { durable: true });
         await channel.assertQueue(EXPIRED_ORDERS_QUEUE, { durable: true });
         await channel.bindQueue(EXPIRED_ORDERS_QUEUE, EXPIRED_ORDERS_EXCHANGE, 'expired');
@@ -448,11 +454,14 @@ async function setupQueuesAndExchanges() {
             durable: true
         });
 
+        await channel.assertQueue(ARCHIVE_QUEUE_4, {
+            durable: true
+        });
+
         await channel.bindQueue(ARCHIVE_QUEUE_1, ARCHIVE_EXCHANGE, `${ARCHIVE_ROUTING_KEY}.1`);
         await channel.bindQueue(ARCHIVE_QUEUE_2, ARCHIVE_EXCHANGE, `${ARCHIVE_ROUTING_KEY}.2`);
         await channel.bindQueue(ARCHIVE_QUEUE_3, ARCHIVE_EXCHANGE, `${ARCHIVE_ROUTING_KEY}.3`);
-
-
+        await channel.bindQueue(ARCHIVE_QUEUE_4, ARCHIVE_EXCHANGE, `${ARCHIVE_ROUTING_KEY}.4`);
 
         return channel;
     } catch (error) {
@@ -478,6 +487,11 @@ function getArchiveQueueByAlmacenId(almacenId) {
                 queue: ARCHIVE_QUEUE_3,
                 routingKey: `${ARCHIVE_ROUTING_KEY}.3`
             };
+        case 4:  // Añadir caso para el almacén 4
+            return {
+                queue: ARCHIVE_QUEUE_4,
+                routingKey: `${ARCHIVE_ROUTING_KEY}.4`
+            };
         default:
             return {
                 queue: ARCHIVE_QUEUE_1,  // Cola por defecto
@@ -494,6 +508,8 @@ function getDriverExchangeByAlmacenId(almacenId) {
             return DRIVERS_EXCHANGE_2;
         case 3:
             return DRIVERS_EXCHANGE_3;
+        case 4:  // Añadir caso para el almacén 4
+            return DRIVERS_EXCHANGE_4;
         default:
             return DRIVERS_EXCHANGE_1;
     }
