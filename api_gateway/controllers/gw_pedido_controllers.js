@@ -825,7 +825,7 @@ function analyzeLocation(warehouseRegions, coordinates, warehouses) {
   allWarehouses.sort((a, b) => a.distance - b.distance);
 
   const nearestWarehouseIds = allWarehouses
-    .slice(0, 4)
+    .slice(0, 3)
     .map((warehouse) => warehouse.id);
 
   // Si encontramos una región, buscar almacenes en esa región
@@ -1102,7 +1102,7 @@ export const getDistribuidorConteoTotalControllerGW = async (req, res) => {
       });
 
     // Definir almacenes esperados
-    const almacenesEsperados = [1, 2, 3, 4];
+    const almacenesEsperados = [1, 3, 4];
     let datos = response && response.data ? response.data : [];
 
     // Convertir los datos en un objeto para fácil acceso

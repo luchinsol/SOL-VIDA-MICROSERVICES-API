@@ -27,3 +27,12 @@ CREATE TABLE public.promocion(
 
 ALTER TABLE public.producto_promocion ADD CONSTRAINT fk_producto_promocion FOREIGN KEY(producto_id) REFERENCES public.producto(id) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE public.producto_promocion ADD CONSTRAINT fk_promocion_promocion FOREIGN KEY(promocion_id) REFERENCES public.promocion(id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+--CAMBIOS
+ALTER TABLE public.producto
+ALTER COLUMN foto TYPE varchar(1000);
+
+
+ALTER TABLE public.promocion
+ALTER COLUMN foto TYPE varchar(1000);
