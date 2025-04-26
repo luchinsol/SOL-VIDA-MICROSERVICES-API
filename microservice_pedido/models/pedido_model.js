@@ -1,6 +1,7 @@
-import { db_pool } from '../config.js'
+import { db_aguaSol, db_cliente, db_pool } from '../config.js'
 import amqp from 'amqplib';
-const RABBITMQ_URL ='amqp://rabbitmq';// 'amqp://localhost';
+import { io } from '../index.js'
+const RABBITMQ_URL = 'amqp://rabbitmq';// 'amqp://localhost';
 const QUEUE_NAME = 'new_orders';
 
 // Función para conectar y obtener un canal de RabbitMQ
@@ -12,6 +13,15 @@ async function getRabbitMQChannel() {
 }
 
 const modelPedidoDetalle = {
+    getPedidosAlmacen: async (almaid, estado) => {
+        try {
+            const pedidosAlmacen = db_pool.any(`
+                SELECT * FROM public.pedido WHERE almacen_id = $1 AND estado = $2`, [almaid, estado])
+            return pedidosAlmacen
+        } catch (error) {
+            throw new Error(`Error query get ${error}`)
+        }
+    },
     getPedido: async () => {
         try {
             const resultado = await db_pool.any(`
@@ -31,14 +41,23 @@ const modelPedidoDetalle = {
         }
     },
 
-
+    //ENDPOINT QUE RELACIONA EL ID DEL PEDIDO CON EL ID DEL CONDUCTOR
+    getPedidoConductorId: async (id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT conductor_id FROM public.pedido WHERE id=$1`, [id]);
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
 
     postPedido: async (pedido) => {
         try {
             const resultado = await db_pool.one(`
-                INSERT INTO public.pedido (cliente_id,subtotal,descuento,total,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-                [pedido.cliente_id, pedido.subtotal, pedido.descuento, pedido.total, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago,pedido.ubicacion_id]);
+                INSERT INTO public.pedido (cliente_id,descuento,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+                [pedido.cliente_id, pedido.descuento, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago, pedido.ubicacion_id]);
             return resultado;
         } catch (error) {
             throw new Error(`Error post data ${error}`);
@@ -89,7 +108,7 @@ const modelPedidoDetalle = {
             const resultado = await db_pool.one(`
                 INSERT INTO public.detalle_pedido (pedido_id,producto_id,cantidad,promocion_id)
                  VALUES ($1,$2,$3,$4) RETURNING *`,
-                [pedido.pedido_id, pedido.producto_id, pedido.cantidad,pedido.promocion_id])
+                [pedido.pedido_id, pedido.producto_id, pedido.cantidad, pedido.promocion_id])
             return resultado
         } catch (error) {
             throw new Error(`Error post data ${error}`);
@@ -120,8 +139,11 @@ const modelPedidoDetalle = {
     getDetallePedidoAll: async (id) => {
         try {
             const resultado = await db_pool.any(`
-               SELECT 
+               SELECT
+    ped.id,            
     ped.total, 
+    ped.fecha,
+    ped.observacion,
     ped.cliente_id, 
     ped.ubicacion_id, 
     ped.conductor_id, 
@@ -144,6 +166,7 @@ ORDER BY det.producto_id ASC ;`, [id])
 
     //ESTE ENDPOINT CUENTA CON LO SIGUIENTE EL NUMERO TOTAL DE PEDIDOS
     getPedidosCount: async (id) => {
+
         try {
             const resultado = await db_pool.oneOrNone(`
                SELECT COUNT(*) AS total_pedidos
@@ -156,13 +179,34 @@ WHERE conductor_id = $1 AND estado = 'entregado';`, [id])
     },
     //ENDPOINT DEL ULTIMO PEDIDO
     getPedidosConductorInfo: async (id) => {
+
         try {
             const resultado = await db_pool.oneOrNone(`
-               SELECT * 
-FROM public.pedido
-WHERE conductor_id = $1 AND estado = 'entregado'
-ORDER BY fecha DESC
-LIMIT 1;`, [id])
+              SELECT 
+                    pp.id, 
+                    pp.cliente_id, 
+                    pp.subtotal, 
+                    pp.descuento, 
+                    pp.total, 
+                    pp.fecha, 
+                    pp.tipo, 
+                    pp.foto, 
+                    pp.estado, 
+                    pp.observacion, 
+                    pp.tipo_pago, 
+                    pp.beneficiado_id, 
+                    pp.ubicacion_id, 
+                    pp.conductor_id, 
+                    pp.almacen_id,
+                    pdp.id AS id_detalle, 
+                    pdp.producto_id, 
+                    pdp.cantidad, 
+                    pdp.promocion_id
+                FROM public.pedido AS pp
+                INNER JOIN public.detalle_pedido AS pdp ON pp.id = pdp.pedido_id
+                WHERE pp.conductor_id = $1
+                AND pp.estado = 'entregado'
+                ORDER BY pp.id DESC LIMIT 1;`, [id])
             return resultado
         } catch (error) {
             throw new Error(`Error get data: ${error}`);
@@ -196,7 +240,7 @@ ORDER BY id ASC;
             throw new Error(`Error put data: ${error.message}`);
         }
     },
-    
+
     updatePedidoPrecio: async (idPedido, pedido) => {
         try {
             const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET subtotal=$1, total =$2
@@ -211,14 +255,14 @@ ORDER BY id ASC;
     },
 
     updatePedidoConductor: async (idPedido, pedido) => {
-        try{
+        try {
             const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1
                 WHERE id=$2 RETURNING *`, [pedido.conductor_id, idPedido])
             if (!resultado) {
                 return null;
             }
             return resultado;
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error put data: ${error.message}`);
         }
     },
@@ -249,31 +293,31 @@ ORDER BY id ASC;
                 FROM public.pedido AS pp
                 INNER JOIN public.detalle_pedido AS pdp ON pp.id = pdp.pedido_id
                 WHERE pp.conductor_id = $1
-                AND pp.estado = 'entregado'
+                AND pp.estado = 'en proceso'
                 AND DATE(pp.fecha) = $2
                 ORDER BY pp.id, pdp.id;
             `, [id, fecha]);
-    
+
             // Agrupar los pedidos
             const pedidosAgrupados = resultado.reduce((acc, row) => {
                 // Buscar si el pedido ya existe en el array acumulador
                 let pedido = acc.find(p => p.id === row.id);
-    
+
                 if (!pedido) {
                     // Si no existe, creamos la estructura del pedido
                     pedido = {
                         id: row.id,
                         cliente: row.cliente_id,
                         total: row.total,
-                        fecha:row.fecha,
-                        tipo:row.tipo,
-                        estado:row.estado,
-                        ubicacion:row.ubicacion_id,
+                        fecha: row.fecha,
+                        tipo: row.tipo,
+                        estado: row.estado,
+                        ubicacion: row.ubicacion_id,
                         detalles_pedido: []
                     };
                     acc.push(pedido);
                 }
-    
+
                 // Agregamos el detalle de pedido a la lista
                 pedido.detalles_pedido.push({
                     id: row.id_detalle,
@@ -281,30 +325,416 @@ ORDER BY id ASC;
                     cantidad: row.cantidad,
                     promocion_id: row.promocion_id
                 });
-    
+
                 return acc;
             }, []);
-    
-          
+
+
             return pedidosAgrupados;
-    
+
         } catch (error) {
             throw new Error(`Error get data ${error}`);
         }
     },
 
-    updatePedidoConductorEstado: async (idPedido, pedido) => {
-        try{
-            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET conductor_id=$1, estado=$2, almacen_id=$3
-                WHERE id=$4 RETURNING *`, [pedido.conductor_id, pedido.estado, pedido.almacen_id ,idPedido])
-            if (!resultado) {
-                return null;
-            }
+
+    getPedidoCentralPendiente: async () => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT COUNT(*) AS total_pedidos_pendientes
+FROM public.pedido
+WHERE estado = 'pendiente'
+AND DATE(fecha) = CURRENT_DATE;
+            `);
             return resultado;
-        }catch(error){
+
+        } catch (error) {
+            throw new Error(`Error get data ${error}`);
+        }
+    },
+
+    getPedidoCentralEnProceso: async () => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT COUNT(*) AS total_pedidos_enproceso
+FROM public.pedido
+WHERE estado = 'en proceso'
+AND DATE(fecha) = CURRENT_DATE;
+            `);
+            return resultado;
+
+        } catch (error) {
+            throw new Error(`Error get data ${error}`);
+        }
+    },
+
+
+    getPedidoCentralEntregado: async () => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                SELECT COUNT(*) AS total_pedidos_entregados
+FROM public.pedido
+WHERE estado = 'entregado'
+AND DATE(fecha) = CURRENT_DATE;
+            `);
+            return resultado;
+
+        } catch (error) {
+            throw new Error(`Error get data ${error}`);
+        }
+    },
+
+    getPedidoTotalCentral: async () => {
+        try {
+            const resultado = await db_pool.manyOrNone(
+                `WITH datos_pedidos AS (
+                    SELECT
+                        CASE
+                            WHEN EXTRACT(DOW FROM fecha) = 0 THEN 'Domingo'
+                            WHEN EXTRACT(DOW FROM fecha) = 1 THEN 'Lunes'
+                            WHEN EXTRACT(DOW FROM fecha) = 2 THEN 'Martes'
+                            WHEN EXTRACT(DOW FROM fecha) = 3 THEN 'Miércoles'
+                            WHEN EXTRACT(DOW FROM fecha) = 4 THEN 'Jueves'
+                            WHEN EXTRACT(DOW FROM fecha) = 5 THEN 'Viernes'
+                            WHEN EXTRACT(DOW FROM fecha) = 6 THEN 'Sábado'
+                        END AS dia_semana,
+                        SUM(total) AS suma_total,
+                        EXTRACT(DOW FROM CURRENT_DATE) AS dia_actual,
+                        EXTRACT(WEEK FROM CURRENT_DATE) AS numero_semana
+                    FROM public.pedido
+                    WHERE DATE(fecha) BETWEEN CURRENT_DATE - INTERVAL '6 days' AND CURRENT_DATE
+                    GROUP BY EXTRACT(DOW FROM fecha)
+                    ORDER BY MIN(fecha)
+                ),
+                mes_info AS (
+                    SELECT 
+                        (ARRAY['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'])[EXTRACT(MONTH FROM CURRENT_DATE)::int] AS mes_actual,
+                        CEIL(EXTRACT(DAY FROM CURRENT_DATE) / 7.0)::int AS semana_del_mes
+                )
+                SELECT 
+                    datos_pedidos.*,
+                    mes_info.mes_actual,
+                    mes_info.semana_del_mes
+                FROM datos_pedidos, mes_info;`
+            );
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error obteniendo datos: ${error}`);
+        }
+    },
+
+    //ENDPOINT PARA TRAER LOS PEDIDOS 
+    getPedidoDistribuidor: async (id) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+               SELECT COUNT(*) AS total_pedidos_pendientes 
+             FROM public.pedido 
+             WHERE almacen_id = $1 AND estado = 'pendiente'`, [id]);
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+
+    updatePedidoConductorEstado: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.oneOrNone(
+                `UPDATE public.pedido 
+                 SET conductor_id=$1, estado=$2, almacen_id=$3
+                 WHERE id=$4 RETURNING *`,
+                [pedido.conductor_id, pedido.estado, pedido.almacen_id, idPedido]
+            );
+
+            if (!resultado) return null;
+            
+                    // Buscar el pedido en la base de datos del microservicio de pedidos
+                    const busqueda = await db_pool.oneOrNone(
+                        `SELECT * FROM public.pedido WHERE id =$1`, 
+                        [idPedido]
+                    );
+            
+                    if (!busqueda) return null;
+            
+                    // Obtener la información del cliente desde el microservicio de clientes
+                    const clienteMicro = await db_cliente.oneOrNone(
+                        `SELECT * FROM public.cliente WHERE id = $1`, 
+                        [busqueda.cliente_id]
+                    );
+            
+                    if (!clienteMicro) return null;
+            
+                    // Buscar en la base de datos de Aguasol al cliente con sus datos
+                    const busquedaAguaSolCliente = await db_aguaSol.oneOrNone(
+                        `SELECT * FROM ventas.cliente 
+                         WHERE nombre = $1 AND apellidos = $2 AND codigo = $3`,
+                        [clienteMicro.nombre, clienteMicro.apellidos, clienteMicro.codigo]
+                    );
+            
+                    if (!busquedaAguaSolCliente) return null;
+            
+                    // Buscar el pedido en la base de datos de Aguasol
+                    const busquedaAguaSolPedido = await db_aguaSol.oneOrNone(
+                        `SELECT * FROM ventas.pedido 
+                         WHERE cliente_id = $1 AND estado IN ('pendiente', 'en proceso') 
+                         ORDER BY id DESC LIMIT 1`,
+                        [busquedaAguaSolCliente.id]
+                    );            
+            
+                    if (!busquedaAguaSolPedido) return null;
+            
+                    // Actualizar el pedido en la base de datos de Aguasol
+                    const result = await db_aguaSol.oneOrNone(
+                        `UPDATE ventas.pedido 
+                         SET estado = $1, foto=$2, observacion=$3, tipo_pago=$4 
+                         WHERE id = $5 RETURNING *`,
+                        [
+                            pedido.estado,
+                            null, // Si se necesita una foto, este valor debe ser dinámico
+                            'conforme',
+                            'efectivo',
+                            busquedaAguaSolPedido.id
+                        ]
+                    );
+            
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error al actualizar el pedido: ${error.message}`);
+        }
+    },
+
+
+    // modelPedidoDetalle.js (agregar logs clave)
+    updatePedidoCancelado: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.oneOrNone(
+                `UPDATE public.pedido SET estado = 'anulado', observacion = $1
+            WHERE id = $2 RETURNING *`,
+                [pedido.observacion, idPedido]
+            );
+
+            if (!resultado) return null;
+
+            // 👇 Agregar logs críticos aquí
+            console.log('[MODEL] Emitiendo pedido_anulado:', resultado.id);
+            console.log('[MODEL] Instancia de io disponible?', !!io); // Debe ser true
+
+            socket.emit('pedido_anulado', resultado); // <-- Emite el evento
+
+            return resultado;
+        } catch (error) {
             throw new Error(`Error put data: ${error.message}`);
         }
-    }
+    },
+
+    // En tu model, elimina la parte de la emisión del socket
+    updatePedidoRotacionManual: async (idPedido, pedido) => {
+        try {
+            // 1. Obtener almacenActual
+            const resultado_consulta = await db_pool.oneOrNone(
+                `SELECT almacen_id FROM public.pedido WHERE id = $1`, [idPedido]
+            );
+            const almacenActual = resultado_consulta.almacen_id;
+
+            // 2. Actualizar la base de datos
+            const resultado = await db_pool.oneOrNone(
+                `UPDATE public.pedido SET almacen_id = $1 WHERE id = $2 RETURNING *`,
+                [pedido.almacen_id, idPedido]
+            );
+            if (!resultado) return null;
+
+            // Ya no emitimos el evento aquí
+            console.log('[MODEL] Rotación manual completada para pedido:', resultado.id);
+
+            // Devolvemos también el almacén original para que el frontend tenga esta info
+            return {
+                ...resultado,
+                almacenAnterior: almacenActual
+            };
+        } catch (error) {
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    },
+
+    //GET DE PEDIDOS EN PENDIENTES
+    getPedidosPendienteDistribuidor: async () => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT * FROM public.pedido WHERE estado = 'pendiente'
+ORDER BY id DESC`)
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    //GET DE PEDIDOS EN PROCESO
+    getPedidosEnProcesoDistribuidor: async () => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT * FROM public.pedido WHERE estado = 'en proceso'
+ORDER BY id DESC`)
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    //GET DE PEDIDOS ENTREGADOS DE LA SEMANA
+    getPedidosEntregadoDistribuidor: async () => {
+        try {
+            const resultado = await db_pool.any(`
+               SELECT * FROM public.pedido 
+WHERE estado = 'entregado' 
+AND fecha >= CURRENT_DATE - INTERVAL '6 days' 
+AND fecha < CURRENT_DATE + INTERVAL '1 day'
+ORDER BY id DESC;
+            `);
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    //RESUMEN DE LOS PEDIDOS 
+    getConteoTotalPedidoDistribuidor: async () => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT estado, COUNT(*) AS total
+FROM public.pedido
+WHERE estado IN ('pendiente', 'en proceso', 'entregado')
+  AND (
+    estado <> 'entregado' 
+    OR (
+      estado = 'entregado' 
+      AND fecha >= CURRENT_DATE - INTERVAL '6 days' 
+      AND fecha < CURRENT_DATE + INTERVAL '1 day'
+    )
+  )
+GROUP BY estado
+ORDER BY 
+  CASE 
+    WHEN estado = 'pendiente' THEN 1
+    WHEN estado = 'en proceso' THEN 2
+    WHEN estado = 'entregado' THEN 3
+  END;
+`);
+            return resultado;
+        }
+        catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    getConteoTotalDistribuidorPedido: async (fecha) => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT almacen_id, COUNT(*) AS total_pedidos
+FROM public.pedido
+WHERE DATE(fecha) = $1  
+GROUP BY almacen_id
+ORDER BY almacen_id;
+                `, [fecha])
+            return resultado
+        }
+        catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    getPedidosDistribuidorResumen: async (fecha, id) => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT * FROM public.pedido WHERE DATE(fecha) = $1 
+                AND almacen_id = $2 ORDER BY id DESC
+                `, [fecha, id])
+            return resultado
+
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    getVentasPorDiaMes: async (mesAnio) => {
+        try {
+            // Procesar el parámetro mesAnio (formato: 'MM-YYYY')
+            const [anio, mes] = mesAnio.split('-');
+
+            // Crear fechas de inicio y fin del mes
+            const fechaInicio = `${anio}-${mes}-01`;
+            const fechaFin = mes === '12' ? `${parseInt(anio) + 1}-01-01` : `${anio}-${parseInt(mes) + 1}-01`;
+
+            const resultado = await db_pool.any(`
+                SELECT DATE(fecha) AS fecha_dia, SUM(total) AS ventas_total
+                FROM public.pedido
+                WHERE fecha >= $1 AND fecha < $2
+                GROUP BY fecha_dia
+                ORDER BY fecha_dia;
+            `, [fechaInicio, fechaFin]);
+
+            return resultado;
+
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error al obtener ventas por día: ${error}`);
+        }
+    },
+
+    getVentasTotalesMes: async (mesAnio) => {
+        try {
+            const [anio, mes] = mesAnio.split('-');
+
+            // Crear fechas de inicio y fin del mes
+            const fechaInicio = `${anio}-${mes}-01`;
+            const fechaFin = mes === '12' ? `${parseInt(anio) + 1}-01-01` : `${anio}-${parseInt(mes) + 1}-01`;
+
+            const resultado = await db_pool.any(`
+            SELECT SUM(total) AS ventas_total 
+            FROM public.pedido
+            WHERE fecha >= $1 AND fecha < $2;
+        `, [fechaInicio, fechaFin]);
+
+            return resultado[0];// Devolver el objeto en lugar del array
+        } catch (error) {
+            throw new Error(`Error al obtener ventas totales: ${error}`);
+        }
+    },
+
+    getPrimeraFechaPedido : async() => {
+        try {
+            const resultado = await db_pool.one(`
+                SELECT 
+                    TO_CHAR(fecha, 'MM-YYYY') AS mes_anio,
+                    TO_CHAR(fecha, 'YYYY-MM') AS anio_mes
+                FROM 
+                    public.pedido
+                ORDER BY 
+                    fecha ASC
+                LIMIT 1;
+            `);
+            return resultado;
+        } catch(error) {
+            throw new Error(`Error al obtener la primera fecha: ${error}`);
+        }
+    },
+
+
+    updatePedidoDistribuidor: async (idPedido, pedido) => {
+        try {
+            const resultado = await db_pool.oneOrNone(
+                `UPDATE public.pedido SET estado = $1, observacion = $2
+            WHERE id = $3 RETURNING *`,
+                [pedido.estado, pedido.observacion, idPedido]
+            );
+
+            if (!resultado) return null;
+
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    },
 
 }
 

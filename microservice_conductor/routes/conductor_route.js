@@ -1,4 +1,4 @@
-import {getEventoConductoresPorId,getConductorController_Id,getConductorControllerId,getAllUsersConductores, createUserConductores, updateUserConductores, deleteUserConductores, getAllEventos, updateEventosConductores,getEventoConductorEspecificos} from '../controllers/conductor_controller.js'
+import {getDistribuidoresAlmacen,getEventoConductoresPorId,getConductorController_Id,getConductorControllerId,getAllUsersConductores, createUserConductores, updateUserConductores, deleteUserConductores, getAllEventos, updateEventosConductores,getEventoConductorEspecificos} from '../controllers/conductor_controller.js'
 import express from 'express';
 
 const routerConductor = express.Router();
@@ -13,5 +13,6 @@ routerConductor.delete('/conductor/:id',deleteUserConductores)
 routerConductor.get(`/eventos`,getAllEventos)
 routerConductor.get(`/eventos/:id`,getEventoConductoresPorId)
 routerConductor.get(`/conductor_evento/:id`,getEventoConductorEspecificos)
+routerConductor.get(`/distribuidor_almacen/:id`,getDistribuidoresAlmacen)
 
 export default routerConductor;

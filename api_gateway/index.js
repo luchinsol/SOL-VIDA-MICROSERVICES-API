@@ -3,9 +3,8 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import morgan from "morgan"; // Importa Morgan
 import cors from "cors";
-import amqp from "amqplib";
 import http from "http";
-import { Server } from "socket.io";
+
 
 // routes
 import routerGWCliente from "./routes/gw_cliente_route.js";
@@ -58,34 +57,6 @@ async function connectRedis() {
 
 const app = express();
 
-const server = http.createServer(app);
-
-
-//const server = http.createServer(app);
-const io = new Server(server, {
-  reconnection: true,
-  reconnectionAttempts: 10, // Número máximo de intentos
-  reconnectionDelay: 2000, // Retardo entre intentos en milisegundos
-  reconnectionDelayMax: 2000,
-});
-server.setTimeout(120000);
-io.on("connection", (socket) => {
-  console.log("Cliente conectado");
-  //console.log("holaa");
-
-  socket.on("update_orders", () => {
-    console.log("Cliente desconectado");
-  });
-
-  socket.on("new_order", (data) => {
-    //console.log(data);
-    console.log("---->>> ENTRE A SOCKET.IO ------>>");
-    io.emit("En tiempo real Pedido :)", data);
-  });
-
-  io.emit("testy");
-});
-
 const SECRET_KEY = process.env.CLAVESOL; // Usa la misma clave que en el microservicio de autenticación
 app.use(cors());
 app.use(express.json());
@@ -95,9 +66,9 @@ app.use(morgan("combined"));
 
 // Middleware para verificar el token
 function verificarToken(req, res, next) {
-  
+  if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/ping" ||
+     req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor") || req.path.startsWith("/apigw/v1/pedido_estado")|| req.path.startsWith("/apigw/v1/pedido_anulado")) {
 
-  if (req.path === "/apigw/v1/login" || req.path === "/apigw/v1/user" || req.path === "/apigw/v1/conductor" || req.path.startsWith("/apigw/v1/conductor") || req.path.startsWith("/apigw/v1/pedido_estado")) {
     return next();
   }
 
@@ -120,15 +91,18 @@ function verificarToken(req, res, next) {
 }
 
 // ROUTES GW
-app.use(verificarToken, routerGWCliente);
-app.use(verificarToken, routerGWPedido);
-app.use(verificarToken, routerGWUbicacion);
-app.use(verificarToken, routerGWAlmacen);
-app.use(verificarToken, routerGWAlmacenZona);
-app.use(verificarToken,routerGWNotificacion);
+app.use(routerGWCliente);
+app.use(routerGWPedido);
+app.use(routerGWUbicacion);
+app.use(routerGWAlmacen);
+app.use(routerGWAlmacenZona);
+app.use(routerGWNotificacion);
 app.use(routerGWLogin);
 app.use(routerGWConductor);
 
+app.get("/apigw/v1/ping", (req, res) => {
+  res.status(200).json({ message: "pong" });
+});
 
 const PORT = process.env.PORT_APIGW;
 app.listen(PORT, async () => {

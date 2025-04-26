@@ -20,6 +20,19 @@ export const loginController = async (req,res) => {
     }
 }
 
+export const postUserController = async (req,res)=>{
+    try {  
+        const credenciales = req.body
+        const resultado = await modelAuth.createUser(credenciales)
+        if(resultado.message=="User exist!"){
+            return res.status(400).json({message:resultado.message})
+        }
+        res.status(201).json(resultado)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}
+
 export const existUserController = async (req,res) => {
     try {
         const credenciales = req.body
@@ -34,5 +47,32 @@ export const existUserController = async (req,res) => {
         }
     } catch (error) {
         res.status(500).json({error:error.message})
+    }
+}
+
+export const getTelefonos = async (req,res) => {
+    try{
+        const {id}= req.params
+        const resultado = await modelAuth.getTelefono(id)
+        if(!resultado){
+            return res.status(404).json({message: "Data not found"});
+        }
+        res.status(200).json(resultado);
+    }catch (error){
+        res.status(500).json({error: error.message});
+    }
+}
+
+
+export const getTelefonosDistribuidor = async (req,res) => {
+    try{
+        const {id}= req.params
+        const resultado = await modelAuth.getTelefonoDistribuidor(id)
+        if(!resultado){
+            return res.status(404).json({message: "Data not found"});
+        }
+        res.status(200).json(resultado);
+    }catch (error){
+        res.status(500).json({error: error.message});
     }
 }

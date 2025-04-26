@@ -1,4 +1,19 @@
 import modelPedidoDetalle from "../models/pedido_model.js";
+
+export const getPedidosAlmacenControllerID = async (req,res) =>{
+    try {
+        const {idalmacen,estado} = req.params
+        const id = parseInt(idalmacen,10)
+        const resultado = await modelPedidoDetalle.getPedidosAlmacen(id,estado)
+        if(!resultado){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(resultado)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
 //TABLA PEDIDOS
 export const getPedidoController = async (req, res) => {
     try {
@@ -16,6 +31,22 @@ export const getPedidoControllerId = async (req, res) => {
     try {
         const { id } = req.params
         const resultado = await modelPedidoDetalle.getPedidoId(id)
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+//ENDPOINT QUE TRAE EL ID DEL PEDIDO CON EL ID DEL CONDCUTOR
+export const getPedidoConductorControllerId = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = await modelPedidoDetalle.getPedidoConductorId(id)
 
         if (!resultado) {
             return res.status(404).json({ message: "Data not found" });
@@ -155,6 +186,7 @@ export const getDetallePedidosAll = async (req, res) => {
 //CONTEO DE PEDIDOS
 export const getPedidosConteos = async (req, res) => {
     try {
+        
         const { id } = req.params
         const resultado = await modelPedidoDetalle.getPedidosCount(id)
 
@@ -266,4 +298,230 @@ export const getPedidoHistoryConductores = async (req,res) => {
     } catch (error) {
         res.status(500).json({error:error.message})
     }
-}
+};
+
+
+export const getPedidoCentralPendientes = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidoCentralPendiente()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getPedidoCentralEnProcesos = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidoCentralEnProceso()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+
+
+export const getPedidoCentralEntregados = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidoCentralEntregado()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+
+
+export const getPedidoTotalesCentral = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidoTotalCentral()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+
+export const getPedidosDistribuidor = async (req,res) => {
+    try {
+        const { id } = req.params
+        const response  = await modelPedidoDetalle.getPedidoDistribuidor(id)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+
+
+
+export const updatePedidoCancelados = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = req.body
+        const response = await modelPedidoDetalle.updatePedidoCancelado(id, resultado)
+        if (!response) {
+            return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const updatePedidoRotacionesManual = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = req.body
+        const response = await modelPedidoDetalle.updatePedidoRotacionManual(id, resultado)
+        if (!response) {
+            return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const updatePedidoDistribuidores = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = req.body
+        const response = await modelPedidoDetalle.updatePedidoDistribuidor(id, resultado)
+        if (!response) {
+            return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const getPedidosPendientesDistribuidor = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidosPendienteDistribuidor()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getPedidosEnProcesoDistribuidores = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidosEnProcesoDistribuidor()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getPedidosEntregadosDistribuidores = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getPedidosEntregadoDistribuidor()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getConteoTotalPedidosDistribuidor = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getConteoTotalPedidoDistribuidor()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getConteoTotalDistribuidoresPedidos = async (req,res) => {
+    try {
+        const { fecha } = req.params
+        const response  = await modelPedidoDetalle.getConteoTotalDistribuidorPedido(fecha)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getPedidosDistribuidoresResumen = async (req,res) => {
+    try {
+        const { fecha,id } = req.params
+        const response  = await modelPedidoDetalle.getPedidosDistribuidorResumen(fecha,id)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getVentasDiariasMes = async (req, res) => {
+    try {
+        const { mesAnio } = req.params;
+        const response = await modelPedidoDetalle.getVentasPorDiaMes(mesAnio);
+        if (!response || response.length === 0) {
+            return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getVentasTotalesMes = async (req, res) => {
+    try {
+        const { mesAnio } = req.params;
+        const response = await modelPedidoDetalle.getVentasTotalesMes(mesAnio);
+        if (!response || !response.ventas_total) {
+            return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getPrimeraFechaPedido = async (req, res) => {
+    try {
+        const response = await modelPedidoDetalle.getPrimeraFechaPedido();
+        if (!response || (!response.mes_anio && !response.anio_mes)) {
+            return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
