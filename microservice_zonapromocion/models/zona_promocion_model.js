@@ -12,7 +12,23 @@ const modelZonaPromocion = {
             }catch(error){
                 throw new Error(`Error get data: ${error}`);
             }
-        }
+        },
+
+    getPromoDetalles: async (idPromocion) => {
+            try{
+                const resultado = await db_pool.oneOrNone(
+                    `SELECT zp.*, e.*
+    FROM public.zona_promocion  zp
+    INNER JOIN public.estilo e ON zp.estilo_id = e.id
+    WHERE zp.promocion_id = $1;
+    `
+                    ,[idPromocion]
+                );
+                return resultado;
+            }catch(error){
+                throw new Error(`Error get data: ${error}`);
+            }
+    }
 
 }
 

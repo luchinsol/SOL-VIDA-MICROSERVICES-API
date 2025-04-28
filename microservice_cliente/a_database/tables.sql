@@ -1,5 +1,4 @@
 -- TABLA
-
 CREATE TABLE public.cliente(
     id serial primary key,
     usuario_id int,
@@ -19,3 +18,19 @@ CREATE TABLE public.cliente(
     calificacion float,
     foto_cliente varchar(1000)
 );
+
+
+-- VALORACION CLIENTE
+CREATE TABLE public.valoracion_cliente (
+    id serial PRIMARY KEY,
+    cliente_id int NOT NULL,
+    producto_id int,
+    promocion_id int,
+    calificacion float
+);
+
+-- CLAVE FORANEA CON RESPECTO A LA VALORACIOND EL CLIENTE
+ALTER TABLE public.valoracion_cliente
+ADD CONSTRAINT fk_cliente_valoracion FOREIGN KEY (cliente_id)
+REFERENCES public.cliente(id)
+ON DELETE CASCADE ON UPDATE CASCADE;

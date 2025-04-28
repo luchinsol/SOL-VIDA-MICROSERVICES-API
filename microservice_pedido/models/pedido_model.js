@@ -464,7 +464,7 @@ AND DATE(fecha) = CURRENT_DATE;
                     );
             
                     if (!clienteMicro) return null;
-            
+            /*
                     // Buscar en la base de datos de Aguasol al cliente con sus datos
                     const busquedaAguaSolCliente = await db_aguaSol.oneOrNone(
                         `SELECT * FROM ventas.cliente 
@@ -497,7 +497,7 @@ AND DATE(fecha) = CURRENT_DATE;
                             busquedaAguaSolPedido.id
                         ]
                     );
-            
+            */
             return resultado;
         } catch (error) {
             throw new Error(`Error al actualizar el pedido: ${error.message}`);

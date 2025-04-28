@@ -114,6 +114,41 @@ const modelAuth = {
       throw new Error(`Error post user ${error}`);
     }
   },
+
+  createMicroUser: async (credenciales) => {
+    try {
+      const userExist = await db_pool.oneOrNone(
+        `SELECT * FROM public.usuario WHERE firebase_uid=$1`,
+        [credenciales.firebase_uid]
+      );
+      
+      if (userExist) {
+        return { message: "User exist!" };
+      } else {
+        const contrasenaEncript = await bcrypt.hash(
+          credenciales.contrasena,
+          10
+        );
+        
+        const newUser = await db_pool.one(
+          `INSERT INTO public.usuario (rol_id, nickname, contrasena, email, telefono,firebase_uid)
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+          [
+            credenciales.rol_id,
+            credenciales.nickname,
+            contrasenaEncript,
+            credenciales.email,
+            credenciales.telefono,
+            credenciales.firebase_uid,
+          ]
+        );
+        
+        return newUser;
+      }
+    } catch (error) {
+      throw new Error(`Error post user ${error}`);
+    }
+  },
   existUser: async (credenciales) => {
     try {
       console.log("............ EXISTE USER ?");

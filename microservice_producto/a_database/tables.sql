@@ -27,3 +27,12 @@ CREATE TABLE public.promocion(
 
 ALTER TABLE public.producto_promocion ADD CONSTRAINT fk_producto_promocion FOREIGN KEY(producto_id) REFERENCES public.producto(id) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE public.producto_promocion ADD CONSTRAINT fk_promocion_promocion FOREIGN KEY(promocion_id) REFERENCES public.promocion(id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- Para la tabla producto
+ALTER TABLE public.producto
+ALTER COLUMN foto TYPE text[] USING ARRAY[foto];
+
+-- Para la tabla promocion
+ALTER TABLE public.promocion
+ALTER COLUMN foto TYPE text[] USING ARRAY[foto];

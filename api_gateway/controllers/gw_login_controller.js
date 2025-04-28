@@ -69,6 +69,73 @@ export const postNewUserConductorControllerGW = async (req, res) => {
     res.status(500).json({error:error.message})
   }
 };
+//ENDPOINT PARA EL REGISTRO MANUAL
+export const postNewUserClienteControllerGW = async (req, res) => {
+  try {
+    const newUserCredencial = req.body;
+    
+    // CREACIÓN DEL USUARIO EN SU MICROSERVICIO
+    const response = await axios.post(
+      `${service_auth}/user_micro_new`,
+      newUserCredencial.user
+    );
+    
+    if (response.data.message === "User exist!") {
+      // SI YA EXISTE EL USUARIO
+      const usuarioId = response.data.id;
+      
+      try {
+        // CREACION DE CLIENTE CON EL USUARIO 
+        const responseCliente = await axios.post(
+          `${service_cliente}/cliente_micro`,
+          {
+            usuario_id: usuarioId,
+            ...newUserCredencial.cliente,
+            fecha_creacion_cuenta: new Date()
+          }
+        );
+        
+        return res.status(201).json({
+          message: "usuario y cliente creados exitosamente",
+          user: response.data,
+          cliente: responseCliente.data
+        });
+      } catch (clientError) {
+        return res.status(400).json({
+          message: "Creacion de usuario y cliente fallida",
+          user: response.data,
+          error: clientError.response?.data || clientError.message
+        });
+      }
+    }
+    
+    // If user doesn't exist, create both user and client
+    const usuarioId = response.data.id;
+    
+    // Create client with new user_id
+    const responseCliente = await axios.post(
+      `${service_cliente}/cliente_micro`,
+      {
+        usuario_id: usuarioId,
+        ...newUserCredencial.cliente,
+        fecha_creacion_cuenta: new Date()
+      }
+    );
+    
+    // Return combined results
+    res.status(201).json({
+      message: "User and client created successfully",
+      user: response.data,
+      cliente: responseCliente.data
+    });
+  } catch (error) {
+    console.error("Gateway error:", error.response?.data || error.message);
+    res.status(500).json({
+      error: error.response?.data?.error || error.message,
+      details: error.response?.data?.details || error.response?.data || "Unknown error"
+    });
+  }
+};
 
 export const postLoginController = async (req, res) => {
   try {
@@ -124,9 +191,11 @@ export const postLoginController = async (req, res) => {
       res.status(400).json({ message: "Invalid input data" });
     }
   } catch (error) {
-    res.status(500).send("Error fetching clients");
+    res.status(500).send("Error fetching auth");
   }
 };
+
+
 
 export const postUserExistController = async (req, res) => {
   try {

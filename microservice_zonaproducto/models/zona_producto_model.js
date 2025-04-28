@@ -11,6 +11,24 @@ const modelZonaProducto = {
             }catch(error){
                 throw new Error(`Error get data: ${error}`);
             }
-    }
+    },
+
+    getPromoProductoDetalles: async (idProducto) => {
+        try{
+            const resultado = await db_pool.oneOrNone(
+                `SELECT zp.*, e.*
+FROM public.zona_producto zp
+INNER JOIN public.estilo e ON zp.estilo_id = e.id
+WHERE zp.producto_id = $1;
+`
+                ,[idProducto]
+            );
+            return resultado;
+        }catch(error){
+            throw new Error(`Error get data: ${error}`);
+        }
+},
+    
+
 }
 export default modelZonaProducto

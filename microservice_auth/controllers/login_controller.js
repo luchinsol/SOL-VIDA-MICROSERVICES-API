@@ -33,6 +33,20 @@ export const postUserController = async (req,res)=>{
     }
 }
 
+
+export const postMicroUserController = async (req,res)=>{
+    try {  
+        const credenciales = req.body
+        const resultado = await modelAuth.createMicroUser(credenciales)
+        if(resultado.message=="User exist!"){
+            return res.status(400).json({message:resultado.message})
+        }
+        res.status(201).json(resultado)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}
+
 export const existUserController = async (req,res) => {
     try {
         const credenciales = req.body

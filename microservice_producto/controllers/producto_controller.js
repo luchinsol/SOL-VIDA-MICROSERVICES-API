@@ -68,3 +68,33 @@ export const getCantidadPromoProductos = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+//ACTUALIZACION DE LA VALORACION DE LOS PRODUCTOS
+export const actualizarValoracionProducto = async (req,res) => {
+    try{
+        const {id} = req.params;
+        const resultado = req.body;
+        const response = await modelProducto.actualizarCalificacionProducto(id,resultado);
+        if (!response){
+            return res.status(404).json({ message : "Not Found"});
+        }
+        res.status(200).json(response);
+    }catch(error){
+        res.status(500).json({error:error.message});
+    }
+};
+
+//ACTUALIZACION DE LA VALORACION DE LAS PROMOCIONES
+export const actualizarValoracionPromocion = async (req,res) => {
+    try{
+        const {id} = req.params;
+        const resultado = req.body;
+        const response = await modelProducto.actualizarCalificacionPromocion(id,resultado);
+        if (!response){
+            return res.status(404).json({ message : "Not Found"});
+        }
+        res.status(200).json(response);
+    }catch(error){
+        res.status(500).json({error:error.message});
+    }
+};
