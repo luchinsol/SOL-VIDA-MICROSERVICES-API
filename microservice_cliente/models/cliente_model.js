@@ -169,7 +169,20 @@ const modelCliente = {
         } catch (error) {
             throw new Error(`Error update calification ${error}`)
         }
-    }
+    },
+
+    getValoracionesClienteLast: async () => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT * FROM public.cliente`)
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+
+
 
 }
 

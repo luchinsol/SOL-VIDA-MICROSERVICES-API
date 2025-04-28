@@ -1,4 +1,4 @@
-import { getUsuariosPorDiaMes,getUsuariosTotalesMes,deleteClienteController,getClienteController_Id ,getClienteController, getClienteControllerId, postClienteController, putClienteController, putClienteCalificationController } from '../controllers/cliente_controller.js'
+import { getUsuariosPorDiaMes,getUsuariosTotalesMes,deleteClienteController,getClienteController_Id ,getClienteController, getClienteControllerId, postClienteController, putClienteController, putClienteCalificationController,getValoracionesClientesLast } from '../controllers/cliente_controller.js'
 import express from 'express'
 
 const routerCliente = express.Router()
@@ -12,5 +12,7 @@ routerCliente.post('/cliente',postClienteController)
 routerCliente.put('/cliente/:id',putClienteController)
 routerCliente.delete('/cliente/:id',deleteClienteController)
 routerCliente.put('/cliente_calificacion/:id',putClienteCalificationController)
+//ULTIMAS VALORACIONES DE LOS CLIENTES DE LOS PRODUCTOS
+routerCliente.get('/last_cliente',getValoracionesClientesLast)
 
 export default routerCliente
