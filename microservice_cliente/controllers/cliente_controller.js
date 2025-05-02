@@ -209,6 +209,7 @@ export const getPromedioValoracionesPromocionId = async (req, res) => {
       }
 };
 
+
 //CONTROLLER PARA TRAER LAS SENTENCIAS QUE ME TRAE LAS ULTIMAS VALORACIONES DEL CLIENTE
 export const getValoracionesClientesLast = async (req, res) => {
   try {
@@ -217,9 +218,23 @@ export const getValoracionesClientesLast = async (req, res) => {
       if (!resultado) {
           return res.status(404).json({ message: "Not Found" });
         }
-        res.status(200).json({message:"Delete succesfully"});
+        res.status(200).json(resultado);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
 };
 
+
+//CONTROLLER PARA TRAER LAS SENTENCIAS QUE ME TRAE LAS ULTIMAS VALORACIONES DEL CLIENTE DE LA PROMOCION
+export const getValoracionesClientesPromoLast = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getValoracionesClientePromoLast(id)
+      if (!resultado) {
+          return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};

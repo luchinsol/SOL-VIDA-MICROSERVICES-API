@@ -98,3 +98,17 @@ export const actualizarValoracionPromocion = async (req,res) => {
         res.status(500).json({error:error.message});
     }
 };
+
+//CONTROLLER PRODUCTOS PARA LA SECCION DE SUGERENCIAS
+export const getProductosYPromocionesController = async (req, res) => {
+    try {
+        const resultado = await modelProducto.getProductosYPromocionesModel()
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not Found" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

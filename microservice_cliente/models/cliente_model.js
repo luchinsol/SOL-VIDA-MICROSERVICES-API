@@ -293,6 +293,39 @@ WHERE promocion_id = $1;`, [id]);
         }
     },
 
+    //MODELO QUE ME AYUDA A TRAER LA SENTENCIAS SQL QUE ME PERMITE  TRAER LA VALORACION DEL PRODUCTO
+    getValoracionesClienteLast: async (id) =>{
+        try{
+            const resultado =await db_pool.any(`
+                SELECT valoracion_cliente.id,nombre,apellidos,valoracion_cliente.calificacion
+FROM cliente
+INNER JOIN valoracion_cliente
+    ON cliente.id = valoracion_cliente.cliente_id
+where valoracion_cliente.producto_id = $1
+order by valoracion_cliente.calificacion desc
+	limit 2;`,[id]);
+            return resultado;
+        } catch(error){
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    //MODELO QUE ME AYUDA A TRAER LA SENTENCIAS SQL QUE ME PERMITE TRAE LA VALORACION DE LA PROMOCION
+    getValoracionesClientePromoLast: async (id) =>{
+        try{
+            const resultado =await db_pool.any(`
+                SELECT valoracion_cliente.id,nombre,apellidos,valoracion_cliente.calificacion
+FROM cliente
+INNER JOIN valoracion_cliente
+    ON cliente.id = valoracion_cliente.cliente_id
+WHERE valoracion_cliente.promocion_id = $1
+ORDER BY valoracion_cliente.calificacion DESC
+	LIMIT 2;`,[id]);
+            return resultado;
+        } catch(error){
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
 }
 
 export default modelCliente

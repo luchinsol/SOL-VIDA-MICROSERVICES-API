@@ -1,4 +1,4 @@
-import { getClientesControllerGW,putClienteCalificationControllerGw, getClientesControllerIdGW, postClienteControllerGW, putClienteControllerGW,deleteClienteControllerGW,postValoracionControllerGW,getCalificacionProductoControllerIdGW,getCalificacionPromocionControllerIdGW } from '../controllers/gw_cliente_controllers.js'
+import { getClientesControllerGW,putClienteCalificationControllerGw, getClientesControllerIdGW, postClienteControllerGW, putClienteControllerGW,deleteClienteControllerGW,postValoracionControllerGW,getCalificacionProductoControllerIdGW,getCalificacionPromocionControllerIdGW,getValoracionesClienteControllerIdGW,getValoracionesClientePromoControllerIdGW } from '../controllers/gw_cliente_controllers.js'
 import express from 'express'
 
 const routerGWCliente = express.Router()
@@ -15,5 +15,10 @@ routerGWCliente.post('/apigw/v1/calificacion',postValoracionControllerGW)
 routerGWCliente.get('/apigw/v1/calificacion_producto_conteo/:id',getCalificacionProductoControllerIdGW)
 //ENDPOINT QUE ME PERMITE VER LA CANTIDAD DE RESEÑAS QUE REALIZO UN CLIENTE PARA UNA PROMOCION
 routerGWCliente.get('/apigw/v1/calificacion_promocion_conteo/:id',getCalificacionPromocionControllerIdGW)
+//ENDPOINT QUE ME TRAE LAS ULTIMAS RESEÑAS DE MI CLIENTE EN UN DETERMINADO PRODUCTO
+routerGWCliente.get('/apigw/v1/calificacion_producto/:id',getValoracionesClienteControllerIdGW)
+//ENDPOINT QUE ME TRAE LAS ULTIMAS RESEÑAS DE MI CLIENTE EN UN DETERMINADO PROMOCION
+routerGWCliente.get('/apigw/v1/calificacion_promocion/:id',getValoracionesClientePromoControllerIdGW)
+
 
 export default routerGWCliente
