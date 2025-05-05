@@ -107,6 +107,51 @@ const modelCliente = {
             throw new Error(`Error post data ${error}`);
         }
     },
+
+    postMicroCliente: async (cliente) => {
+        try {
+            // First check if a client already exists for this user_id
+            const existingCliente = await db_pool.oneOrNone(
+                'SELECT * FROM public.cliente WHERE usuario_id = $1',
+                [cliente.usuario_id]
+            );
+
+            if (existingCliente) {
+                // Client already exists, return it
+                return existingCliente;
+            }
+
+            // Generate a random code
+            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+            let CODE = '';
+
+            for (let i = 0; i < 5; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                CODE += characters.charAt(randomIndex);
+            }
+
+            // Insert new client
+            const resultado = await db_pool.one(`
+            INSERT INTO public.cliente (
+              usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
+            ) VALUES (
+              $1, $2, $3, $4, $5
+            ) RETURNING *
+          `, [
+                cliente.usuario_id,
+                cliente.nombres,
+                cliente.apellidos,
+                cliente.fecha_creacion,
+                
+                cliente.foto_cliente
+            ]);
+
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error post cliente ${error}`);
+        }
+    },
+
     putCliente: async (id, cliente) => {
         try {
             const resultado = await db_pool.oneOrNone(`
