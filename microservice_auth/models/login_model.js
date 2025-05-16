@@ -115,34 +115,31 @@ const modelAuth = {
     }
   },
 
-  createMicroUser: async (credenciales) => {
+    createMicroUser: async (credenciales) => {
     try {
       const userExist = await db_pool.oneOrNone(
-        `SELECT * FROM public.usuario WHERE firebase_uid=$1`,
+       ` SELECT * FROM public.usuario WHERE firebase_uid=$1`,
         [credenciales.firebase_uid]
       );
-      
+
       if (userExist) {
         return { message: "User exist!" };
       } else {
-        const contrasenaEncript = await bcrypt.hash(
-          credenciales.contrasena,
-          10
-        );
-        
+       console.log("...........SOY NUEVO")
+
         const newUser = await db_pool.one(
-          `INSERT INTO public.usuario (rol_id, nickname, contrasena, email, telefono,firebase_uid)
-           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+          `INSERT INTO public.usuario (rol_id, email, telefono,firebase_uid)
+           VALUES ($1, $2, $3, $4) RETURNING *`,
           [
             credenciales.rol_id,
-            credenciales.nickname,
-            contrasenaEncript,
             credenciales.email,
             credenciales.telefono,
             credenciales.firebase_uid,
           ]
         );
-        
+
+        console.log("...........SOY NUEVO",newUser)
+
         return newUser;
       }
     } catch (error) {

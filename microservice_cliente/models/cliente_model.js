@@ -108,7 +108,7 @@ const modelCliente = {
         }
     },
 
-    postMicroCliente: async (cliente) => {
+     postMicroCliente: async (cliente) => {
         try {
             // First check if a client already exists for this user_id
             const existingCliente = await db_pool.oneOrNone(
@@ -131,17 +131,17 @@ const modelCliente = {
             }
 
             // Insert new client
-            const resultado = await db_pool.one(`
-            INSERT INTO public.cliente (
+            const resultado = await db_pool.one(
+            `INSERT INTO public.cliente (
               usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
             ) VALUES (
               $1, $2, $3, $4, $5
-            ) RETURNING *
-          `, [
+            ) RETURNING *`
+          , [
                 cliente.usuario_id,
                 cliente.nombre,
                 cliente.apellidos,
-                cliente.fecha_creacion_cuenta,
+                cliente.fecha_creacion,
                 cliente.foto_cliente
             ]);
 
