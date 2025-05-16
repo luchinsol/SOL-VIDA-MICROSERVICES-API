@@ -27,3 +27,19 @@ export const getPromosDetalles = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+export const getZonaPromocionesDetalles = async (req, res) => {
+    try {
+        const { idzona } = req.params
+        const { idprom } = req.params
+        const resultado = await modelZonaPromocion.getPromoDetallesZona(idzona,idprom)
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

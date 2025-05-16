@@ -9,6 +9,7 @@ routerCliente.get('/cliente_user/:id',getClienteController_Id)
 routerCliente.get('/usuarios_totales/:mesAnio', getUsuariosTotalesMes);
 routerCliente.get('/usuarios_por_dia/:mesAnio', getUsuariosPorDiaMes);
 routerCliente.post('/cliente',postClienteController)
+//ENDPOINT PARA POSTEAR UN NUEVO CLIENTE EN EL MICROSERVICIO
 routerCliente.post('/cliente_micro',postMicroClienteController)
 routerCliente.put('/cliente/:id',putClienteController)
 routerCliente.delete('/cliente/:id',deleteClienteController)

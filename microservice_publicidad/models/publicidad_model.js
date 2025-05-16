@@ -15,9 +15,9 @@ const modelPublicidad ={
             const resultado = await db_pool.any(`
                 SELECT 
                     b.id AS banner_id,
-                    b.foto,
-                    b.titulo AS banner_titulo,
-                    b.descripcion,
+                    b.foto AS imagen,
+                    b.titulo AS titulo,
+                    b.descripcion AS subtitulo,
                     b.fondo,
                     e.id AS evento_id,
                     e.fecha_inicio,
@@ -33,7 +33,7 @@ const modelPublicidad ={
         } catch (error) {
             throw new Error(`Error get data: ${error}`);
         }
-    }
+    },
     
 }
 export default modelPublicidad

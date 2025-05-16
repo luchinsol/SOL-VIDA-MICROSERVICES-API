@@ -133,16 +133,15 @@ const modelCliente = {
             // Insert new client
             const resultado = await db_pool.one(`
             INSERT INTO public.cliente (
-              usuario_id, nombre, apellidos, fecha_creacion_cuenta, codigo, foto_cliente
+              usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
             ) VALUES (
-              $1, $2, $3, $4, $5, $6
+              $1, $2, $3, $4, $5
             ) RETURNING *
           `, [
                 cliente.usuario_id,
                 cliente.nombre,
                 cliente.apellidos,
                 cliente.fecha_creacion_cuenta,
-                CODE,
                 cliente.foto_cliente
             ]);
 
@@ -297,7 +296,7 @@ WHERE promocion_id = $1;`, [id]);
     getValoracionesClienteLast: async (id) =>{
         try{
             const resultado =await db_pool.any(`
-                SELECT valoracion_cliente.id,nombre,apellidos,valoracion_cliente.calificacion
+                SELECT valoracion_cliente.id,nombres,apellidos,valoracion_cliente.calificacion
 FROM cliente
 INNER JOIN valoracion_cliente
     ON cliente.id = valoracion_cliente.cliente_id
@@ -314,7 +313,7 @@ order by valoracion_cliente.calificacion desc
     getValoracionesClientePromoLast: async (id) =>{
         try{
             const resultado =await db_pool.any(`
-                SELECT valoracion_cliente.id,nombre,apellidos,valoracion_cliente.calificacion
+                SELECT valoracion_cliente.id,nombres,apellidos,valoracion_cliente.calificacion
 FROM cliente
 INNER JOIN valoracion_cliente
     ON cliente.id = valoracion_cliente.cliente_id
