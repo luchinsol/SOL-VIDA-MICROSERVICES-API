@@ -18,7 +18,7 @@ const modelPublicidad ={
                     b.foto AS imagen,
                     b.titulo AS titulo,
                     b.descripcion AS subtitulo,
-                    b.fondo,
+                    b.restriccion AS restriccion,
                     e.id AS evento_id,
                     e.fecha_inicio,
                     e.fecha_expiracion,
