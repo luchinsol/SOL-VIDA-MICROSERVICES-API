@@ -6,6 +6,7 @@ dotenv.config()
 
 
 const service_cliente = process.env.MICRO_CLIENTE
+const service_producto = process.env.MICRO_PRODUCTO
 console.log(service_cliente)
 
 export const getClientesControllerGW = async (req, res) => {
@@ -163,4 +164,41 @@ export const deleteClienteControllerGW = async (req, res) => {
     } catch (error) {
         res.status(500).send('Error creating order');
     }
-};  
+};
+
+//CONTROLLER QUE ME PERMITE INGRESAR UNA VALORACION
+export const postValoracionControllerGW = async (req, res) => {
+    try {
+      const data = req.body;
+  
+      // 1. Insertar la nueva valoración
+      const resultado = await axios.post(`${service_cliente}/calificacion`, data);
+  
+      if (!resultado.data) {
+        return res.status(400).json({ message: 'La respuesta del servicio no contiene datos válidos' });
+      }
+  
+      let promedio = null;
+  
+      // 2. Consultar promedio dependiendo del tipo
+      if (resultado.data.producto_id) {
+        const resProm = await axios.get(`${service_cliente}/calificacion_promedio_producto/${resultado.data.producto_id}`);
+        promedio = resProm.data.promedio_calificacion;
+        const actualizarProducto = await axios.put(`${service_producto}/actualizar_valoracion_producto/${resultado.data.producto_id}`,promedio)
+
+    } else if (resultado.data.promocion_id) {
+        const resProm = await axios.get(`${service_cliente}/calificacion_promedio_promocion/${resultado.data.promocion_id}`);
+        promedio = resProm.data.promedio_calificacion;
+        const actualizarPromocion = await axios.put(`${service_producto}/actualizar_valoracion_promocion/${resultado.data.promocion_id}`,promedio)    
+    }
+  
+      // 3. Retornar valoración y promedio
+      res.status(201).json({
+        ...resultado.data,
+        promedio: promedio ?? null
+      });
+  
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };

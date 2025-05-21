@@ -115,22 +115,18 @@ const modelAuth = {
     }
   },
 
-  // CREAR USUARIO NUEVO
-  createMicroUser: async (credenciales) => {
+    createMicroUser: async (credenciales) => {
     try {
       const userExist = await db_pool.oneOrNone(
-        `SELECT * FROM public.usuario WHERE firebase_uid=$1`,
+       ` SELECT * FROM public.usuario WHERE firebase_uid=$1`,
         [credenciales.firebase_uid]
       );
-      
+
       if (userExist) {
         return { message: "User exist!" };
       } else {
-       /* const contrasenaEncript = await bcrypt.hash(
-          credenciales.contrasena,
-          10
-        );*/
-        
+       console.log("...........SOY NUEVO")
+
         const newUser = await db_pool.one(
           `INSERT INTO public.usuario (rol_id, email, telefono,firebase_uid)
            VALUES ($1, $2, $3, $4) RETURNING *`,
@@ -141,15 +137,15 @@ const modelAuth = {
             credenciales.firebase_uid,
           ]
         );
-        
+
+        console.log("...........SOY NUEVO",newUser)
+
         return newUser;
       }
     } catch (error) {
       throw new Error(`Error post user ${error}`);
     }
   },
-
-  // VERIFICAR USUARIO
   existUser: async (credenciales) => {
     try {
       console.log("............ EXISTE USER ?");

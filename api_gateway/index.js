@@ -15,6 +15,9 @@ import routerGWNotificacion from "./routes/gw_notificacion_route.js";
 import routerGWAlmacen from "./routes/gw_almacen_routes.js";
 import routerGWAlmacenZona from "./routes/gw_almacen_zona_trabajo_route.js";
 import routerGWLogin from "./routes/gw_login_route.js";
+import routerGWPublicidad from "./routes/gw_publicidad_route.js";
+import routerGWCategoria from "./routes/gw_categoria_routes.js";
+import routerGWProducto from "./routes/gw_producto_routes.js";
 import { createClient } from "redis";
 
 import dotenv from 'dotenv';
@@ -99,7 +102,9 @@ app.use(routerGWAlmacenZona);
 app.use(routerGWNotificacion);
 app.use(routerGWLogin);
 app.use(routerGWConductor);
-
+app.use(routerGWPublicidad);
+app.use(routerGWCategoria);
+app.use(routerGWProducto);
 app.get("/apigw/v1/ping", (req, res) => {
   res.status(200).json({ message: "pong" });
 });

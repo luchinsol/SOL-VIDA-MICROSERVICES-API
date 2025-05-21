@@ -80,6 +80,20 @@ export const postClienteController = async (req, res) => {
         }
 };
 
+export const postMicroClienteController = async (req, res) => {
+  try {
+      const resultado = req.body
+      const response = await modelCliente.postMicroCliente(resultado)
+
+      if (!response) {
+          return res.status(400).json({ message: "Invalid input data" });
+        }
+        res.status(201).json(response);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
 export const putClienteController = async (req, res) => {
     try {
         const { id } = req.params
@@ -121,4 +135,106 @@ export const deleteClienteController = async (req, res) => {
         } catch (error) {
           res.status(500).json({ error: error.message });
         }
+};
+
+export const postMicroValoracionController = async (req, res) => {
+  try {
+      const resultado = req.body
+      const response = await modelCliente.postValoracionCliente(resultado)
+
+      if (!response) {
+          return res.status(400).json({ message: "Invalid input data" });
+        }
+        res.status(201).json(response);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+export const getConteoValoracionesProductoControllerId = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getValoracionProductoId(id) 
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+export const getConteoValoracionesPromocionControllerId = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getValoracionPromocionId(id) 
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+//CONTROLLER QUE ME SIRVE PARA PODER REALIZAR EL PROMEDIO DE LA CALIFICACION DE UN PRODUCTO
+export const getPromedioValoracionesProductoId = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getPromedioValoracionProductoId(id) 
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+//CONTROLLER QUE ME SIRVE PARA PODER REALIZAR EL PROMEDIO DE LA CALIFICACION DE UNA PROMOCION
+export const getPromedioValoracionesPromocionId = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getPromedioValoracionProductoId(id) 
+
+      if (!resultado) {
+          return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+
+//CONTROLLER PARA TRAER LAS SENTENCIAS QUE ME TRAE LAS ULTIMAS VALORACIONES DEL CLIENTE
+export const getValoracionesClientesLast = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getValoracionesClienteLast(id)
+      if (!resultado) {
+          return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};
+
+
+//CONTROLLER PARA TRAER LAS SENTENCIAS QUE ME TRAE LAS ULTIMAS VALORACIONES DEL CLIENTE DE LA PROMOCION
+export const getValoracionesClientesPromoLast = async (req, res) => {
+  try {
+      const { id } = req.params
+      const resultado = await modelCliente.getValoracionesClientePromoLast(id)
+      if (!resultado) {
+          return res.status(404).json({ message: "Not Found" });
+        }
+        res.status(200).json(resultado);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
 };
