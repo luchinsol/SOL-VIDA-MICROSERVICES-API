@@ -1,5 +1,5 @@
 import { db_pool } from "../notificacion_config.js";
-
+import { io } from '../index.js'
 const modelNotificaciones = {
     getAllNotificacionesAlmacen: async (id,fecha) => {
         try {
@@ -34,5 +34,36 @@ const modelNotificaciones = {
             throw new Error(`Error post data ${error}`);
         }
     }, 
+
+    getAllNotificacionesCliente: async (fecha) => {
+        try {
+            const resultado = await db_pool.any(
+                `SELECT * 
+                FROM public.notify_cliente
+                WHERE DATE(fecha) = $1 ORDER BY id DESC;
+                `,
+            [fecha])
+            //console.log("resultado",resultado)
+            return resultado
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+    createNotificacionesCliente: async (notificacion) => {
+        try {
+           const resultado = await db_pool.one(`INSERT INTO public.notify_cliente(foto,titulo,fecha,descripcion)
+            values($1,$2,$3,$4) RETURNING *`,[
+                notificacion.foto,
+                notificacion.titulo,
+                notificacion.fecha,
+                notificacion.descripcion
+            ])
+            io.emit('pedido_anulado', resultado); 
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error post data ${error}`);
+        }
+    },
 }
 export default modelNotificaciones;

@@ -107,6 +107,70 @@ const modelCategoria = {
     }
 },
 
+    //ENDPOINT QUE ME SIRVE PARA VER LA INFORMACION QUE APARECE EN VER MÁS
+    getAllProductosSubcategoria: async (subcategoriaId) => {
+    try {
+        // Consulta simplificada para obtener datos de la subcategoría
+        const rawData = await db_pool.any(`
+            SELECT
+                s.id AS subcategoria_id,
+                s.nombre AS subcategoria_nombre,
+                s.icono,
+                s.fecha_inicio,
+                s.fecha_fin,
+                sp.producto_id,
+                NULL AS promocion_id
+            FROM public.subcategoria s
+            LEFT JOIN public.subcategoria_producto sp ON sp.subcategoria_id = s.id
+            WHERE s.id = $1
+
+            UNION ALL
+
+            SELECT
+                s.id AS subcategoria_id,
+                s.nombre AS subcategoria_nombre,
+                s.icono,
+                s.fecha_inicio,
+                s.fecha_fin,
+                NULL AS producto_id,
+                spp.promocion_id
+            FROM public.subcategoria s
+            LEFT JOIN public.subcategoria_promocion spp ON spp.subcategoria_id = s.id
+            WHERE s.id = $1
+        `, [subcategoriaId]);
+
+        if (!rawData || rawData.length === 0) {
+            return null; // No existe subcategoría con ese ID
+        }
+
+        // Armamos el objeto de respuesta
+        const subcategoria = {
+            id: rawData[0].subcategoria_id,
+            nombre: rawData[0].subcategoria_nombre,
+            icono: rawData[0].icono,
+            fecha_inicio: rawData[0].fecha_inicio,
+            fecha_fin: rawData[0].fecha_fin,
+            productos: [],
+            promociones: []
+        };
+
+        // Llenamos productos y promociones sin restricciones
+        rawData.forEach(row => {
+            if (row.producto_id && !subcategoria.productos.includes(row.producto_id)) {
+                subcategoria.productos.push(row.producto_id);
+            }
+            if (row.promocion_id && !subcategoria.promociones.includes(row.promocion_id)) {
+                subcategoria.promociones.push(row.promocion_id);
+            }
+        });
+
+        return subcategoria;
+    } catch (error) {
+        throw new Error(`Error al obtener la subcategoría: ${error}`);
+    }
+},
+
+
     //TABLA SUB-CATEGORIA POR ID
     getSubcategoriaById: async (subcategoriaId) => {
         try {

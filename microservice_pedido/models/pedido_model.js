@@ -736,6 +736,75 @@ ORDER BY almacen_id;
         }
     },
 
+    getPedidoClienteHistorialId: async (id) => {
+    try {
+        const resultado = await db_pool.any(`
+            SELECT 
+                p.id AS pedido_id,
+                p.cliente_id,
+                p.fecha,
+                p.estado,
+                p.ubicacion_id,
+                p.total,
+                dp.id AS detalle_id,
+                dp.producto_id,
+                dp.cantidad,
+                dp.promocion_id
+            FROM 
+                public.pedido p
+            INNER JOIN 
+                public.detalle_pedido dp ON p.id = dp.pedido_id
+            WHERE 
+                p.cliente_id = $1
+            ORDER BY 
+                p.id DESC;
+        `, [id]);
+
+        const pedidosMap = new Map();
+
+        resultado.forEach(row => {
+            const {
+                pedido_id,
+                cliente_id,
+                fecha,
+                estado,
+                ubicacion_id,
+                total,
+                detalle_id,
+                producto_id,
+                cantidad,
+                promocion_id
+            } = row;
+
+            if (!pedidosMap.has(pedido_id)) {
+                pedidosMap.set(pedido_id, {
+                    pedido_id,
+                    cliente_id,
+                    fecha,
+                    estado,
+                    ubicacion_id,
+                    total,
+                    detalles: []
+                });
+            }
+
+            pedidosMap.get(pedido_id).detalles.push({
+                id: detalle_id,
+                producto_id,
+                cantidad,
+                promocion_id
+            });
+        });
+
+        const pedidos = Array.from(pedidosMap.values());
+        return pedidos;
+
+    } catch (error) {
+        throw new Error(`Error get data: ${error}`);
+    }
+},
+
+
 }
 
 export default modelPedidoDetalle
