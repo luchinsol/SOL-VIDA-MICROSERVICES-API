@@ -1453,3 +1453,30 @@ export const UpdatePedidoDistribuidorAlmacenControllerGW = async (req, res) => {
     return res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+export const getPedidoClienteControllerGW = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const response = await axios.get(`${service_pedido}/pedido_history_cliente/${id}`);
+
+    // Verificamos que la respuesta exista y contenga datos
+    if (response && response.data) {
+      res.status(200).json(response.data);
+    } else {
+      res.status(404).json({ error: 'No se encontraron datos para el cliente indicado.' });
+    }
+
+  } catch (error) {
+    if (error.response) {
+      // Error desde el microservicio
+      res.status(error.response.status).json({
+        error: `Microservicio error: ${error.response.statusText}`,
+        status: error.response.status
+      });
+    } else {
+      // Error de red u otro
+      res.status(500).json({ error: `Error en la solicitud: ${error.message}` });
+    }
+  }
+};

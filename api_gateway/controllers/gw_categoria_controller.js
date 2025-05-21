@@ -159,8 +159,10 @@ export const getZonaTrabajo = (zonas, coordinates, maxDistanceKm = 50) => {
 //CATEGORIA ESPECIFICA PARA NUESTRO ENDPOINT NECESARIO PARA TRAER UNA CATEGORIA EN ESPECIFICO
 export const getCategoriaControllerIdGW = async (req, res) => {
   try {
-
-    const { id, ubicacion_id } = req.params;
+    //const id = req.params.id || 1;
+    //const { ubicacion_id } = req.params;
+    let { id, ubicacion_id } = req.params;
+    id = id || '1';
 
      const MAX_DISTANCE_KM = 50; // Radio máximo en kilómetros
 
@@ -183,8 +185,6 @@ export const getCategoriaControllerIdGW = async (req, res) => {
 
         // Obtener zonas para calcular la zona de trabajo
         const responseZona = await axios.get(`${service_ubicacion}/zona`);
-
-
 
         // Solo necesitamos coordenadas y zonas para determinar la zona_trabajo_id
          const coordinates = [longitud, latitud];
@@ -214,7 +214,7 @@ export const getCategoriaControllerIdGW = async (req, res) => {
     const response = await axios.get(`${service_categoria}/categoria/${id}`);
 
     if (!response || !response.data) {
-      return res.status(400).json({ message: "Invalid get data" });
+      return res.status(400).json({ message: "Invalid get data from GW" });
     }
 
     // Extraer la data con la nueva estructura
@@ -226,19 +226,31 @@ export const getCategoriaControllerIdGW = async (req, res) => {
     enrichedData.nombre = categoriaData.nombre;
     enrichedData.zona_trabajo_id = zona_trabajo_id;
 
+    // Para detener el flujo si algún producto o promoción no se encuentra (404)
+    let sinProductosDisponibles = false;
+
     // Crear una copia del objeto para no modificar el original directamente
     enrichedData.subcategorias = await Promise.all(categoriaData.subcategorias.map(async (subcategoria) => {
       // Procesar array de productos
       const productosEnriquecidos = await Promise.all(subcategoria.productos.map(async (productoId) => {
         try {
           // Obtener detalles del producto y su precio de zona en paralelo
-          const [productoResp, precioZonaResp] = await Promise.all([
+          const [productoResp, precioZonaResp,totalValoracionesResp,calificacionesResp] = await Promise.all([
             axios.get(`${service_producto}/producto/${productoId}`),
-            axios.get(`${service_zonaproducto}/precioZonaProductoDetalle/${zona_trabajo_id}/${productoId}`)
+            axios.get(`${service_zonaproducto}/precioZonaProductoDetalle/${zona_trabajo_id}/${productoId}`),
+            axios.get(`${service_cliente}/calificacion_count_producto/${productoId}`),
+            axios.get(`${service_cliente}/last_valoraciones_cliente_producto/${productoId}`)
           ]);
 
           const productoDetalle = productoResp.data || null;
           const precioZonaProducto = precioZonaResp.data || null;
+
+          //total de calificaciones de los clientes al producto
+          const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
+          console.log("------------------->");
+          console.log(totalValoraciones);
+
+          const calificaciones = calificacionesResp.data || [];
 
           // Calcular el porcentaje de descuento si hay descuento y precio
           let porcentajeDescuento = null;
@@ -260,11 +272,14 @@ export const getCategoriaControllerIdGW = async (req, res) => {
           const productoEnriquecido = {
             id: productoId,
             nombre: productoDetalle?.nombre || null,
+            descripcion: productoDetalle?.descripcion || null,
             foto: productoDetalle?.foto,
             valoracion: productoDetalle?.valoracion || null,
             precio: precioZonaProducto?.precio || null,
             descuento: precioZonaProducto?.descuento || 0,
-            estilo: estiloModificado
+            total_cliente_calificacion: Number(totalValoraciones),
+            estilo: estiloModificado,
+            calificaciones: calificaciones
           };
 
           // Añadir el porcentaje de descuento solo si existe un descuento
@@ -274,6 +289,9 @@ export const getCategoriaControllerIdGW = async (req, res) => {
 
           return productoEnriquecido;
         } catch (error) {
+          if (error.response?.status === 404) {
+            sinProductosDisponibles = true;
+          }
           console.error(`Error al obtener detalles del producto ${productoId}:`, error.message);
           return { id: productoId, error: 'No se pudo obtener información' };
         }
@@ -283,13 +301,21 @@ export const getCategoriaControllerIdGW = async (req, res) => {
       const promocionesEnriquecidas = await Promise.all(subcategoria.promociones.map(async (promocionId) => {
         try {
           // Obtener detalles de la promoción y su precio de zona en paralelo
-          const [promoResp, precioPromoResp] = await Promise.all([
+          const [promoResp, precioPromoResp,totalValoracionResp,calificacionResp] = await Promise.all([
             axios.get(`${service_producto}/promocion/${promocionId}`),
-            axios.get(`${service_zonapromocion}/preciopromodetalle/${zona_trabajo_id}/${promocionId}`)
+            axios.get(`${service_zonapromocion}/preciopromodetalle/${zona_trabajo_id}/${promocionId}`),
+            axios.get(`${service_cliente}/calificacion_promedio_promocion/${promocionId}`),
+            axios.get(`${service_cliente}/last_valoraciones_cliente_promos/${promocionId}`)
           ]);
 
           const promocionDetalle = promoResp.data || null;
+          //console.log("---------------------->");
+          //console.log(promocionDetalle);
           const precioZonaPromocion = precioPromoResp.data || null;
+          const totalValoracion = totalValoracionResp.data?.total_valoraciones || 0;
+          console.log("------------------->");
+          console.log(totalValoracion);
+          const calificaciones =  calificacionResp.data || [];
 
           // Calcular el porcentaje de descuento si hay descuento y precio
           let porcentajeDescuento = null;
@@ -311,11 +337,14 @@ export const getCategoriaControllerIdGW = async (req, res) => {
           const promocionEnriquecida = {
             id: promocionId,
             nombre: promocionDetalle?.nombre || null,
+            descripcion: promocionDetalle.descripcion || null,
             foto: promocionDetalle?.foto,
             valoracion: promocionDetalle?.valoracion || null,
             precio: precioZonaPromocion?.precio || null,
             descuento: precioZonaPromocion?.descuento || 0,
-            estilo: estiloModificado
+            total_cliente_calificacion: Number(totalValoracion), 
+            estilo: estiloModificado,
+            calificaciones:  calificaciones
           };
 
           // Añadir el porcentaje de descuento solo si existe un descuento
@@ -324,7 +353,11 @@ export const getCategoriaControllerIdGW = async (req, res) => {
           }
 
           return promocionEnriquecida;
+          
         } catch (error) {
+          if (error.response?.status === 404) {
+            sinProductosDisponibles = true;
+          }
           console.error(`Error al obtener detalles de la promoción ${promocionId}:`, error.message);
           return { id: promocionId, error: 'No se pudo obtener información' };
         }
@@ -338,6 +371,13 @@ export const getCategoriaControllerIdGW = async (req, res) => {
       };
     }));
 
+    // Verificación final: si hubo productos o promociones que no existen
+    if (sinProductosDisponibles) {
+      return res.status(404).json({
+        zona_trabajo_id,
+        message: "No hay productos disponibles para esta zona"
+      });
+    }
     res.status(200).json(enrichedData);
   } catch (error) {
     console.error('Error en getCategoriaControllerIdGW:', error);
@@ -345,185 +385,149 @@ export const getCategoriaControllerIdGW = async (req, res) => {
   }
 };
 
-
-//CATEGORIA ESPECIFICA PARA NUESTRO ENDPOINT NECESARIO PARA TRAER UNA CATEGORIA EN ESPECIFICO
-export const getSubategoriaControllerIdGW = async (req, res) => {
+//ALL PRODUCTOS Y PROMOCIONES CON SUBCATEGORIA ESPECIFICA 
+export const getAllProductosSubcategoriaGW = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { subcategoria_id, zona_trabajo_id } = req.params;
 
-    // Obtener las subcategorías relacionadas
-    const response = await axios.get(`${service_categoria}/sub_categoria/${id}`);
-
+    // Obtener subcategoría con productos y promociones (IDs)
+    const response = await axios.get(`${service_categoria}/all_productos_subcategoria/${subcategoria_id}`);
     if (!response || !response.data) {
-      return res.status(400).json({ message: "Invalid get data" });
+      return res.status(400).json({ message: "Invalid get data from GW" });
     }
 
-    const productos = [];
-    const promociones = [];
+    const subcategoria = response.data;
 
-    await Promise.all(response.data.map(async (item) => {
-      if (item.producto_id) {
-        const [productoResp, precioZonaResp] = await Promise.all([
-          axios.get(`${service_producto}/producto/${item.producto_id}`),
-          axios.get(`${service_zonaproducto}/precioZonaProducto/${item.producto_id}`)
-        ]);
+    // Enriquecer productos
+    const productosEnriquecidos = await Promise.all(
+      subcategoria.productos.map(async (productoId) => {
+        try {
+          const [
+            productoResp,
+            precioZonaResp,
+            totalValoracionesResp,
+            calificacionesResp
+          ] = await Promise.all([
+            axios.get(`${service_producto}/producto/${productoId}`),
+            axios.get(`${service_zonaproducto}/precioZonaProductoDetalle/${zona_trabajo_id}/${productoId}`),
+            axios.get(`${service_cliente}/calificacion_count_producto/${productoId}`),
+            axios.get(`${service_cliente}/last_valoraciones_cliente_producto/${productoId}`)
+          ]);
 
-        productos.push({
-          ...item,
-          producto_detalle: productoResp.data || null,
-          precio_zona_producto: precioZonaResp.data || null
-        });
-      }
+          const productoDetalle = productoResp.data || null;
+          const precioZonaProducto = precioZonaResp.data || null;
+          const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
+          const calificaciones = calificacionesResp.data || [];
 
-      if (item.promocion_id) {
-        const [promoResp, precioPromoResp] = await Promise.all([
-          axios.get(`${service_producto}/promocion/${item.promocion_id}`),
-          axios.get(`${service_zonapromocion}/preciopromo/${item.promocion_id}`)
-        ]);
+          let porcentajeDescuento = null;
+          if (precioZonaProducto?.descuento > 0 && precioZonaProducto?.precio > 0) {
+            porcentajeDescuento = Math.round((precioZonaProducto.descuento / precioZonaProducto.precio) * 100);
+          }
 
-        promociones.push({
-          ...item,
-          promocion_detalle: promoResp.data || null,
-          precio_zona_promocion: precioPromoResp.data || null
-        });
-      }
-    }));
+          const estiloModificado = precioZonaProducto ? {
+            id: precioZonaProducto.estilo_id,
+            colores: [
+              { color_fondo: precioZonaProducto.color_fondo },
+              { color_boton: precioZonaProducto.color_boton },
+              { color_letra: precioZonaProducto.color_letra }
+            ]
+          } : null;
 
-    res.status(200).json({
-      subcategoria_id: id,
-      productos,
-      promociones
+          const productoEnriquecido = {
+            id: productoId,
+            nombre: productoDetalle?.nombre || null,
+            descripcion: productoDetalle?.descripcion || null,
+            foto: productoDetalle?.foto,
+            valoracion: productoDetalle?.valoracion || null,
+            precio: precioZonaProducto?.precio || null,
+            descuento: precioZonaProducto?.descuento || 0,
+            total_cliente_calificacion: Number(totalValoraciones),
+            estilo: estiloModificado,
+            calificaciones: calificaciones
+          };
+
+          if (porcentajeDescuento !== null) {
+            productoEnriquecido.porcentaje_descuento = porcentajeDescuento;
+          }
+
+          return productoEnriquecido;
+        } catch (error) {
+          console.error(`Error al obtener detalles del producto ${productoId}:`, error.message);
+          return { id: productoId, error: 'No se pudo obtener información' };
+        }
+      })
+    );
+
+    // Enriquecer promociones
+    const promocionesEnriquecidas = await Promise.all(
+      subcategoria.promociones.map(async (promocionId) => {
+        try {
+          const [
+            promoResp,
+            precioPromoResp,
+            totalValoracionResp,
+            calificacionResp
+          ] = await Promise.all([
+            axios.get(`${service_producto}/promocion/${promocionId}`),
+            axios.get(`${service_zonapromocion}/preciopromodetalle/${zona_trabajo_id}/${promocionId}`),
+            axios.get(`${service_cliente}/calificacion_promedio_promocion/${promocionId}`),
+            axios.get(`${service_cliente}/last_valoraciones_cliente_promos/${promocionId}`)
+          ]);
+
+          const promocionDetalle = promoResp.data || null;
+          const precioZonaPromocion = precioPromoResp.data || null;
+          const totalValoracion = totalValoracionResp.data?.total_valoraciones || 0;
+          const calificaciones = calificacionResp.data || [];
+
+          let porcentajeDescuento = null;
+          if (precioZonaPromocion?.descuento > 0 && precioZonaPromocion?.precio > 0) {
+            porcentajeDescuento = Math.round((precioZonaPromocion.descuento / precioZonaPromocion.precio) * 100);
+          }
+
+          const estiloModificado = precioZonaPromocion ? {
+            id: precioZonaPromocion.estilo_id,
+            colores: [
+              { color_fondo: precioZonaPromocion.color_fondo },
+              { color_boton: precioZonaPromocion.color_boton },
+              { color_letra: precioZonaPromocion.color_letra }
+            ]
+          } : null;
+
+          const promocionEnriquecida = {
+            id: promocionId,
+            nombre: promocionDetalle?.nombre || null,
+            descripcion: promocionDetalle?.descripcion || null,
+            foto: promocionDetalle?.foto,
+            valoracion: promocionDetalle?.valoracion || null,
+            precio: precioZonaPromocion?.precio || null,
+            descuento: precioZonaPromocion?.descuento || 0,
+            total_cliente_calificacion: Number(totalValoracion),
+            estilo: estiloModificado,
+            calificaciones: calificaciones
+          };
+
+          if (porcentajeDescuento !== null) {
+            promocionEnriquecida.porcentaje_descuento = porcentajeDescuento;
+          }
+
+          return promocionEnriquecida;
+        } catch (error) {
+          console.error(`Error al obtener detalles de la promoción ${promocionId}:`, error.message);
+          return { id: promocionId, error: 'No se pudo obtener información' };
+        }
+      })
+    );
+
+    // Devolver resultado final
+    return res.json({
+      ...subcategoria,
+      productos: productosEnriquecidos,
+      promociones: promocionesEnriquecidas
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-//ENDPOINT NECESARIO PARA TRAER TODA LA INFORMACION DE UN PRODUCTO EN ESPECIFICO
-export const getSubCategoriaProductoControllerIdGW = async (req, res) => {
-  try {
-    const { id, id_prod, id_zona } = req.params;
-
-    // Hacemos todas las peticiones en paralelo
-    const [
-      subcategoriaResp,
-      productoResp,
-      precioZonaResp,
-      totalValoracionesResp,
-      calificacionesResp
-    ] = await Promise.all([
-      axios.get(`${service_categoria}/sub_categoria_nombre/${id}`),
-      axios.get(`${service_producto}/producto/${id_prod}`),
-      axios.get(`${service_zonaproducto}/precioZonaProductoDetalle/${id_zona}/${id_prod}`),
-      axios.get(`${service_cliente}/calificacion_count_producto/${id_prod}`),
-      axios.get(`${service_cliente}/last_valoraciones_cliente_producto/${id_prod}`)
-    ]);
-
-    // Validamos que al menos la subcategoría y producto existan
-    if (!subcategoriaResp.data || !productoResp.data) {
-      return res.status(404).json({ message: "Datos no encontrados" });
-    }
-
-    const subcategoria = subcategoriaResp.data[0]; // Solo usamos la primera subcategoría
-    const producto = productoResp.data;
-    const precioZona = precioZonaResp.data || {};
-    const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
-    const calificaciones = calificacionesResp.data || [];
-
-    // Estructuramos la respuesta según el formato requerido
-    const respuestaFinal = {
-      id: subcategoria.id,
-      nombre: subcategoria.nombre,
-      producto: {
-        id: producto.id,
-        nombre: producto.nombre,
-        descripcion: producto.descripcion,
-        foto: producto.foto,
-        valoracion: producto.valoracion,
-        precio: precioZona.precio || null,
-        descuento: precioZona.descuento || null,
-        total_calificados: Number(totalValoraciones),
-        estilo: {
-          id: precioZona.estilo_id || null,
-          colores: {
-            color_fondo: precioZona.color_fondo || null,
-            color_boton: precioZona.color_boton || null,
-            color_letra: precioZona.color_letra || null
-          },
-          calificaciones: calificaciones
-        }
-      }
-    };
-
-    res.status(200).json(respuestaFinal);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-
-//ENDPONT NECESARIO PARA TRAER TODA LA INFORMACION DE UNA PROMOCION EN ESPECIFICO
-export const getSubCategoriaPromocionControllerIdGW = async (req, res) => {
-  try {
-    const { id, id_prom, id_zona } = req.params;
-
-    // Realizamos todas las peticiones necesarias en paralelo
-    const [
-      subcategoriaResp,
-      promocionResp,
-      precioZonaResp,
-      totalValoracionesResp,
-      calificacionesResp
-    ] = await Promise.all([
-      axios.get(`${service_categoria}/sub_categoria_nombre/${id}`), // Subcategoría por ID
-      axios.get(`${service_producto}/promocion/${id_prom}`), // Detalle de la promoción
-      axios.get(`${service_zonapromocion}/preciopromodetalle/${id_zona}/${id_prom}`), // Precio por zona
-      axios.get(`${service_cliente}/calificacion_promedio_promocion/${id_prom}`), // Total calificaciones
-      axios.get(`${service_cliente}/last_valoraciones_cliente_promos/${id_prom}`) // Últimas calificaciones
-    ]);
-
-    // Verificamos que existan datos necesarios
-    if (!subcategoriaResp.data || !promocionResp.data) {
-      return res.status(404).json({ message: "Datos no encontrados" });
-    }
-
-    const subcategoria = subcategoriaResp.data[0]; // Usamos la primera subcategoría
-    const promocion = promocionResp.data;
-    const precioZona = precioZonaResp.data || {};
-    const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
-    const calificaciones = calificacionesResp.data || [];
-
-    // Estructura final de la respuesta
-    const respuestaFinal = {
-      id: subcategoria.id,
-      nombre: subcategoria.nombre,
-      producto: {
-        id: promocion.id,
-        nombre: promocion.nombre,
-        descripcion: promocion.descripcion,
-        foto: promocion.foto,
-        valoracion: promocion.valoracion,
-        precio: precioZona.precio || null,
-        descuento: precioZona.descuento || null,
-        total_calificados: Number(totalValoraciones),
-        estilo: {
-          id: precioZona.estilo_id || null,
-          colores: {
-            color_fondo: precioZona.color_fondo || null,
-            color_boton: precioZona.color_boton || null,
-            color_letra: precioZona.color_letra || null
-          },
-          calificaciones: calificaciones
-        }
-      }
-    };
-
-    res.status(200).json(respuestaFinal);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error general al procesar la subcategoría:", error.message);
+    return res.status(500).json({ message: "Error al obtener información de subcategoría" });
   }
 };
 

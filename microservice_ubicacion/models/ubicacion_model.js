@@ -120,8 +120,8 @@ const modelUbicacion = {
 
         try {
             //TRAEMOS SOLO LOS CAMPOS QUE NECESITAMOS Y ETIQUETA QUE ES EL NUEVO CAMPO AGREGADO EN LA TABLA DE UBICACIONES
-            const ubicaciones = await db_pool.one(`INSERT INTO public.ubicacion(distrito,direccion,latitud,longitud,cliente_id,etiqueta) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-                [ubicacion.distrito, ubicacion.direccion, ubicacion.latitud, ubicacion.longitud, ubicacion.cliente_id, ubicacion.etiqueta])
+            const ubicaciones = await db_pool.one(`INSERT INTO public.ubicacion(departamento,distrito,direccion,latitud,longitud,cliente_id,etiqueta) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+                [ubicacion.departamento,ubicacion.distrito, ubicacion.direccion, ubicacion.latitud, ubicacion.longitud, ubicacion.cliente_id, ubicacion.etiqueta])
             return ubicaciones
 
         } catch (error) {

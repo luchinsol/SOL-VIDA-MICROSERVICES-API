@@ -525,3 +525,16 @@ export const getPrimeraFechaPedido = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getPedidoClienteHistorialesId = async (req,res) => {
+    try {
+        const { id } = req.params
+        const response  = await modelPedidoDetalle.getPedidoClienteHistorialId(id)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};

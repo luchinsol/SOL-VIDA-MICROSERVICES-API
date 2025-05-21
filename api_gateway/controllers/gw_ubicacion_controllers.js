@@ -94,7 +94,7 @@ export const actualizarUltimaUbicacionClienteControllerGW = async (req,res) => {
           );
          
           if (response) {
-            res.status(201).json(response.data);
+            res.status(200).json(response.data);
           } else {
             res.status(400).json({ message: "Invalid put data" });
           }
