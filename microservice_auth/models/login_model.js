@@ -53,8 +53,8 @@ const modelAuth = {
           } else {
             return { message: "Invalid credentials!" };
           }
-        } 
-        
+        }
+
         //CENTRAL
         else if (existsUser.rol_id === 3) {
           if (
@@ -69,9 +69,7 @@ const modelAuth = {
           } else {
             return { message: "Invalid credentials!" };
           }
-        } 
-        
-        else {
+        } else {
           return { message: "Roule not authorized!" };
         }
       } else {
@@ -81,51 +79,85 @@ const modelAuth = {
       throw new Error(`Error query login ${error}`);
     }
   },
+  // nuevo método
+  updateTelefono: async (telefono, firebaseUId) => {
+    try {
+      console.log(".....datos put")
+      console.log(telefono,firebaseUId)
+      const resultado = await db_pool.one(
+        `UPDATE public.usuario SET telefono = $1 WHERE firebase_uid = $2 RETURNING *`,
+        [telefono.telefono, firebaseUId]
+      );
+      console.log("..........MODEL LOGIN UPPATE")
+      console.log(resultado)
+
+      return resultado;
+    } catch (error) {
+      throw new Error(`Error en la peticion: ${error}`);
+    }
+  },
+
+  // nuevo método
+  getFirebaseuid: async (firebaseUid) => {
+    try {
+      console.log(".......firebase....");
+      const usuario = await db_pool.oneOrNone(
+        `
+        SELECT * FROM public.usuario WHERE firebase_uid = $1`,
+        [firebaseUid]
+      );
+      console.log("....hay algo?");
+      console.log(usuario);
+      return usuario;
+    } catch (error) {
+      throw new Error(`Error en el servidor ${error}`);
+    }
+  },
+
+  // modificando ...
   createUser: async (credenciales) => {
     try {
+      console.log("/////// en login model");
+      console.log(credenciales);
       const userExist = await db_pool.oneOrNone(
-        `SELECT * FROM public.usuario WHERE nickname=$1`,
-        [credenciales.nickname]
+        `SELECT * FROM public.usuario WHERE firebase_uid=$1`,
+        [credenciales.firebase_uid]
       );
 
       if (userExist) {
+        console.log("...exist en loginmodel");
         return { message: "User exist!" };
       } else {
-        const contrasenaEncript = await bcrypt.hash(
-          credenciales.contrasena,
-          10
-        );
-
         const newUser = await db_pool.one(
-          `INSERT INTO public.usuario (rol_id,nickname,contrasena,email,telefono)
-                    VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+          `INSERT INTO public.usuario (rol_id,email,telefono,firebase_uid)
+                    VALUES ($1,$2,$3,$4) RETURNING *`,
           [
             credenciales.rol_id,
-            credenciales.nickname,
-            contrasenaEncript,
             credenciales.email,
             credenciales.telefono,
+            credenciales.firebase_uid,
           ]
         );
 
-        return newUser
+        return newUser;
       }
     } catch (error) {
       throw new Error(`Error post user ${error}`);
     }
   },
 
-    createMicroUser: async (credenciales) => {
+  createMicroUser: async (credenciales) => {
     try {
       const userExist = await db_pool.oneOrNone(
-       ` SELECT * FROM public.usuario WHERE firebase_uid=$1`,
+        ` SELECT * FROM public.usuario WHERE firebase_uid=$1`,
         [credenciales.firebase_uid]
       );
 
       if (userExist) {
+        console.log("......EXISTE ");
         return { message: "User exist!" };
       } else {
-       console.log("...........SOY NUEVO")
+        console.log("...........SOY NUEVO");
 
         const newUser = await db_pool.one(
           `INSERT INTO public.usuario (rol_id, email, telefono,firebase_uid)
@@ -138,7 +170,7 @@ const modelAuth = {
           ]
         );
 
-        console.log("...........SOY NUEVO",newUser)
+        console.log("...........SOY NUEVO", newUser);
 
         return newUser;
       }
@@ -166,7 +198,10 @@ const modelAuth = {
   },
   getTelefono: async (id) => {
     try {
-      const resultadoAguaSol = await db_aguaSol.oneOrNone(`SELECT * FROM personal.usuario WHERE id = $1`,[id]);
+      const resultadoAguaSol = await db_aguaSol.oneOrNone(
+        `SELECT * FROM personal.usuario WHERE id = $1`,
+        [id]
+      );
       return resultadoAguaSol;
     } catch (error) {
       throw new Error(`Error get data: ${error}`);
@@ -174,7 +209,10 @@ const modelAuth = {
   },
   getTelefonoDistribuidor: async (id) => {
     try {
-      const resultadoAguaSol = await db_pool.oneOrNone(`SELECT telefono FROM public.usuario WHERE id = $1`,[id]);
+      const resultadoAguaSol = await db_pool.oneOrNone(
+        `SELECT telefono FROM public.usuario WHERE id = $1`,
+        [id]
+      );
       return resultadoAguaSol;
     } catch (error) {
       throw new Error(`Error get data: ${error}`);

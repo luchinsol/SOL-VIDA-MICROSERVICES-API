@@ -185,10 +185,10 @@ export const deleteZonas = async (req, res) => {
         try {
             const { cliente } = req.params
             const resultado = await modelUbicacion.getDireccionesCliente(cliente)
-            if (!resultado) {
+            if (!resultado || resultado.length === 0) {
                 return res.status(404).json({ message: "Data not found" });
             }
-            res.status(200).json(resultado);
+            return res.status(200).json(resultado);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

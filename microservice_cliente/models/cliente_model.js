@@ -75,30 +75,26 @@ const modelCliente = {
             throw new Error(`Error al obtener usuarios por día: ${error}`);
         }
     },
-
+// modificando
     postCliente: async (cliente) => {
+        console.log("....TRAR")
+        console.log(cliente);
         try {
-            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+            /*const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
             let CODE = '';
 
             for (let i = 0; i < 5; i++) {
                 const randomIndex = Math.floor(Math.random() * characters.length);
                 CODE += characters.charAt(randomIndex);
-            }
+            }*/
             const resultado = await db_pool.one(`
                 INSERT INTO public.cliente (
-                    usuario_id, nombre, apellidos, ruc, fecha_nacimiento,
-                    fecha_creacion_cuenta, sexo, dni, codigo, calificacion, saldo_beneficios,
-                    suscripcion, quiereretirar, medio_retiro, banco_retiro, numero_cuenta
+                    usuario_id, nombres, apellidos,fecha_creacion,foto_cliente
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                    $1, $2, $3, $4, $5
                 ) RETURNING *
             `, [
-                cliente.usuario_id, cliente.nombre, cliente.apellidos,
-                cliente.ruc, cliente.fecha_nacimiento, cliente.fecha_creacion_cuenta,
-                cliente.sexo, cliente.dni, CODE, cliente.calificacion, cliente.saldo_beneficios,
-                cliente.suscripcion,
-                cliente.quiereretirar, cliente.medio_retiro, cliente.banco_retiro, cliente.numero_cuenta
+                cliente.usuario_id,cliente.nombres,cliente.apellidos,new Date(),cliente.foto_cliente
             ]);
 
             return resultado;
@@ -109,7 +105,11 @@ const modelCliente = {
     },
 
      postMicroCliente: async (cliente) => {
+        console.log("...");
         try {
+
+            console.log("ENTRANDO.....");
+            console.log(cliente)
             // First check if a client already exists for this user_id
             const existingCliente = await db_pool.oneOrNone(
                 'SELECT * FROM public.cliente WHERE usuario_id = $1',
@@ -122,13 +122,14 @@ const modelCliente = {
             }
 
             // Generate a random code
-            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+         /*   const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
             let CODE = '';
 
             for (let i = 0; i < 5; i++) {
                 const randomIndex = Math.floor(Math.random() * characters.length);
                 CODE += characters.charAt(randomIndex);
-            }
+            }*/
+            const hora_backend =  new Date();
 
             // Insert new client
             const resultado = await db_pool.one(
@@ -141,7 +142,8 @@ const modelCliente = {
                 cliente.usuario_id,
                 cliente.nombre,
                 cliente.apellidos,
-                cliente.fecha_creacion,
+                hora_backend,
+               // cliente.fecha_creacion,
                 cliente.foto_cliente
             ]);
 

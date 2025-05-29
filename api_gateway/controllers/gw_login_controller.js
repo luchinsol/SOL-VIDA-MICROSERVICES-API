@@ -10,33 +10,90 @@ const service_cliente = process.env.MICRO_CLIENTE;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 console.log(service_auth);
 
+// nuevo
+export const putPhoneFirebaseGW = async (req,res) =>{
+  try {
+    const {firebaseUID} = req.params
+    const datos = req.body
+    console.log("........DATOS FONO")
+    console.log(datos)
+    console.log(firebaseUID)
+    const response = await axios.put(`${service_auth}/userfirebase_phone/${firebaseUID}`,
+      datos
+    )
+    console.log("respuesta....phon")
+      console.log(response)
+    if(!response || response.data == null){
+      console.log("respuesta....phon")
+      console.log(response)
+      return res.status(400).json({message:response.data})
+    }
+    return res.status(200).json(response.data)
+
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+
+//nuevo
+export const getUserFirebaseGW = async (req, res) => {
+  console.log("....FIREBASE NUEVO")
+  try {
+    const { firebaseUID } = req.params;
+    const response = await axios.get(
+      `${service_auth}/userfirebase/${firebaseUID}`
+    );
+    if (response && response.data) {
+      const id = response.data.id;
+      const responseCliente = await axios.get(
+        `${service_cliente}/cliente_user/${id}`
+      );
+      // res.status(200).json(response.data)
+      const clienteCompleto = {
+        user: response.data,
+        cliente: responseCliente.data,
+      };
+      res.status(200).json(clienteCompleto);
+    } else {
+      res.status(404).json({ message: "Not Found" });
+    }
+  } catch (error) {
+    res.status(500).send("Error fetching clients");
+  }
+};
+//......modificando
 export const postNewUserCLienteControllerGW = async (req, res) => {
   try {
+    console.log(`${req.body} ......AQUIESTOY`);
+
     const newUserCredencial = req.body;
+    console.log(`${newUserCredencial.user.rol_id} ......AQUIESTOY`);
     const response = await axios.post(
       `${service_auth}/user_new`,
 
       newUserCredencial.user
     );
     if (response.data.message === "User exist!") {
+      console.log("existe = yes");
       return res.status(400).json({ message: response.data.message });
     }
 
     const usuarioId = response.data.id;
 
-    const responseCliente = await axios.post(
-      `${service_cliente}/cliente`,
-      {
-        usuario_id: usuarioId,
-        ...newUserCredencial.cliente,
-      }
-    );
-    if(responseCliente.data.message === 'Invalid input data'){
-      return res.status(400).json({message:responseCliente.data.message})
+    const responseCliente = await axios.post(`${service_cliente}/cliente`, {
+      usuario_id: usuarioId,
+
+      ...newUserCredencial.cliente,
+    });
+    if (responseCliente.data.message === "Invalid input data") {
+      return res.status(400).json({ message: responseCliente.data.message });
     }
-    res.status(201).json({user:response.data,conductor:responseCliente.data})
+    res
+      .status(201)
+      .json({ user: response.data, cliente: responseCliente.data });
   } catch (error) {
-    res.status(500).json({error:error.message})
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -61,24 +118,31 @@ export const postNewUserConductorControllerGW = async (req, res) => {
         ...newUserCredencial.conductor,
       }
     );
-    if(responseConductor.data.message === 'Invalid input data'){
-      return res.status(400).json({message:responseConductor.data.message})
+    if (responseConductor.data.message === "Invalid input data") {
+      return res.status(400).json({ message: responseConductor.data.message });
     }
-    res.status(201).json({user:response.data,conductor:responseConductor.data})
+    res
+      .status(201)
+      .json({ user: response.data, conductor: responseConductor.data });
   } catch (error) {
-    res.status(500).json({error:error.message})
+    res.status(500).json({ error: error.message });
   }
 };
+
+/*
 //ENDPOINT PARA EL REGISTRO MANUAL
 export const postNewUserClienteControllerGW = async (req, res) => {
   try {
     const newUserCredencial = req.body;
-    
+     console.log("......................");
+     console.log(`${req.body}`)
     // CREACIÓN DEL USUARIO EN SU MICROSERVICIO
     const response = await axios.post(
       `${service_auth}/user_micro_new`,
       newUserCredencial.user
     );
+    console.log("......................");
+    console.log(`Response ${response}`)
     
     if (response.data.message === "User exist!") {
       // SI YA EXISTE EL USUARIO
@@ -91,7 +155,7 @@ export const postNewUserClienteControllerGW = async (req, res) => {
           {
             usuario_id: usuarioId,
             ...newUserCredencial.cliente,
-            fecha_creacion_cuenta: new Date()
+          
           }
         );
         
@@ -118,7 +182,7 @@ export const postNewUserClienteControllerGW = async (req, res) => {
       {
         usuario_id: usuarioId,
         ...newUserCredencial.cliente,
-        fecha_creacion_cuenta: new Date()
+       // fecha_creacion_cuenta: new Date()
       }
     );
     
@@ -136,7 +200,7 @@ export const postNewUserClienteControllerGW = async (req, res) => {
     });
   }
 };
-
+*/
 export const postLoginController = async (req, res) => {
   try {
     const credenciales = req.body;
@@ -184,7 +248,7 @@ export const postLoginController = async (req, res) => {
         console.log("CENTRAL");
         res.status(201).json({
           user: response.data.existsUser,
-          token: response.data.tokenUser
+          token: response.data.tokenUser,
         });
       }
     } else {
@@ -194,8 +258,6 @@ export const postLoginController = async (req, res) => {
     res.status(500).send("Error fetching auth");
   }
 };
-
-
 
 export const postUserExistController = async (req, res) => {
   try {

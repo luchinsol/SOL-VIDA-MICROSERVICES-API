@@ -106,19 +106,19 @@ export const actualizarUltimaUbicacionClienteControllerGW = async (req,res) => {
 
 
 //ENDPOINT QUE TRAE TODAS LAS UBICACIONES REGISTRADAS POR EL CLIENTE EN SU APP
-export const getAllUbicacionesClienteControllerGW = async (req,res) => {
-    //TRAER LA ULTIMA UBICACION DEL CLIENTE 
-    try {
-        const { cliente } = req.params
-        const response = await axios.get(`${service_ubicacion}/all_ubicacion/${cliente}`)
-        if (response){
-            res.status(200).json(response.data);
-        } else{
-            res.status(400).json({ message: "Invalid input data"});
-        }
+export const getAllUbicacionesClienteControllerGW = async (req, res) => {
+  try {
+    const { cliente } = req.params;
+    const response = await axios.get(`${service_ubicacion}/all_ubicacion/${cliente}`);
+    return res.status(200).json(response.data);
 
-    } catch (error) {
-        res.status(500).json({error:error.message})
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return res.status(404).json({ message: "Data not found." });
     }
 
-}
+    // Otros errores
+    return res.status(500).json({ error: error.message });
+  }
+};
+

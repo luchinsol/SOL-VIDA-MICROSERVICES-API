@@ -67,7 +67,9 @@ export const getUsuariosPorDiaMes = async (req, res) => {
 };
 
 export const postClienteController = async (req, res) => {
+  console.log("....hola");
     try {
+      console.log("..........estoy aqui cliente modificando 1")
         const resultado = req.body
         const response = await modelCliente.postCliente(resultado)
 
@@ -82,6 +84,7 @@ export const postClienteController = async (req, res) => {
 
 export const postMicroClienteController = async (req, res) => {
   try {
+    console.log("..........estoy aqui cliente modificando 2")
       const resultado = req.body
       const response = await modelCliente.postMicroCliente(resultado)
 
