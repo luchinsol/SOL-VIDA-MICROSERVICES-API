@@ -182,6 +182,18 @@ const modelUbicacion = {
         }catch(error){
             throw new Error(`Error put data: ${error}`);
         }
+    },
+
+    //ENDPOINT QUE ME DA TODAS LAS DIRECCIONES  DE UN DETERMINADO CLIENTE
+    getDireccionesCliente: async (cliente) => {
+        try{
+            //TRAEMOS TODAS LAS DIRECCIONES DEL CLIENTE
+            const resultado = await db_pool.any(`SELECT *
+                FROM public.ubicacion WHERE cliente_id = $1 ORDER BY id DESC`,[cliente])
+            return  resultado
+        }catch(error){
+            throw new Error(`Error put data: ${error}`);
+        }
     }
 
 

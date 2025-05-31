@@ -42,7 +42,7 @@ const modelCliente = {
                 SELECT 
                     COUNT(*) AS total_usuarios 
                 FROM public.cliente
-                WHERE fecha_creacion_cuenta >= $1 AND fecha_creacion_cuenta < $2
+                WHERE fecha_creacion >= $1 AND fecha_creacion < $2
             `, [fechaInicio, fechaFin]);
 
             return resultado;
@@ -62,10 +62,10 @@ const modelCliente = {
 
             const resultado = await db_pool.any(`
                 SELECT 
-                    DATE(fecha_creacion_cuenta) AS dia, 
+                    DATE(fecha_creacion) AS dia, 
                     COUNT(*) AS total_usuarios
                 FROM public.cliente
-                WHERE fecha_creacion_cuenta >= $1 AND fecha_creacion_cuenta < $2
+                WHERE fecha_creacion >= $1 AND fecha_creacion < $2
                 GROUP BY dia
                 ORDER BY dia
             `, [fechaInicio, fechaFin]);
@@ -77,7 +77,10 @@ const modelCliente = {
     },
 
     postCliente: async (cliente) => {
+        console.log("....TRAR")//Add commentMore actions
+        console.log(cliente);
         try {
+            /*
             const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
             let CODE = '';
 
@@ -85,20 +88,15 @@ const modelCliente = {
                 const randomIndex = Math.floor(Math.random() * characters.length);
                 CODE += characters.charAt(randomIndex);
             }
+*/
             const resultado = await db_pool.one(`
                 INSERT INTO public.cliente (
-                    usuario_id, nombre, apellidos, ruc, fecha_nacimiento,
-                    fecha_creacion_cuenta, sexo, dni, codigo, calificacion, saldo_beneficios,
-                    suscripcion, quiereretirar, medio_retiro, banco_retiro, numero_cuenta
+                    usuario_id, nombres, apellidos,fecha_creacion,foto_cliente
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                    $1, $2, $3, $4, $5
                 ) RETURNING *
             `, [
-                cliente.usuario_id, cliente.nombre, cliente.apellidos,
-                cliente.ruc, cliente.fecha_nacimiento, cliente.fecha_creacion_cuenta,
-                cliente.sexo, cliente.dni, CODE, cliente.calificacion, cliente.saldo_beneficios,
-                cliente.suscripcion,
-                cliente.quiereretirar, cliente.medio_retiro, cliente.banco_retiro, cliente.numero_cuenta
+                cliente.usuario_id,cliente.nombres,cliente.apellidos,new Date(),cliente.foto_cliente
             ]);
 
             return resultado;
@@ -108,6 +106,40 @@ const modelCliente = {
         }
     },
 
+    postMicroCliente: async (cliente) => {
+        try {//Add commentMore actions
+
+            console.log("ENTRANDO.....");
+            console.log(cliente)
+            // First check if a client already exists for this user_id
+            const existingCliente = await db_pool.oneOrNone(
+                'SELECT * FROM public.cliente WHERE usuario_id = $1',
+                [cliente.usuario_id]
+            );
+
+            if (existingCliente) {
+                // Client already exists, return it
+                return existingCliente;
+            }
+            const hora_backend =  new Date();
+            const resultado = await db_pool.one(//Add commentMore actions
+            `INSERT INTO public.cliente (
+              usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
+            ) VALUES (
+              $1, $2, $3, $4, $5
+            ) RETURNING *`
+          , [
+                cliente.usuario_id,
+                cliente.nombre,
+                cliente.apellidos,hora_backend,//Add commentMore actions
+               // cliente.fecha_creacion,
+                cliente.foto_cliente
+            ]);
+        return resultado;//More actions
+        } catch (error) {
+            throw new Error(`Error post cliente ${error}`);
+        }
+    },
     upsertMicroCliente: async (cliente) => {
   try {
     const existing = await db_pool.oneOrNone(
@@ -426,6 +458,9 @@ ORDER BY valoracion_cliente.calificacion DESC
     throw new Error(`Error creating cliente: ${error}`);
   }
 },
+
+
+
 
 }
 

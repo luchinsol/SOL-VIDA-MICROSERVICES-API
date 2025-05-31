@@ -10,9 +10,65 @@ const service_cliente = process.env.MICRO_CLIENTE;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 console.log(service_auth);
 
+
+//nuevo ramaLucho
+export const putPhoneFirebaseGW = async (req,res) =>{
+  try {
+    const {firebaseUID} = req.params
+    const datos = req.body
+    console.log("........DATOS FONO")
+    console.log(datos)
+    console.log(firebaseUID)
+    const response = await axios.put(`${service_auth}/userfirebase_phone/${firebaseUID}`,
+      datos
+    )
+    console.log("respuesta....phon")
+      console.log(response)
+    if(!response || response.data == null){
+      console.log("respuesta....phon")
+      console.log(response)
+      return res.status(400).json({message:response.data})
+    }
+    return res.status(200).json(response.data)
+
+  } catch (error) {
+    res.status(500).json({error:error.message})
+  }
+}
+
+
+//nuevoAdd commentMore actions
+export const getUserFirebaseGW = async (req, res) => {
+  console.log("....FIREBASE NUEVO")
+  try {
+    const { firebaseUID } = req.params;
+    const response = await axios.get(
+      `${service_auth}/userfirebase/${firebaseUID}`
+    );
+    if (response && response.data) {
+      const id = response.data.id;
+      const responseCliente = await axios.get(
+        `${service_cliente}/cliente_user/${id}`
+      );
+      // res.status(200).json(response.data)
+      const clienteCompleto = {
+        user: response.data,
+        cliente: responseCliente.data,
+      };
+      res.status(200).json(clienteCompleto);
+    } else {
+      res.status(404).json({ message: "Not Found" });
+    }
+  } catch (error) {
+    res.status(500).send("Error fetching clients");
+  }
+};
+
 export const postNewUserCLienteControllerGW = async (req, res) => {
   try {
+    console.log(`${req.body} ......AQUIESTOY`);
     const newUserCredencial = req.body;
+    console.log(`${newUserCredencial.user.rol_id} ......AQUIESTOY`);
     const response = await axios.post(
       `${service_auth}/user_new`,
 

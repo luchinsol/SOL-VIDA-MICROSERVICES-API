@@ -37,6 +37,6 @@ routerCliente.post('/libro_reclamaciones',postLibroReclamacionesController)
 //MODIFICACION DE DATOS CLIENTE
 routerCliente.put('/actualizar_cliente/:id',actualizarPerfilCliente)
 //CREACION DE CLIENTE
-routerCliente.post('/register_cliente', postMicroClienteController);    
+routerCliente.post('/cliente_micro', postMicroClienteController);    
 
 export default routerCliente

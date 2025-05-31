@@ -127,3 +127,31 @@ export const actualizarUsuarioController = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const putTelefono = async (req,res) =>{//Add commentMore actions
+    try{
+        const {firebaseUID} = req.params
+        const datos = req.body
+        const resultado  = await modelAuth.updateTelefono(datos,firebaseUID)
+        if(!resultado){
+            return res.status(404).json({message:response.message})
+        }
+        return res.status(200).json(resultado)
+    }
+    catch(error){
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getFirebaseuid = async (req,res) => {//Add commentMore actions
+    try {
+        const {firebaseUID} = req.params
+        const response = await modelAuth.getFirebaseuid(firebaseUID)
+        if(!response){
+            return res.status(404).json({message:response.message})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+}

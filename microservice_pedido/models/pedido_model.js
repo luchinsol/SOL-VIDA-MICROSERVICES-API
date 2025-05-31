@@ -674,8 +674,6 @@ ORDER BY almacen_id;
             `, [fechaInicio, fechaFin]);
 
             return resultado;
-
-            return resultado;
         } catch (error) {
             throw new Error(`Error al obtener ventas por día: ${error}`);
         }

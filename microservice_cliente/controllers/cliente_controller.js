@@ -281,6 +281,8 @@ export const actualizarPerfilCliente = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }
+
+/*
 export const postMicroClienteController = async (req, res) => {
   try {
     const cliente = req.body;
@@ -289,4 +291,19 @@ export const postMicroClienteController = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+}*/
+
+export const postMicroClienteController = async (req, res) => {//Add commentMore actions
+  try {
+    console.log("..........estoy aqui cliente modificando 2")
+      const resultado = req.body
+      const response = await modelCliente.postMicroCliente(resultado)
+
+      if (!response) {
+          return res.status(400).json({ message: "Invalid input data" });
+        }
+        res.status(201).json(response);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+};

@@ -19,7 +19,7 @@ app_micro_novedad.use(express.json())
 app_micro_novedad.use('/api/v1',routerNovedad)
 
 app_micro_novedad.listen(PORT,()=>{
-    console.log(`Microservice CODIGO running http://localhost:${PORT}`)
+    console.log(`Microservice NOVEDADES running http://localhost:${PORT}`)
 })
 
 export {app_micro_novedad}
