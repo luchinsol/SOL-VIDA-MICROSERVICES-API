@@ -4,7 +4,7 @@ const modelZonaProducto = {
     getCantidadPromoProducto: async (idZona, idProducto) => {
             try{
                 const resultado = await db_pool.oneOrNone(
-                    `SELECT precio,descuento FROM public.zona_producto WHERE zona_id = $1 AND producto_id=$2`
+                    `SELECT * FROM public.zona_producto WHERE zona_id = $1 AND producto_id=$2`
                     ,[idZona, idProducto]
                 );
                 return resultado;

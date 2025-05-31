@@ -538,3 +538,62 @@ export const getPedidoClienteHistorialesId = async (req,res) => {
         res.status(500).json({error:error.message})
     }
 };
+
+export const getDeliverysTipos = async (req,res) => {
+    try {
+        const response  = await modelPedidoDetalle.getDeliveryTipo()
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+export const getDeliverysTiposById = async (req,res) => {
+    try {
+        const {id} = req.params
+        const response  = await modelPedidoDetalle.getDeliveryTipoById(id)
+        if(!response || response.length === 0){
+            return res.status(404).json({message:"Data not found"})
+        }
+        res.status(200).json(response)
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+//GETCODIGO DESCUENTO
+export const verificarCodigoController = async (req, res) => {
+    try {
+        const { codigo } = req.query;
+        if (!codigo) {
+            return res.status(400).json({ message: "Parámetro 'codigo' es requerido" });
+        }
+        const resultado = await modelPedidoDetalle.getCodigoVerificacion(codigo);
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Código no válido" });
+        }
+
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+//GET CODIGO DE DESCUENTO
+export const getCodigoDescuentoController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const resultado = await modelPedidoDetalle.getCodigoDescuento(id);
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not found" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

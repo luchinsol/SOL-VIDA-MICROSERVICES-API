@@ -7,6 +7,8 @@ dotenv.config()
 
 const service_cliente = process.env.MICRO_CLIENTE
 const service_producto = process.env.MICRO_PRODUCTO
+const service_auth = process.env.MICRO_AUTH;
+
 console.log(service_cliente)
 
 export const getClientesControllerGW = async (req, res) => {
@@ -202,3 +204,114 @@ export const postValoracionControllerGW = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
+
+export const getPerfilCliente = async (req,res) => {
+    try {
+        const { id } = req.params
+        const responseCliente = await axios.get(`${service_cliente}/cliente/${id}`);
+        const clienteData = responseCliente.data;
+        const usuarioId = clienteData.usuario_id;
+        if (!usuarioId) {
+            return res.status(400).json({ message: 'usuario_id no encontrado en los datos del cliente' });
+        }
+        const responseUsuario = await axios.get(`${service_auth}/user_info_perfil/${usuarioId}`);
+        const usuarioData = responseUsuario.data;
+        const perfilCompleto = {
+            cliente: clienteData,
+            usuario: usuarioData
+         };
+         res.status(200).json(perfilCompleto);
+
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+
+};
+
+
+//POST DE SOPORTE TECNICO CLIENTE
+
+export const postSoporteControllerGW = async (req,res) => {
+    try {
+        const response = req.body
+        const resultado = await axios.post(`${service_cliente}/soporte_tecnico`,response)
+        console.log(resultado,"<------------micro cliente API GW")
+        if(resultado && resultado.data){
+            res.status(201).json(resultado.data)
+        }
+        else{
+            res.status(404).json({message:'Invalid input data'})
+        }
+        
+    } catch (error) {
+        console.log("----ERROR API GW")
+        res.status(500).json({error:error.message})
+    }
+}
+
+
+//POST DE LIBRO DE RECLAMACIONES
+
+export const postLibroReclamacionesGW = async (req,res) => {
+    try {
+        const response = req.body
+        const resultado = await axios.post(`${service_cliente}/libro_reclamaciones`,response)
+        if(resultado && resultado.data){
+            res.status(201).json(resultado.data)
+        }
+        else{
+            res.status(404).json({message:'Invalid input data'})
+        }
+        
+    } catch (error) {
+        console.log("----ERROR API GW")
+        res.status(500).json({error:error.message})
+    }
+}
+
+//ACTUALIZAR LA INFORMACION DEL CLIENTE
+export const actualizarPerfilClienteControllerGW = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const body = req.body;
+
+        // Extraer los datos relevantes para cada microservicio
+        const datosCliente = {
+            nombres: body.nombres,
+            apellidos: body.apellidos
+            };
+
+        const datosUsuario = {
+            telefono: body.telefono,
+            email: body.email
+        };
+
+        // 1. Actualizamos al cliente
+        const response = await axios.put(`${service_cliente}/actualizar_cliente/${id}`, datosCliente);
+
+        if (response.status === 200) {
+            const usuario_id = response.data.usuario_id;
+
+            // 2. Actualizamos el perfil del usuario
+            const usuarioResponse = await axios.put(`${service_auth}/actualizar_perfil_usuario/${usuario_id}`, datosUsuario);
+
+            if (usuarioResponse.status === 200) {
+                res.status(200).json({
+                    message: 'Perfil cliente y usuario actualizados correctamente',
+                    cliente: response.data,
+                    usuario: usuarioResponse.data
+                });
+            } else {
+                res.status(400).json({ message: 'Error al actualizar perfil de usuario' });
+            }
+
+        } else {
+            res.status(400).json({ message: 'Error al actualizar perfil de cliente' });
+        }
+
+    } catch (error) {
+        console.error('Error en actualizarPerfilClienteControllerGW:', error.message);
+        res.status(500).send('Error al modificar cliente o usuario');
+    }
+};
+

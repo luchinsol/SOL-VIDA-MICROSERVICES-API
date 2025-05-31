@@ -28,3 +28,51 @@ WHERE id = 1;
 
 ALTER TABLE public.ubicacion
 ADD COLUMN etiqueta VARCHAR(300);
+
+
+/*DEPARTAMENTOS*/
+
+CREATE TABLE public.departamentos (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
+);
+
+INSERT INTO public.departamentos (nombre) VALUES
+('Amazonas'),
+('Áncash'),
+('Apurímac'),
+('Arequipa'),
+('Ayacucho'),
+('Cajamarca'),
+('Callao'),
+('Cusco'),
+('Huancavelica'),
+('Huánuco'),
+('Ica'),
+('Junín'),
+('La Libertad'),
+('Lambayeque'),
+('Lima'),
+('Loreto'),
+('Madre de Dios'),
+('Moquegua'),
+('Pasco'),
+('Piura'),
+('Puno'),
+('San Martín'),
+('Tacna'),
+('Tumbes'),
+('Ucayali');
+
+
+CREATE TABLE public.distritos (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    departamento_id INTEGER NOT NULL,    
+    -- Clave foránea a departamentos
+    CONSTRAINT fk_departamento
+      FOREIGN KEY (departamento_id)
+      REFERENCES public.departamentos (id)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE
+);

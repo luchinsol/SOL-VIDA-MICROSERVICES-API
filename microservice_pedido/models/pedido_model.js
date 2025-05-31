@@ -55,9 +55,9 @@ const modelPedidoDetalle = {
     postPedido: async (pedido) => {
         try {
             const resultado = await db_pool.one(`
-                INSERT INTO public.pedido (cliente_id,descuento,fecha,tipo,estado,observacion,tipo_pago,ubicacion_id)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-                [pedido.cliente_id, pedido.descuento, pedido.fecha, pedido.tipo, pedido.estado, pedido.observacion, pedido.tipo_pago, pedido.ubicacion_id]);
+                INSERT INTO public.pedido (cliente_id,descuento,fecha,estado,observacion,tipo_pago,ubicacion_id,delivery_id,cupon_id)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+                [pedido.cliente_id, pedido.descuento, pedido.fecha, pedido.estado, pedido.observacion, pedido.tipo_pago, pedido.ubicacion_id, pedido.delivery_id,pedido.cupon_id]);
             return resultado;
         } catch (error) {
             throw new Error(`Error post data ${error}`);
@@ -243,8 +243,8 @@ ORDER BY id ASC;
 
     updatePedidoPrecio: async (idPedido, pedido) => {
         try {
-            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET subtotal=$1, total =$2
-                WHERE id=$3 RETURNING *`, [pedido.subtotal, pedido.total, idPedido])
+            const resultado = await db_pool.oneOrNone(`UPDATE public.pedido SET subtotal=$1, total =$2, descuento=$3
+                WHERE id=$4 RETURNING *`, [pedido.subtotal, pedido.total,pedido.descuento, idPedido])
             if (!resultado) {
                 return null;
             }
@@ -804,6 +804,74 @@ ORDER BY almacen_id;
     }
 },
 
+getDeliveryTipo : async() => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT 
+    d.id AS id,
+    d.precio AS precio,
+    td.nombre AS nombre
+FROM 
+    delivery d
+INNER JOIN 
+    tipo_delivery td 
+ON 
+    d.tipo_delivery_id = td.id
+ORDER BY d.id ASC;
+            `);
+            return resultado;
+        } catch(error) {
+            throw new Error(`Error al obtener la primera fecha: ${error}`);
+        }
+    },
+
+getDeliveryTipoById: async (id) => {
+    try {
+        const resultado = await db_pool.oneOrNone(`
+            SELECT 
+                d.id AS id,
+                d.precio AS precio,
+                td.nombre AS nombre
+            FROM 
+                delivery d
+            INNER JOIN 
+                tipo_delivery td 
+            ON 
+                d.tipo_delivery_id = td.id
+            WHERE 
+                d.id = $1
+            ORDER BY 
+                d.id ASC;
+        `, [id]);
+        return resultado;
+    } catch (error) {
+        throw new Error(`Error al obtener el delivery con ID ${id}: ${error}`);
+    }
+},
+
+getCodigoVerificacion: async (codigo) => {
+    const hora_backend =  new Date();
+    try {
+        const resultado = await db_pool.oneOrNone(`
+            SELECT * FROM public.codigo_descuento WHERE codigo = $1 
+            AND $2 >= fecha_inicio AND $2 < fecha_fin
+        `, [codigo,hora_backend]);
+        return resultado;
+    } catch (error) {
+        throw new Error(`Error al verificar el código: ${error}`);
+    }
+},
+
+getCodigoDescuento: async (id) => {
+    try {
+        const resultado = await db_pool.oneOrNone(`
+            SELECT * FROM public.codigo_descuento WHERE id = $1
+        `, [id]);
+        return resultado;
+    } catch (error) {
+        throw new Error(`Error al verificar el código: ${error}`);
+    }
+},
 
 }
 

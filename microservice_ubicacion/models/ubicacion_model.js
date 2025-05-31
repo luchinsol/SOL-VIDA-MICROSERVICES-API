@@ -120,8 +120,8 @@ const modelUbicacion = {
 
         try {
             //TRAEMOS SOLO LOS CAMPOS QUE NECESITAMOS Y ETIQUETA QUE ES EL NUEVO CAMPO AGREGADO EN LA TABLA DE UBICACIONES
-            const ubicaciones = await db_pool.one(`INSERT INTO public.ubicacion(departamento,distrito,direccion,latitud,longitud,cliente_id,etiqueta) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-                [ubicacion.departamento,ubicacion.distrito, ubicacion.direccion, ubicacion.latitud, ubicacion.longitud, ubicacion.cliente_id, ubicacion.etiqueta])
+            const ubicaciones = await db_pool.one(`INSERT INTO public.ubicacion(departamento,distrito,direccion,latitud,longitud,cliente_id,etiqueta,numero_manzana) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+                [ubicacion.departamento,ubicacion.distrito, ubicacion.direccion, ubicacion.latitud, ubicacion.longitud, ubicacion.cliente_id, ubicacion.etiqueta,ubicacion.numero_manzana])
             return ubicaciones
 
         } catch (error) {
@@ -145,9 +145,14 @@ const modelUbicacion = {
     actualizarUbicacionCliente: async (idRelacionUbicacion, ubicacion) =>{
         try{
             //ACTUALIZAMOS LA DIRECCIÓN QUE SELECCIONO EL CLIENTE
-            const resultado = await db_pool.oneOrNone(`UPDATE public.ubicacion SET distrito=$1, direccion = $2,
-                latitud=$3, longitud=$4
-                WHERE id=$5 RETURNING *`, [ubicacion.distrito, ubicacion.direccion, ubicacion.latitud, ubicacion.longitud, idRelacionUbicacion])
+            const resultado = await db_pool.oneOrNone(`UPDATE public.ubicacion SET departamento= $1, 
+                distrito=$2, direccion = $3, 
+                numero_manzana = $4, etiqueta =$5,
+                latitud=$6, longitud=$7
+                WHERE id=$8 RETURNING *`, [ubicacion.departamento, ubicacion.distrito, 
+                    ubicacion.direccion, ubicacion.numero_manzana, ubicacion.etiqueta,
+                    ubicacion.latitud, ubicacion.longitud,
+                    idRelacionUbicacion])
             if (!resultado) {
                 return null;
             }
@@ -158,11 +163,21 @@ const modelUbicacion = {
     },
 
     //ENDPOINT QUE ME DA TODAS LAS DIRECCIONES  DE UN DETERMINADO CLIENTE
-    getDireccionesCliente: async (cliente) => {
+    getDepartamentoCliente: async () => {
         try{
-            //TRAEMOS TODAS LAS DIRECCIONES DEL CLIENTE
             const resultado = await db_pool.any(`SELECT *
-                FROM public.ubicacion WHERE cliente_id = $1 ORDER BY id DESC`,[cliente])
+                FROM public.departamentos ORDER BY id ASC`)
+            return  resultado
+        }catch(error){
+            throw new Error(`Error put data: ${error}`);
+        }
+    },
+
+    //ENDPOINT DE LOS DISTRITOS
+    getDistritosCliente: async (id) => {
+        try{
+            const resultado = await db_pool.any(`SELECT *
+                FROM public.distritos WHERE departamento_id =$1 ORDER BY id ASC`,[id])
             return  resultado
         }catch(error){
             throw new Error(`Error put data: ${error}`);

@@ -5,7 +5,7 @@ const routerGWNotificacion = express.Router()
 
 routerGWNotificacion.get('/apigw/v1/notificacion/:fecha/:id',getNotificacionAlmacenGW)
 routerGWNotificacion.post('/apigw/v1/notificacion',postNotificacionAlmacenGW)
-routerGWNotificacion.get('/apigw/v1/notificacion_cliente/:fecha',getNotificacionClienteGW)
+routerGWNotificacion.get('/apigw/v1/notificacion_cliente',getNotificacionClienteGW)
 routerGWNotificacion.post('/apigw/v1/notificacion_cliente',postNotificacionClienteGW)
 
 export default routerGWNotificacion

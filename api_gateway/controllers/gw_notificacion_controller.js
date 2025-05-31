@@ -39,22 +39,25 @@ export const postNotificacionAlmacenGW = async (req,res)=>{
 
 export const getNotificacionClienteGW = async (req, res) => {
     try {
-        const { fecha } = req.params;
-        const response = await axios.get(`${service_notificacion}/notificacion_cliente/${fecha}`);
+        // Obtener la fecha actual en formato YYYY-MM-DD
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`; // Este formato es compatible con muchas APIs: "2025-05-30"
+
+        const response = await axios.get(`${service_notificacion}/notificacion_cliente/${today}`);
 
         if (response && response.data) {
             const formattedData = response.data.map(item => {
-                // Asegurarse de que el formato sea compatible con Date
-                const dateTimeString = item.fecha.replace(' ', 'T'); // "2025-05-19T10:47:29.817"
+                const dateTimeString = item.fecha.replace(' ', 'T');
                 const dateObj = new Date(dateTimeString);
 
-                // Extraer fecha como YYYY/MM/DD
                 const year = dateObj.getFullYear();
                 const month = String(dateObj.getMonth() + 1).padStart(2, '0');
                 const day = String(dateObj.getDate()).padStart(2, '0');
                 const formattedFecha = `${year}/${month}/${day}`;
 
-                // Extraer hora como HH:mm:ss
                 const hours = String(dateObj.getHours()).padStart(2, '0');
                 const minutes = String(dateObj.getMinutes()).padStart(2, '0');
                 const seconds = String(dateObj.getSeconds()).padStart(2, '0');
@@ -74,7 +77,7 @@ export const getNotificacionClienteGW = async (req, res) => {
         }
     } catch (error) {
         if (error.response && error.response.status === 404) {
-            res.status(404).json({ message: 'Id not found' });
+            res.status(404).json({ message: 'No hay notificacion el día de hoy' });
         } else {
             res.status(500).json({ error: error.message });
         }

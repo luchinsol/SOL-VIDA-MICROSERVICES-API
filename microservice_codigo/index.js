@@ -10,7 +10,7 @@ import routerCodigo from "./routes/codigo_route.js";
 
 const app_micro_codigo = express()
 
-const PORT = process.env.PORT_CLIENTE
+const PORT = process.env.PORT_CODIGO
 
 app_micro_codigo.use(cors())
 app_micro_codigo.use(morgan('combined'))

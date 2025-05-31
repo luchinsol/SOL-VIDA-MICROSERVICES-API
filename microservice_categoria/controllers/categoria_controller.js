@@ -64,3 +64,28 @@ export const getAllSubCategoriasNombrePorID = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getCategoriasPorUbicaciones = async (req, res) => {
+    try {
+        const resultado = await modelCategoria.getCategoriasPorUbicacion();
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not Found" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getCategoriasSubcategoriasPorID = async (req, res) => {
+    try {
+        const { id } = req.params
+        const resultado = await modelCategoria.getCategoriaAllSubcategoriasPorID(id);
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not Found" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

@@ -72,3 +72,40 @@ ALTER TABLE public.valoracion_cliente
 ADD CONSTRAINT fk_cliente_valoracion FOREIGN KEY (cliente_id)
 REFERENCES public.cliente(id)
 ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+--soporte tecnico cliente
+
+CREATE TABLE public.soporte_tecnico (
+    id SERIAL PRIMARY KEY,
+    cliente_id INTEGER NOT NULL,
+    asunto VARCHAR(255),
+    descripcion TEXT
+);
+
+
+ALTER TABLE public.soporte_tecnico
+ADD CONSTRAINT fk_cliente_soporte
+FOREIGN KEY (cliente_id)
+REFERENCES public.cliente(id)
+ON DELETE CASCADE
+ON UPDATE CASCADE;
+
+
+CREATE TABLE public.libro_reclamaciones (
+    id SERIAL PRIMARY KEY,
+    nombres VARCHAR(255) NOT NULL,
+    dni VARCHAR(20) NOT NULL,
+    fecha DATE NOT NULL,
+    tipo_reclamo VARCHAR(100) NOT NULL,
+    descripcion TEXT
+);
+
+---------------------BASE DE DATOS DE PRUEBA-------
+-- Eliminar la columna 'codigo_id'
+ALTER TABLE public.cliente
+DROP COLUMN IF EXISTS codigo_id;
+
+-- Agregar la nueva columna 'codigo' de tipo VARCHAR(20)
+ALTER TABLE public.cliente
+ADD COLUMN codigo VARCHAR(20);

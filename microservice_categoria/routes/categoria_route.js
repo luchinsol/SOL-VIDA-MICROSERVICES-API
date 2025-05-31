@@ -1,4 +1,4 @@
-import {getAllProductosSubcategorias,getAllCategorias,getAllCategoriasPorID,getAllSubCategoriasPorID,getAllSubCategoriasNombrePorID} from '../controllers/categoria_controller.js'
+import {getCategoriasSubcategoriasPorID,getCategoriasPorUbicaciones,getAllProductosSubcategorias,getAllCategorias,getAllCategoriasPorID,getAllSubCategoriasPorID,getAllSubCategoriasNombrePorID} from '../controllers/categoria_controller.js'
 import express from 'express'
 
 const routerCategoria= express.Router();
@@ -12,5 +12,9 @@ routerCategoria.get('/sub_categoria/:id',getAllSubCategoriasPorID)
 routerCategoria.get('/sub_categoria_nombre/:id',getAllSubCategoriasNombrePorID)
 //ENDPOINT QUE ME TRAE TODOS LOS PRODUCTOS Y PROMOCIONES DE UNA DETERMINADA SUBCATEGORIA
 routerCategoria.get('/all_productos_subcategoria/:subcategoriaId',getAllProductosSubcategorias)
+//ENDPOINT QUE ME TRAE TODAS LAS CATEGORIAS 
+routerCategoria.get('/allcategorias',getCategoriasPorUbicaciones)
+//ENDPOINT QUE ME TRAE TODAS LAS SUBCATEGORIAS DE UNA DETERMINADA CATEGORIA
+routerCategoria.get('/allcategorias_subcategorias/:id',getCategoriasSubcategoriasPorID)
 
 export default routerCategoria

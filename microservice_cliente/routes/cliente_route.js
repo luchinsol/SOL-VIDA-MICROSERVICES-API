@@ -1,4 +1,4 @@
-import { getPromedioValoracionesPromocionId,getPromedioValoracionesProductoId,getConteoValoracionesPromocionControllerId,getConteoValoracionesProductoControllerId,postMicroClienteController,postMicroValoracionController,getUsuariosPorDiaMes,getUsuariosTotalesMes,deleteClienteController,getClienteController_Id ,getClienteController, getClienteControllerId, postClienteController, putClienteController, putClienteCalificationController,getValoracionesClientesLast,getValoracionesClientesPromoLast } from '../controllers/cliente_controller.js'
+import { postMicroClienteController,putMicroClienteController,actualizarPerfilCliente,postLibroReclamacionesController,postSoporteTecnicoController,getPromedioValoracionesPromocionId,getPromedioValoracionesProductoId,getConteoValoracionesPromocionControllerId,getConteoValoracionesProductoControllerId,postMicroValoracionController,getUsuariosPorDiaMes,getUsuariosTotalesMes,deleteClienteController,getClienteController_Id ,getClienteController, getClienteControllerId, postClienteController, putClienteController, putClienteCalificationController,getValoracionesClientesLast,getValoracionesClientesPromoLast } from '../controllers/cliente_controller.js'
 import express from 'express'
 
 const routerCliente = express.Router()
@@ -10,7 +10,7 @@ routerCliente.get('/usuarios_totales/:mesAnio', getUsuariosTotalesMes);
 routerCliente.get('/usuarios_por_dia/:mesAnio', getUsuariosPorDiaMes);
 routerCliente.post('/cliente',postClienteController)
 //ENDPOINT PARA POSTEAR UN NUEVO CLIENTE EN EL MICROSERVICIO
-routerCliente.post('/cliente_micro',postMicroClienteController)
+routerCliente.put('/cliente_micro', putMicroClienteController)
 routerCliente.put('/cliente/:id',putClienteController)
 routerCliente.delete('/cliente/:id',deleteClienteController)
 routerCliente.put('/cliente_calificacion/:id',putClienteCalificationController)
@@ -30,4 +30,13 @@ routerCliente.get('/calificacion_promedio_promocion/:id',getPromedioValoraciones
 routerCliente.get('/last_valoraciones_cliente_producto/:id',getValoracionesClientesLast)
 //ULTIMAS VALORACIONES DE LOS CLIENTES DE LAS PROMOCIONES
 routerCliente.get('/last_valoraciones_cliente_promos/:id',getValoracionesClientesPromoLast)
+//INGRESAR LAS INCIDENCIAS DEL SOPORTE TENICO
+routerCliente.post('/soporte_tecnico',postSoporteTecnicoController)
+//INGRESAR EN LIBRO DE RECLAMACIONES
+routerCliente.post('/libro_reclamaciones',postLibroReclamacionesController)
+//MODIFICACION DE DATOS CLIENTE
+routerCliente.put('/actualizar_cliente/:id',actualizarPerfilCliente)
+//CREACION DE CLIENTE
+routerCliente.post('/register_cliente', postMicroClienteController);    
+
 export default routerCliente

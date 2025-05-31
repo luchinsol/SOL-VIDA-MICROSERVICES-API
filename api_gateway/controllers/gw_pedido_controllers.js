@@ -15,6 +15,7 @@ const service_zonapromocion = process.env.MICRO_ZONAPROMOCION;
 const service_cliente = process.env.MICRO_CLIENTE;
 const service_auth = process.env.MICRO_AUTH;
 const service_conductor = process.env.MICRO_CONDUCTOR;
+const service_codigo = process.env.MICRO_CUPON;
 const MAIN_QUEUE = "micro_pedidos";
 const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
 //const RABBITMQ_URL = process.env.RABBITMQ_URL;
@@ -370,15 +371,69 @@ export const postInfoPedido = async (req, res) => {
   try {
     const {
       cliente_id,
-      descuento,
+      //descuento,
       fecha,
-      tipo,
+      //tipo,
       estado,
       observacion,
       tipo_pago,
       ubicacion_id,
+      cupon_id, // Ahora recibimos cupon_id en lugar de descuento
+      delivery_id, // Ahora recibimos delivery_id en lugar de tipo
+      codigo_id, // Nuevo campo opcional
+      total: totalEnviado, // Recibimos el total del cliente
       detalles,
     } = req.body;
+//cambiar el tipo a delivery_id, llamar al endpoint get ${service_pedido}/delivery_pedido/{delivery_id}
+//despues de eso extraes precio y eso lo tomas como para agregarle precio al final entocnes al final donde das producto info agregale ese detalle de precio, y en la logica haría que al total se le sume eso tambien por favor
+//cuando tomas el cupon_id consultas la siguiente ${service_codigo}/cupon/${cupon_id} dependiendo de lo que ingrese ese endpoint solo extraes descuento alli tiene un valor numerico que tu lo vas a tomar como si fuera un porcentaje
+//eso afecta en los calculos finales cuando se quiere hacer un descuento  entonces al total le sacas un porcentaje de esto depnedneindo de lo que extraigas en descuento y sacas por ejemplo si es el 20 entonces sacas el 20% del total y al final le restas
+//finalmente ya no necesitamos el campo de descuento por ahora ya que no es necesario ya que el descuento se hara por cupon_id por favor eso nomas
+    let deliveryCost = 0;  // Inicializamos costo de delivery
+    if (delivery_id) {
+      try {
+        const deliveryRes = await axios.get(
+          `${service_pedido}/delivery_pedido/${delivery_id}`
+        );
+        deliveryCost = deliveryRes.data.precio; // Extraemos el precio del delivery
+      } catch (error) {
+        console.error("Error obteniendo costo de delivery:", error);
+        // Continuamos sin delivery cost si hay error
+      }
+    }
+
+    let discountPercentage = 0;  // Inicializamos porcentaje de descuento
+    let productoCupon = null; // Variable para almacenar el ID del producto asociado al cupón    
+
+    // 3. OBTENEMOS DESCUENTO POR CUPÓN (si existe)
+    if (cupon_id) {
+      try {
+        const cuponRes = await axios.get(
+          `${service_codigo}/cupon/${cupon_id}`
+        );
+        discountPercentage = cuponRes.data.descuento; // Extraemos el % de descuento
+        productoCupon = cuponRes.data.producto_id; //SACAMOS EL PRODUCTO ID
+      } catch (error) {
+        console.error("Error obteniendo descuento de cupón:", error);
+        // Continuamos sin descuento si hay error
+      }
+    }
+
+    let codigoDiscountPercentage = 0; // Descuento del código
+    if (codigo_id) {
+      try {
+        const codigoRes = await axios.get(
+          `${service_pedido}/codigo_descuento/${codigo_id}`
+        );
+        codigoDiscountPercentage = codigoRes.data.descuento;
+      } catch (error) {
+        console.error("Error obteniendo descuento de código:", error);
+      }
+    }
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    console.log(codigoDiscountPercentage)
+
+
 
     let latitud,
       longitud,
@@ -416,13 +471,14 @@ export const postInfoPedido = async (req, res) => {
       axios.get(`${service_almacen}/almacen`),
       axios.post(`${service_pedido}/pedido`, {
         cliente_id,
-        descuento,
+        descuento: 0, // Inicializamos descuento en 0
         fecha,
-        tipo,
         estado,
         observacion,
         tipo_pago,
         ubicacion_id,
+        delivery_id,
+        cupon_id
       }),
     ]);
 
@@ -468,9 +524,9 @@ export const postInfoPedido = async (req, res) => {
             : `${service_zonaproducto}/precioZonaProducto/${regionId}/${producto_id}` 
         );
 
-        const precioFinal = precio.data.precio;
+        const precioFinal = precio.data.precio_regular;//-> primer cambio
         const descuento_inicial = precio.data.descuento;
-        const precioTotalAPagar = precioFinal - descuento_inicial;
+        const precioTotalAPagar = precio.data.precio_normal;
         const pagoFinalARealizar = precioTotalAPagar * cantidad;
         const cantidadProductosPorPromo = cantidadPromos?.data?.cantidad;
         const cantidadProductos = cantidadProductosPorPromo * cantidad;
@@ -523,7 +579,7 @@ export const postInfoPedido = async (req, res) => {
             categoria: productoInfo.data.categoria,
             //cantidad: cantidad,
             //cantidad_final: cantidad,
-            precio: precioFinal,
+            precio: precioFinal,//<-SEGUNDO CAMBIO
             descuento: descuento_inicial,
             subtotal: precioTotalAPagar,
             cantidad: cantidad,
@@ -568,12 +624,59 @@ export const postInfoPedido = async (req, res) => {
       0
     );
 
-    const descuentoCupon = resultado.data.descuento;//LOGICA DE CLIENTE - CUPON O CODIGO?
-    const precioFinal = subTotal - descuentoCupon;
+    let discountAmount = 0;
+    if (cupon_id && !codigo_id) {
+      // Buscar el producto en los detalles
+      const productoConDescuento = detallesProcessed.find(detail => 
+        !("productos" in detail) && detail.id === productoCupon
+      );
+      
+      if (productoConDescuento) {
+        // Calcular descuento solo sobre el total de ese producto
+        discountAmount = productoConDescuento.total * (discountPercentage / 100);
+      }
+    }
+    else if (!cupon_id && codigo_id) {
+  discountAmount = subTotal * (codigoDiscountPercentage / 100);
+}
+else if (cupon_id && codigo_id) {
+  let cuponDiscount = 0;
+  let codigoDiscount = subTotal * (codigoDiscountPercentage / 100);
+  
+  // Calculamos descuento del cupón (solo para el producto)
+  const productoConDescuento = detallesProcessed.find(detail => 
+    !("productos" in detail) && detail.id === productoCupon
+  );
+  
+  if (productoConDescuento) {
+    cuponDiscount = productoConDescuento.total * (discountPercentage / 100);
+  }
+  
+  // Calculamos el promedio de ambos descuentos
+  discountAmount = (cuponDiscount + codigoDiscount) / 2;
+}
+
+    //LOG DISCOCUNT AMOUNT
+ //   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+  //  console.log(discountAmount)
+
+    // 2. Descuento por código (aplica al subtotal general)
+    /*
+    if (codigoDiscountPercentage > 0) {
+      discountAmount += subTotal * (codigoDiscountPercentage / 100);
+    }*/
+
+    //console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    //console.log(discountAmount)
+
+
+    // 3. Total final: (Subtotal - Descuento) + Delivery
+    const precioFinal = (subTotal - discountAmount) + deliveryCost;
 
     await axios.put(`${service_pedido}/pedido_precio/${pedidoId}`, {
       subtotal: subTotal,
       total: precioFinal,
+      descuento: discountAmount,
     });
 
     async function fetchWarehouseEvents(warehouseIds) {
@@ -640,8 +743,9 @@ export const postInfoPedido = async (req, res) => {
       },
       region_id: regionId,
       almacen_id: almacenId,
+      delivery: deliveryCost,
       subtotal: subTotal,
-      descuento: descuentoCupon,
+      descuento: discountAmount, 
       total: precioFinal,
       AlmacenesPendientes: almacenes.map((id) => {
         const eventInfo = warehouseEvents.find(
@@ -694,6 +798,18 @@ export const postInfoPedido = async (req, res) => {
             }
         });
         */
+
+    const totalCalculado = precioFinal;
+
+    if (Math.abs(totalEnviado - totalCalculado) > 0.1) { // Tolerancia de 0.01 para decimales
+      return res.status(400).json({
+        message: "Los totales no coinciden",
+        total_enviado: totalEnviado,
+        total_calculado: totalCalculado,
+        diferencia: totalEnviado - totalCalculado,
+        detalle: "El total enviado por el cliente no coincide con el cálculo del servidor"
+      });
+    }
 
     await sendToQueue(response);
     res.status(201).json(response);
@@ -1478,5 +1594,57 @@ export const getPedidoClienteControllerGW = async (req, res) => {
       // Error de red u otro
       res.status(500).json({ error: `Error en la solicitud: ${error.message}` });
     }
+  }
+};
+
+
+export const verificarCodigoControllerGW = async (req, res) => {
+    try {
+        const { codigo } = req.query;
+
+        if (!codigo) {
+            return res.status(400).json({ message: "Parámetro 'codigo' es requerido" });
+        }
+
+        const microservicioURL = `${service_pedido}/codigo_pedido?codigo=${codigo}`;
+        const respuesta = await axios.get(microservicioURL);
+
+        res.status(respuesta.status).json(respuesta.data);
+
+    } catch (error) {
+        if (error.response) {
+            const status = error.response.status;
+
+            if (status === 404) {
+                return res.status(404).json({ 
+                    error: "Código de descuento no encontrado",
+                    detalles: error.response.data.message || null
+                });
+            }
+
+            return res.status(status).json({
+                error: error.response.data.error || "Error desde el microservicio pedido",
+                detalles: error.response.data
+            });
+        }
+
+        return res.status(500).json({ error: 'Error al conectar con el microservicio' });
+    }
+};
+
+
+export const getDeliveryPedidosControllerGW = async (req, res) => {
+  try {
+    const response = await axios.get(`${service_pedido}/delivery_pedido`);
+
+    // Verificamos si response.data existe y tiene elementos
+    if (response && response.data && response.data.length > 0) {
+      res.status(200).json(response.data);
+    } else {
+      res.status(404).json({ error: 'No se encontraron datos en delivery.' });
+    }
+
+  } catch (error) {
+    res.status(500).json({ error: `Error en la solicitud: ${error.message}` });
   }
 };

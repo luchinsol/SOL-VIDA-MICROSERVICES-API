@@ -70,64 +70,33 @@ export const postNewUserConductorControllerGW = async (req, res) => {
   }
 };
 //ENDPOINT PARA EL REGISTRO MANUAL
-export const postNewUserClienteControllerGW = async (req, res) => {
+export const putOrPostUserClienteControllerGW = async (req, res) => {
   try {
     const newUserCredencial = req.body;
-    
-    // CREACIÓN DEL USUARIO EN SU MICROSERVICIO
-    const response = await axios.post(
-      `${service_auth}/user_micro_new`,
+
+    // PRIMERO: Se actualiza o inserta el usuario (PUT)
+    const userResponse = await axios.put(
+      `${service_auth}/user_micro`,
       newUserCredencial.user
     );
-    
-    if (response.data.message === "User exist!") {
-      // SI YA EXISTE EL USUARIO
-      const usuarioId = response.data.id;
-      
-      try {
-        // CREACION DE CLIENTE CON EL USUARIO 
-        const responseCliente = await axios.post(
-          `${service_cliente}/cliente_micro`,
-          {
-            usuario_id: usuarioId,
-            ...newUserCredencial.cliente,
-            fecha_creacion_cuenta: new Date()
-          }
-        );
-        
-        return res.status(201).json({
-          message: "usuario y cliente creados exitosamente",
-          user: response.data,
-          cliente: responseCliente.data
-        });
-      } catch (clientError) {
-        return res.status(400).json({
-          message: "Creacion de usuario y cliente fallida",
-          user: response.data,
-          error: clientError.response?.data || clientError.message
-        });
-      }
-    }
-    
-    // If user doesn't exist, create both user and client
-    const usuarioId = response.data.id;
-    
-    // Create client with new user_id
-    const responseCliente = await axios.post(
+    const usuarioId = userResponse.data.id;
+
+    // LUEGO: Se actualiza o inserta el cliente (PUT)
+    const clienteResponse = await axios.put(
       `${service_cliente}/cliente_micro`,
       {
         usuario_id: usuarioId,
-        ...newUserCredencial.cliente,
-        fecha_creacion_cuenta: new Date()
+        ...newUserCredencial.cliente
       }
     );
-    
-    // Return combined results
-    res.status(201).json({
-      message: "User and client created successfully",
-      user: response.data,
-      cliente: responseCliente.data
+
+    // TODO OK
+    res.status(200).json({
+      message: "Usuario y cliente registrados o actualizados exitosamente",
+      user: userResponse.data,
+      cliente: clienteResponse.data
     });
+
   } catch (error) {
     console.error("Gateway error:", error.response?.data || error.message);
     res.status(500).json({
@@ -136,6 +105,8 @@ export const postNewUserClienteControllerGW = async (req, res) => {
     });
   }
 };
+
+
 
 export const postLoginController = async (req, res) => {
   try {
@@ -210,5 +181,40 @@ export const postUserExistController = async (req, res) => {
     }
   } catch (error) {
     res.status(500).send("Error fetching clients");
+  }
+};
+
+
+export const postUserClienteControllerGW = async (req, res) => {
+  try {
+    const newUserCredencial = req.body;
+
+
+    const userResponse = await axios.post(
+      `${service_auth}/register_user`,
+      newUserCredencial.user
+    );
+    const usuarioId = userResponse.data.id;
+
+    const clienteResponse = await axios.post(
+      `${service_cliente}/register_cliente`,
+      {
+        usuario_id: usuarioId,
+        ...newUserCredencial.cliente
+      }
+    );
+
+    res.status(201).json({
+      message: "Usuario y cliente registrados exitosamente",
+      user: userResponse.data,
+      cliente: clienteResponse.data
+    });
+
+  } catch (error) {
+    console.error("Gateway error:", error.response?.data || error.message);
+    res.status(500).json({
+      error: error.response?.data?.error || error.message,
+      details: error.response?.data?.details || error.response?.data || "Unknown error"
+    });
   }
 };

@@ -194,3 +194,32 @@ export const deleteZonas = async (req, res) => {
         }
     }
 
+    //TODAS LAS DEPARTAMENTOS DISPONIBLES
+
+    export const getDepartamentosCliente = async (req,res) => {
+        try {
+            const resultado = await modelUbicacion.getDepartamentoCliente()
+            if (!resultado) {
+                return res.status(404).json({ message: "Data not found" });
+            }
+            res.status(200).json(resultado);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+
+    //TODAS LOS DISTRITOS DE UN DEPARTAMENTO EN ESPECIFICO
+    export const getDistritosClienteController = async (req,res) => {
+        try {
+            const {id} = req.params;
+            const resultado = await modelUbicacion.getDistritosCliente(id)
+            if (!resultado || resultado.length == 0) {
+                return res.status(404).json({ message: "Data not found" });
+            }
+            res.status(200).json(resultado);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+

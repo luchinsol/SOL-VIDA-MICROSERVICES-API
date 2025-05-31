@@ -36,3 +36,11 @@ ALTER COLUMN foto TYPE text[] USING ARRAY[foto];
 -- Para la tabla promocion
 ALTER TABLE public.promocion
 ALTER COLUMN foto TYPE text[] USING ARRAY[foto];
+
+--AGREGAR CAMPO DE CATEGORIA_ID
+
+ALTER TABLE public.producto
+DROP COLUMN categoria;
+
+ALTER TABLE public.producto
+ADD COLUMN categoria_id INTEGER;

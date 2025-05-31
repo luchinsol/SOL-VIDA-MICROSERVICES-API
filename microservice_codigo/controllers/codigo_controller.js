@@ -13,10 +13,9 @@ export const getCodigoController = async (req, res) => {
         }
 };
 
-export const getCodigosDetallesControllerCliente = async (req, res) => {
+export const getCodigosTipoController = async (req, res) => {
     try {
-        const {id} = req.params
-        const resultado = await modelCodigo.getCodigosDetallesModelCliente(id)
+        const resultado = await modelCodigo.getCodigoTipo()
 
         if (!resultado) {
             return res.status(404).json({ message: "Data not Found" });
@@ -27,30 +26,17 @@ export const getCodigosDetallesControllerCliente = async (req, res) => {
         }
 };
 
-export const postCreacionCodigoControllerCliente = async (req, res) => {
-  try {
-      const resultado = req.body
-      const response = await modelCodigo.postCreacionCodigoModelCliente(resultado)
 
-      if (!response) {
-          return res.status(400).json({ message: "Invalid input data" });
+export const getCuponPedidoController = async (req, res) => {
+    try {
+        const {id} = req.params
+        const resultado = await modelCodigo.getCuponCliente(id)
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Data not Found" });
+          }
+          res.status(200).json(resultado);
+        } catch (error) {
+          res.status(500).json({ error: error.message });
         }
-        res.status(201).json(response);
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
-};
-
-
-export const postVerificacionCodigoControllerCliente = async (req, res) => {
-  try {
-      const resultado = req.body
-      const response = await modelCodigo.postVerificacionCuponCliente(resultado)
-      if (!response) {
-          return res.status(400).json({ message: "Invalid input data" });
-        }
-        res.status(201).json(response);
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
 };

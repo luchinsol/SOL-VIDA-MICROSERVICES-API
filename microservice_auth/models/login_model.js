@@ -115,37 +115,77 @@ const modelAuth = {
     }
   },
 
-    createMicroUser: async (credenciales) => {
-    try {
-      const userExist = await db_pool.oneOrNone(
-       ` SELECT * FROM public.usuario WHERE firebase_uid=$1`,
-        [credenciales.firebase_uid]
+    upsertMicroUser: async (credenciales) => {
+  try {
+    const existingUser = await db_pool.oneOrNone(
+      `SELECT * FROM public.usuario WHERE firebase_uid = $1`,
+      [credenciales.firebase_uid]
+    );
+
+    if (existingUser) {
+      const updated = await db_pool.one(
+        `UPDATE public.usuario SET
+            rol_id = $1,
+            email = $2,
+            telefono = $3
+         WHERE firebase_uid = $4
+         RETURNING *`,
+        [
+          credenciales.rol_id,
+          credenciales.email,
+          credenciales.telefono,
+          credenciales.firebase_uid
+        ]
       );
-
-      if (userExist) {
-        return { message: "User exist!" };
-      } else {
-       console.log("...........SOY NUEVO")
-
-        const newUser = await db_pool.one(
-          `INSERT INTO public.usuario (rol_id, email, telefono,firebase_uid)
-           VALUES ($1, $2, $3, $4) RETURNING *`,
-          [
-            credenciales.rol_id,
-            credenciales.email,
-            credenciales.telefono,
-            credenciales.firebase_uid,
-          ]
-        );
-
-        console.log("...........SOY NUEVO",newUser)
-
-        return newUser;
-      }
-    } catch (error) {
-      throw new Error(`Error post user ${error}`);
+      return updated;
+    } else {
+      const created = await db_pool.one(
+        `INSERT INTO public.usuario (rol_id, email, telefono, firebase_uid)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [
+          credenciales.rol_id,
+          credenciales.email,
+          credenciales.telefono,
+          credenciales.firebase_uid
+        ]
+      );
+      return created;
     }
-  },
+  } catch (error) {
+    throw new Error(`Error upsert user ${error}`);
+  }
+},
+
+createMicroUser: async (credenciales) => {
+  try {
+    const existingUser = await db_pool.oneOrNone(
+      `SELECT * FROM public.usuario WHERE firebase_uid = $1`,
+      [credenciales.firebase_uid]
+    );
+
+    if (existingUser) {
+      // Usuario ya existe, no se hace inserción
+      return null;
+    }
+
+    const created = await db_pool.one(
+      `INSERT INTO public.usuario (rol_id, email, telefono, firebase_uid)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [
+        credenciales.rol_id,
+        credenciales.email,
+        credenciales.telefono,
+        credenciales.firebase_uid
+      ]
+    );
+    return created;
+    
+  } catch (error) {
+    throw new Error(`Error creating user: ${error.message}`);
+  }
+},
+
+
   existUser: async (credenciales) => {
     try {
       console.log("............ EXISTE USER ?");
@@ -180,6 +220,30 @@ const modelAuth = {
       throw new Error(`Error get data: ${error}`);
     }
   },
+  getInfoUser: async (id) => {
+    try {
+      const resultado = await db_pool.oneOrNone(`SELECT * FROM public.usuario WHERE id = $1`,[id]);
+      return resultado;
+    } catch (error) {
+      throw new Error(`Error get data: ${error}`);
+    }
+  },
+
+  actualizarUsuario: async (id, usuario) => {
+          try {
+              const resultado = await db_pool.oneOrNone(`
+                  UPDATE public.usuario SET telefono = $1, email = $2 WHERE id = $3 RETURNING *`,
+                  [
+                      usuario.telefono, usuario.email, id
+                  ]);
+              if (!resultado) {
+                  return null;
+              }
+              return resultado
+          } catch (error) {
+              throw new Error(`Error put data: ${error.message}`);
+          }
+      },
 };
 
 export default modelAuth;

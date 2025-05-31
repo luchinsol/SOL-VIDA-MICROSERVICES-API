@@ -5,7 +5,7 @@ const pgp = pgPromise();
 // Definir conexiones
 const conexiones = {
     db_aguaSol: "postgresql://aguasol_xar2_user:WCJ9WKpeqQdIirMX1z85mRvDsB27IhX5@dpg-cqkps2ogph6c738j8r90-a.oregon-postgres.render.com/aguasol_xar2",
-    db_pool: "postgresql://aguasol_xar2_user:WCJ9WKpeqQdIirMX1z85mRvDsB27IhX5@dpg-cqkps2ogph6c738j8r90-a.oregon-postgres.render.com/micro_signin"
+    db_pool: "postgresql://aguasol_xar2_user:WCJ9WKpeqQdIirMX1z85mRvDsB27IhX5@dpg-cqkps2ogph6c738j8r90-a.oregon-postgres.render.com/dev_micro_auth"
 };
 
 // Crear objetos de conexión

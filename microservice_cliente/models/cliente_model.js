@@ -108,55 +108,65 @@ const modelCliente = {
         }
     },
 
-     postMicroCliente: async (cliente) => {
-        try {
-            // First check if a client already exists for this user_id
-            const existingCliente = await db_pool.oneOrNone(
-                'SELECT * FROM public.cliente WHERE usuario_id = $1',
-                [cliente.usuario_id]
-            );
+    upsertMicroCliente: async (cliente) => {
+  try {
+    const existing = await db_pool.oneOrNone(
+      'SELECT * FROM public.cliente WHERE usuario_id = $1',
+      [cliente.usuario_id]
+    );
 
-            if (existingCliente) {
-                // Client already exists, return it
-                return existingCliente;
-            }
+    if (existing) {
+      const updated = await db_pool.one(
+        `UPDATE public.cliente SET
+            nombres = $2,
+            apellidos = $3,
+            foto_cliente = $4
+         WHERE usuario_id = $1
+         RETURNING *`,
+        [
+          cliente.usuario_id,
+          cliente.nombres,
+          cliente.apellidos,
+          cliente.foto_cliente
+        ]
+      );
+      return updated;
+    } else {
+      const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+      let CODE = '';
+      for (let i = 0; i < 5; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        CODE += characters.charAt(randomIndex);
+      }
 
-            // Generate a random code
-            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
-            let CODE = '';
+      const inserted = await db_pool.one(
+        `INSERT INTO public.cliente (
+          usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
+        ) VALUES (
+          $1, $2, $3, $4, $5
+        ) RETURNING *`,
+        [
+          cliente.usuario_id,
+          cliente.nombres,
+          cliente.apellidos,
+          cliente.fecha_creacion || new Date(),
+          cliente.foto_cliente
+        ]
+      );
+      return inserted;
+    }
+  } catch (error) {
+    throw new Error(`Error upsert cliente ${error}`);
+  }
+},
 
-            for (let i = 0; i < 5; i++) {
-                const randomIndex = Math.floor(Math.random() * characters.length);
-                CODE += characters.charAt(randomIndex);
-            }
-
-            // Insert new client
-            const resultado = await db_pool.one(
-            `INSERT INTO public.cliente (
-              usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
-            ) VALUES (
-              $1, $2, $3, $4, $5
-            ) RETURNING *`
-          , [
-                cliente.usuario_id,
-                cliente.nombre,
-                cliente.apellidos,
-                cliente.fecha_creacion,
-                cliente.foto_cliente
-            ]);
-
-            return resultado;
-        } catch (error) {
-            throw new Error(`Error post cliente ${error}`);
-        }
-    },
 
     putCliente: async (id, cliente) => {
         try {
             const resultado = await db_pool.oneOrNone(`
-                UPDATE public.cliente SET nombre = $1, apellidos = $2, numero_cuenta = $3 WHERE id = $4 RETURNING *`,
+                UPDATE public.cliente SET nombres = $1, apellidos = $2, numero_cuenta = $3 WHERE id = $4 RETURNING *`,
                 [
-                    cliente.nombre, cliente.apellidos,
+                    cliente.nombres, cliente.apellidos,
                     cliente.numero_cuenta, id,
                 ]);
             if (!resultado) {
@@ -325,6 +335,98 @@ ORDER BY valoracion_cliente.calificacion DESC
             throw new Error(`Error get data: ${error}`);
         }
     },
+
+    //POST QUE ME SIRVE PARA PODER HACER ESTA VALORACION DE CLIENTE
+    postSoporteCliente: async (soporte) => {
+        try {
+            const resultado = await db_pool.one(`
+            INSERT INTO public.soporte_tecnico (
+              cliente_id, asunto, descripcion
+            ) VALUES (
+              $1, $2, $3
+            ) RETURNING *
+          `, [
+                soporte.cliente_id,
+                soporte.asunto,
+                soporte.descripcion
+            ]);
+
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error post data: ${error.message}`);
+        }
+    },
+
+    //POST LIBRO DE RECLAMACIONES
+    postLibroReclamacion: async (reclamacion) => {
+        try {
+            const resultado = await db_pool.one(`
+            INSERT INTO public.libro_reclamaciones (
+              nombres, apellidos, dni, fecha, tipo_reclamo, descripcion
+            ) VALUES (
+              $1, $2, $3, $4, $5, $6
+            ) RETURNING *
+          `, [
+                reclamacion.nombres,
+                reclamacion.apellidos,
+                reclamacion.dni,
+                reclamacion.fecha,
+                reclamacion.tipo_reclamo,
+                reclamacion.descripcion 
+            ]);
+            console.log("------------------------->")
+            console.log(resultado)
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error post data: ${error.message}`);
+        }
+    },
+
+    actualizarPerfil: async (id, cliente) => {
+        try {
+            const resultado = await db_pool.oneOrNone(`
+                UPDATE public.cliente SET nombres = $1, apellidos = $2 WHERE id = $3 RETURNING *`,
+                [
+                    cliente.nombres, cliente.apellidos, id
+                ]);
+            if (!resultado) {
+                return null;
+            }
+            return resultado
+        } catch (error) {
+            throw new Error(`Error put data: ${error.message}`);
+        }
+    },
+
+    createMicroCliente: async (cliente) => {
+  try {
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+    let CODE = '';
+    for (let i = 0; i < 5; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      CODE += characters.charAt(randomIndex);
+    }
+
+    const inserted = await db_pool.one(
+      `INSERT INTO public.cliente (
+        usuario_id, nombres, apellidos, fecha_creacion, foto_cliente
+      ) VALUES (
+        $1, $2, $3, $4, $5
+      ) RETURNING *`,
+      [
+        cliente.usuario_id,
+        cliente.nombres,
+        cliente.apellidos,
+        cliente.fecha_creacion || new Date(),
+        cliente.foto_cliente
+      ]
+    );
+    return inserted;
+  } catch (error) {
+    throw new Error(`Error creating cliente: ${error}`);
+  }
+},
+
 }
 
 export default modelCliente

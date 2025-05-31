@@ -19,7 +19,7 @@ const service_cliente = process.env.MICRO_CLIENTE
 export const getCategoriasControllerGW = async (req, res) => {
   //TRAER LA ULTIMA UBICACION DEL CLIENTE 
   try {
-    const response = await axios.get(`${service_categoria}/categoria`)
+    const response = await axios.get(`${service_categoria}/allcategorias`)
     if (response) {
       res.status(200).json(response.data);
     } else {
@@ -245,6 +245,11 @@ export const getCategoriaControllerIdGW = async (req, res) => {
           const productoDetalle = productoResp.data || null;
           const precioZonaProducto = precioZonaResp.data || null;
 
+          // Filtrar productos no disponibles
+          if (!precioZonaProducto?.disponible) {
+            return null;
+          }
+
           //total de calificaciones de los clientes al producto
           const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
           console.log("------------------->");
@@ -253,10 +258,11 @@ export const getCategoriaControllerIdGW = async (req, res) => {
           const calificaciones = calificacionesResp.data || [];
 
           // Calcular el porcentaje de descuento si hay descuento y precio
+          /*
           let porcentajeDescuento = null;
-          if (precioZonaProducto?.descuento > 0 && precioZonaProducto?.precio > 0) {
-            porcentajeDescuento = Math.round((precioZonaProducto.descuento / precioZonaProducto.precio) * 100);
-          }
+          if (precioZonaProducto?.descuento > 0 && precioZonaProducto?.precio_regular > 0) {
+            porcentajeDescuento = Math.round((precioZonaProducto.descuento / precioZonaProducto.precio_regular) * 100);
+          }*/
 
           // Estructura modificada para el estilo
           const estiloModificado = precioZonaProducto ? {
@@ -273,27 +279,34 @@ export const getCategoriaControllerIdGW = async (req, res) => {
             id: productoId,
             nombre: productoDetalle?.nombre || null,
             descripcion: productoDetalle?.descripcion || null,
+            tipo_empaque: productoDetalle?.tipo_empaque || null,
+            cantidad_unidad: productoDetalle?.cantidad_unidad || null,
+            unidad_medida: productoDetalle?.unidad_medida || null,
+            volumen_unidad: productoDetalle?.volumen_unidad || null,
             foto: productoDetalle?.foto,
             valoracion: productoDetalle?.valoracion || null,
-            precio: precioZonaProducto?.precio || null,
+            precio_regular: precioZonaProducto?.precio_regular || null,
             descuento: precioZonaProducto?.descuento || 0,
+            precio_normal: precioZonaProducto?.precio_normal || null,
             total_cliente_calificacion: Number(totalValoraciones),
             estilo: estiloModificado,
             calificaciones: calificaciones
           };
 
           // Añadir el porcentaje de descuento solo si existe un descuento
+          /*
           if (porcentajeDescuento !== null) {
             productoEnriquecido.porcentaje_descuento = porcentajeDescuento;
-          }
+          }*/
 
           return productoEnriquecido;
         } catch (error) {
+          /*
           if (error.response?.status === 404) {
             sinProductosDisponibles = true;
-          }
+          }*/
           console.error(`Error al obtener detalles del producto ${productoId}:`, error.message);
-          return { id: productoId, error: 'No se pudo obtener información' };
+          return null;
         }
       }));
 
@@ -312,16 +325,22 @@ export const getCategoriaControllerIdGW = async (req, res) => {
           //console.log("---------------------->");
           //console.log(promocionDetalle);
           const precioZonaPromocion = precioPromoResp.data || null;
+          // Filtrar promociones no disponibles
+          if (!precioZonaPromocion?.disponible) {
+            return null;
+          }
+
           const totalValoracion = totalValoracionResp.data?.total_valoraciones || 0;
           console.log("------------------->");
           console.log(totalValoracion);
           const calificaciones =  calificacionResp.data || [];
 
           // Calcular el porcentaje de descuento si hay descuento y precio
+          /*
           let porcentajeDescuento = null;
-          if (precioZonaPromocion?.descuento > 0 && precioZonaPromocion?.precio > 0) {
-            porcentajeDescuento = Math.round((precioZonaPromocion.descuento / precioZonaPromocion.precio) * 100);
-          }
+          if (precioZonaPromocion?.descuento > 0 && precioZonaPromocion?.precio_regular > 0) {
+            porcentajeDescuento = Math.round((precioZonaPromocion.descuento / precioZonaPromocion.precio_regular) * 100);
+          }*/
 
           // Estructura modificada para el estilo
           const estiloModificado = precioZonaPromocion ? {
@@ -340,37 +359,44 @@ export const getCategoriaControllerIdGW = async (req, res) => {
             descripcion: promocionDetalle.descripcion || null,
             foto: promocionDetalle?.foto,
             valoracion: promocionDetalle?.valoracion || null,
-            precio: precioZonaPromocion?.precio || null,
+            precio_regular: precioZonaPromocion?.precio_regular || null,
             descuento: precioZonaPromocion?.descuento || 0,
+            precio_normal: precioZonaPromocion?.precio_normal || null,
             total_cliente_calificacion: Number(totalValoracion), 
             estilo: estiloModificado,
             calificaciones:  calificaciones
           };
 
           // Añadir el porcentaje de descuento solo si existe un descuento
+          /*
           if (porcentajeDescuento !== null) {
             promocionEnriquecida.porcentaje_descuento = porcentajeDescuento;
-          }
+          }*/
 
           return promocionEnriquecida;
           
         } catch (error) {
+          /*
           if (error.response?.status === 404) {
             sinProductosDisponibles = true;
-          }
+          }*/
           console.error(`Error al obtener detalles de la promoción ${promocionId}:`, error.message);
-          return { id: promocionId, error: 'No se pudo obtener información' };
+          return null;
         }
       }));
+      // Filtrar elementos nulos (no disponibles)
+      const productosValidos = productosEnriquecidos.filter(p => p !== null);
+      const promocionesValidas = promocionesEnriquecidas.filter(p => p !== null);
+
 
       // Devolver la subcategoría con productos y promociones enriquecidos
       return {
         ...subcategoria,
-        productos: productosEnriquecidos,
-        promociones: promocionesEnriquecidas
+        productos: productosValidos,
+        promociones: promocionesValidas
       };
     }));
-
+    
     // Verificación final: si hubo productos o promociones que no existen
     if (sinProductosDisponibles) {
       return res.status(404).json({
@@ -530,4 +556,230 @@ export const getAllProductosSubcategoriaGW = async (req, res) => {
     return res.status(500).json({ message: "Error al obtener información de subcategoría" });
   }
 };
+
+
+//TODAS LAS CATEGORIAS Y SU RESPECTIVA ZONA
+export const getZonaYCategoriasController = async (req, res) => {
+  try {
+    const { ubicacion_id } = req.params;
+    const MAX_DISTANCE_KM = 50;
+    let zona_trabajo_id = null;
+
+    if (!ubicacion_id) {
+      return res.status(400).json({ message: "ubicacion_id es requerido" });
+    }
+
+    try {
+      const ubicacionRes = await axios.get(`${service_ubicacion}/ubicacion/${ubicacion_id}`);
+      const { latitud, longitud } = ubicacionRes.data;
+
+      if (!latitud || !longitud) {
+        return res.status(400).json({ message: "Coordenadas no disponibles" });
+      }
+
+      const responseZona = await axios.get(`${service_ubicacion}/zona`);
+      const coordinates = [longitud, latitud];
+
+      zona_trabajo_id = getZonaTrabajo(responseZona.data, coordinates, MAX_DISTANCE_KM);
+
+      if (!zona_trabajo_id) {
+        return res.status(404).json({
+          message: "Ubicación fuera de las zonas de reparto",
+          error: "ZONA_NO_DISPONIBLE"
+        });
+      }
+
+      // Actualizar la zona en la ubicación
+      await axios.put(`${service_ubicacion}/ubicacion/${ubicacion_id}`, {
+        zona_trabajo_id
+      });
+
+    } catch (error) {
+      console.error("Error al procesar ubicación:", error.message);
+      return res.status(404).json({ message: "Ubicación no encontrada o error al procesar" });
+    }
+
+    // Obtener todas las categorías
+    try {
+      const categoriasRes = await axios.get(`${service_categoria}/categoria`);
+      return res.status(200).json({
+        zona_trabajo_id,
+        categorias: categoriasRes.data
+      });
+    } catch (error) {
+      console.error("Error al obtener categorías:", error.message);
+      return res.status(500).json({ message: "Error al obtener categorías" });
+    }
+
+  } catch (error) {
+    console.error("Error en getZonaYCategoriasController:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+//ENDPOINT QUE ME TRAE TODAS LA CATEGORIA CON TODAS SUS SUBCATEGORIAS Y PRODUCTOS
+export const getCategoriaSubcategoriaControllerIdGW = async (req, res) => {
+  try {
+    let { id, zona_trabajo_id } = req.params;
+    if (!zona_trabajo_id) {
+      return res.status(400).json({
+        message: "El parámetro zona_trabajo_id es requerido."
+      });
+    }
+    // Obtener la categoría y subcategorías relacionadas con la nueva estructura
+    const response = await axios.get(`${service_categoria}/allcategorias_subcategorias/${id}`);
+    if (!response || !response.data) {
+      return res.status(400).json({ message: "Invalid get data from GW" });
+    }
+    const categoriaData = response.data;
+    const enrichedData = {
+      id: categoriaData.id,
+      nombre: categoriaData.nombre,
+      zona_trabajo_id,
+    };
+    //let sinProductosDisponibles = false;
+    enrichedData.subcategorias = await Promise.all(categoriaData.subcategorias.map(async (subcategoria) => {
+      const productosEnriquecidos = await Promise.all(subcategoria.productos.map(async (productoId) => {
+        try {
+          const [productoResp, precioZonaResp, totalValoracionesResp, calificacionesResp] = await Promise.all([
+            axios.get(`${service_producto}/producto/${productoId}`),
+            axios.get(`${service_zonaproducto}/precioZonaProductoDetalle/${zona_trabajo_id}/${productoId}`),
+            axios.get(`${service_cliente}/calificacion_count_producto/${productoId}`),
+            axios.get(`${service_cliente}/last_valoraciones_cliente_producto/${productoId}`)
+          ]);
+
+          const productoDetalle = productoResp.data || null;
+          const precioZonaProducto = precioZonaResp.data || null;
+          
+           if (!precioZonaProducto?.disponible) {
+            return null;
+          }
+          
+          const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
+          const calificaciones = calificacionesResp.data || [];
+          /*
+          let porcentajeDescuento = null;
+          if (precioZonaProducto?.descuento > 0 && precioZonaProducto?.precio > 0) {
+            porcentajeDescuento = Math.round((precioZonaProducto.descuento / precioZonaProducto.precio) * 100);
+          }*/
+          const estiloModificado = precioZonaProducto ? {
+            id: precioZonaProducto.estilo_id,
+            colores: [
+              { color_fondo: precioZonaProducto.color_fondo },
+              { color_boton: precioZonaProducto.color_boton },
+              { color_letra: precioZonaProducto.color_letra }
+            ]
+          } : null;
+          const productoEnriquecido = {
+            id: productoId,
+            nombre: productoDetalle?.nombre || null,
+            descripcion: productoDetalle?.descripcion || null,
+            tipo_empaque: productoDetalle?.tipo_empaque || null,
+            cantidad_unidad: productoDetalle?.cantidad_unidad || null,
+            unidad_medida: productoDetalle?.unidad_medida || null,
+            volumen_unidad: productoDetalle?.volumen_unidad || null,
+            foto: productoDetalle?.foto,
+            valoracion: productoDetalle?.valoracion || null,
+            precio_regular: precioZonaProducto?.precio_regular || null,
+            descuento: precioZonaProducto?.descuento || 0,
+            precio_normal: precioZonaProducto?.precio_normal || null,
+            total_cliente_calificacion: Number(totalValoraciones),
+            estilo: estiloModificado,
+            calificaciones: calificaciones
+          };
+          /*if (porcentajeDescuento !== null) {
+            productoEnriquecido.porcentaje_descuento = porcentajeDescuento;
+          }*/
+          return productoEnriquecido;
+        } catch (error) {
+          /*
+          if (error.response?.status === 404) {
+            sinProductosDisponibles = true;
+          }*/
+          console.error(`Error al obtener detalles del producto ${productoId}:`, error.message);
+          return null;
+        }
+      }));
+      const promocionesEnriquecidas = await Promise.all(subcategoria.promociones.map(async (promocionId) => {
+        try {
+          const [promoResp, precioPromoResp, totalValoracionResp, calificacionResp] = await Promise.all([
+            axios.get(`${service_producto}/promocion/${promocionId}`),
+            axios.get(`${service_zonapromocion}/preciopromodetalle/${zona_trabajo_id}/${promocionId}`),
+            axios.get(`${service_cliente}/calificacion_promedio_promocion/${promocionId}`),
+            axios.get(`${service_cliente}/last_valoraciones_cliente_promos/${promocionId}`)
+          ]);
+          const promocionDetalle = promoResp.data || null;
+          const precioZonaPromocion = precioPromoResp.data || null;
+          if (!precioZonaPromocion?.disponible) {
+            return null;
+          }
+          const totalValoracion = totalValoracionResp.data?.total_valoraciones || 0;
+          const calificaciones = calificacionResp.data || [];
+/*
+          let porcentajeDescuento = null;
+          if (precioZonaPromocion?.descuento > 0 && precioZonaPromocion?.precio > 0) {
+            porcentajeDescuento = Math.round((precioZonaPromocion.descuento / precioZonaPromocion.precio) * 100);
+          }
+ */
+          const estiloModificado = precioZonaPromocion ? {
+            id: precioZonaPromocion.estilo_id,
+            colores: [
+              { color_fondo: precioZonaPromocion.color_fondo },
+              { color_boton: precioZonaPromocion.color_boton },
+              { color_letra: precioZonaPromocion.color_letra }
+            ]
+          } : null;
+          const promocionEnriquecida = {
+            id: promocionId,
+            nombre: promocionDetalle?.nombre || null,
+            descripcion: promocionDetalle?.descripcion || null,
+            foto: promocionDetalle?.foto,
+            valoracion: promocionDetalle?.valoracion || null,
+            precio_regular: precioZonaPromocion?.precio_regular || null,
+            descuento: precioZonaPromocion?.descuento || 0,
+            precio_normal: precioZonaPromocion?.precio_normal || null,
+            total_cliente_calificacion: Number(totalValoracion),
+            estilo: estiloModificado,
+            calificaciones: calificaciones
+          };
+          /*
+          if (porcentajeDescuento !== null) {
+            promocionEnriquecida.porcentaje_descuento = porcentajeDescuento;
+          }*/
+          return promocionEnriquecida;
+        } catch (error) {
+          /*
+          if (error.response?.status === 404) {
+            sinProductosDisponibles = true;
+          }*/
+          console.error(`Error al obtener detalles de la promoción ${promocionId}:`, error.message);
+          return null;
+        }
+      }));
+      const productosValidos = productosEnriquecidos.filter(p => p !== null);
+      const promocionesValidas = promocionesEnriquecidas.filter(p => p !== null);
+
+      return {
+        ...subcategoria,
+        productos: productosValidos,
+        promociones: promocionesValidas
+      };
+    }));
+    /*
+    if (sinProductosDisponibles) {
+      return res.status(404).json({
+        zona_trabajo_id,
+        message: "No hay productos disponibles para esta zona"
+      });
+    }*/
+    res.status(200).json(enrichedData);
+  } catch (error) {
+    console.error('Error en getCategoriaSubcategoriaControllerIdGW:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
