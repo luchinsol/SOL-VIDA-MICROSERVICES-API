@@ -31,3 +31,51 @@ CREATE TABLE public.detalle_pedido(
 -- RELACIONES
 
 ALTER TABLE public.detalle_pedido ADD CONSTRAINT fk_detalle_pedido FOREIGN KEY(pedido_id) REFERENCES public.pedido(id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+CREATE TABLE tipo_delivery (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR NOT NULL UNIQUE
+);
+
+CREATE TABLE delivery (
+    id SERIAL PRIMARY KEY,
+    tipo_delivery_id INTEGER NOT NULL,
+    precio NUMERIC(10,2) NOT NULL,
+    CONSTRAINT fk_tipo_delivery
+        FOREIGN KEY (tipo_delivery_id)
+        REFERENCES tipo_delivery(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+ALTER TABLE pedido
+ADD COLUMN delivery_id INTEGER;
+
+ALTER TABLE pedido
+ADD CONSTRAINT fk_delivery
+FOREIGN KEY (delivery_id)
+REFERENCES delivery(id)
+ON DELETE CASCADE
+ON UPDATE CASCADE;
+
+
+-- Crear tabla de códigos de descuento
+CREATE TABLE codigo (
+    id SERIAL PRIMARY KEY,
+    codigo VARCHAR NOT NULL UNIQUE,
+    descuento NUMERIC(10, 2) NOT NULL
+);
+
+-- Agregar campo codigo_id a pedido (opcional)
+ALTER TABLE pedido
+ADD COLUMN codigo_id INTEGER;
+
+-- Relacionar con clave foránea, permitiendo NULL (cliente puede no usar código)
+ALTER TABLE pedido
+ADD CONSTRAINT fk_codigo
+FOREIGN KEY (codigo_id)
+REFERENCES codigo(id)
+ON DELETE SET NULL  -- Si se borra el código, no se elimina el pedido
+ON UPDATE CASCADE;

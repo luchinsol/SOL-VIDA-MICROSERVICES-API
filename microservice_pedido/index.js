@@ -13,7 +13,7 @@ const app_micro_pedido = express();
 const server = http.createServer(app_micro_pedido);
 
 const PORT = process.env.PORT_PEDIDO
-const RABBITMQ_URL = process.env.RABBITMQ_URL//'amqp://localhost';// 
+const RABBITMQ_URL = 'amqp://localhost';//process.env.RABBITMQ_URL// 
 console.log("...cola d pedidos en stack.yml")
 
 console.log(RABBITMQ_URL)
@@ -421,7 +421,7 @@ async function setupQueuesAndExchanges() {
         await channel.assertExchange(DRIVERS_EXCHANGE_2, 'fanout', {
             durable: true
         });*/
-        
+
         await channel.assertExchange(DRIVERS_EXCHANGE_3, 'fanout', {
             durable: true
         });
@@ -447,11 +447,12 @@ async function setupQueuesAndExchanges() {
         await channel.assertQueue(ARCHIVE_QUEUE_1, {
             durable: true
         });
+
         /*
         await channel.assertQueue(ARCHIVE_QUEUE_2, {
             durable: true
         });
-        */
+*/
         await channel.assertQueue(ARCHIVE_QUEUE_3, {
             durable: true
         });
@@ -479,12 +480,7 @@ function getArchiveQueueByAlmacenId(almacenId) {
                 queue: ARCHIVE_QUEUE_1,
                 routingKey: `${ARCHIVE_ROUTING_KEY}.1`
             };
-        /*
-        case 2:
-            return {
-                queue: ARCHIVE_QUEUE_2,
-                routingKey: `${ARCHIVE_ROUTING_KEY}.2`
-            };*/
+
         case 3:
             return {
                 queue: ARCHIVE_QUEUE_3,

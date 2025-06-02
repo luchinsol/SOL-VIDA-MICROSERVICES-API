@@ -18,3 +18,6 @@ CREATE TABLE public.rol(
 -- RELACIONES
 
 ALTER TABLE public.usuario ADD CONSTRAINT fk_usuario_rol FOREIGN KEY(rol_id) REFERENCES public.rol(id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+ALTER TABLE public.usuario ADD COLUMN firebase_uid VARCHAR(255);

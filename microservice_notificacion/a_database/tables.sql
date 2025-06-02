@@ -15,3 +15,12 @@ create table public.logs_notificaciones(
 );
 
 ALTER TABLE public.logs_notificaciones ADD CONSTRAINT fk_notificacion_log FOREIGN KEY (notificacion_id) REFERENCES public.notificaciones(id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+CREATE TABLE public.notify_cliente (
+    id SERIAL PRIMARY KEY,
+    foto VARCHAR(255),
+    titulo VARCHAR(200),
+    fecha DATE,
+    descripcion TEXT
+);

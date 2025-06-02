@@ -29,10 +29,19 @@ ALTER TABLE public.producto_promocion ADD CONSTRAINT fk_producto_promocion FOREI
 ALTER TABLE public.producto_promocion ADD CONSTRAINT fk_promocion_promocion FOREIGN KEY(promocion_id) REFERENCES public.promocion(id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 
---CAMBIOS
+-- Para la tabla producto
 ALTER TABLE public.producto
-ALTER COLUMN foto TYPE varchar(1000);
+ALTER COLUMN foto TYPE text[] USING ARRAY[foto];
 
-
+-- Para la tabla promocion
 ALTER TABLE public.promocion
-ALTER COLUMN foto TYPE varchar(1000);
+ALTER COLUMN foto TYPE text[] USING ARRAY[foto];
+
+--AGREGAR CAMPO DE CATEGORIA_ID
+
+ALTER TABLE public.producto
+DROP COLUMN categoria;
+
+ALTER TABLE public.producto
+ADD COLUMN categoria_id INTEGER;
+
