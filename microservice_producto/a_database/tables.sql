@@ -44,3 +44,4 @@ DROP COLUMN categoria;
 
 ALTER TABLE public.producto
 ADD COLUMN categoria_id INTEGER;
+

@@ -1218,7 +1218,7 @@ export const getDistribuidorConteoTotalControllerGW = async (req, res) => {
       });
 
     // Definir almacenes esperados
-    const almacenesEsperados = [1, 2, 3, 4];
+    const almacenesEsperados = [1, 3, 4];
     let datos = response && response.data ? response.data : [];
 
     // Convertir los datos en un objeto para fácil acceso
