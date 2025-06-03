@@ -315,3 +315,27 @@ export const actualizarPerfilClienteControllerGW = async (req, res) => {
     }
 };
 
+export const getLibroReclamaciones = async (req,res) => {
+    try {
+        const responseCliente = await axios.get(`${service_cliente}/libro_reclamaciones`);
+        const clienteData = responseCliente.data;
+         res.status(200).json(clienteData);
+
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+
+};
+
+
+export const getSoporteTecnico = async (req,res) => {
+    try {
+        const responseCliente = await axios.get(`${service_cliente}/soporte_tecnico`);
+        const clienteData = responseCliente.data;
+         res.status(200).json(clienteData);
+
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+
+};

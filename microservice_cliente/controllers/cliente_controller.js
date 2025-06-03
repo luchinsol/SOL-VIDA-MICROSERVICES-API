@@ -307,3 +307,30 @@ export const postMicroClienteController = async (req, res) => {//Add commentMore
         res.status(500).json({ error: error.message });
       }
 };
+
+export const getLibroReclamaciones = async (req, res) => {
+  try {
+    const resultado = await modelCliente.getLibroReclamaciones()
+
+    if (!resultado) {
+      return res.status(404).json({ message: "Data not Found" });
+    }
+    res.status(200).json(resultado);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const getSoporteTecnico = async (req, res) => {
+  try {
+    const resultado = await modelCliente.getSoporteTecnico()
+
+    if (!resultado) {
+      return res.status(404).json({ message: "Data not Found" });
+    }
+    res.status(200).json(resultado);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

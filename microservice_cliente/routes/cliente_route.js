@@ -1,4 +1,4 @@
-import { postMicroClienteController,putMicroClienteController,actualizarPerfilCliente,postLibroReclamacionesController,postSoporteTecnicoController,getPromedioValoracionesPromocionId,getPromedioValoracionesProductoId,getConteoValoracionesPromocionControllerId,getConteoValoracionesProductoControllerId,postMicroValoracionController,getUsuariosPorDiaMes,getUsuariosTotalesMes,deleteClienteController,getClienteController_Id ,getClienteController, getClienteControllerId, postClienteController, putClienteController, putClienteCalificationController,getValoracionesClientesLast,getValoracionesClientesPromoLast } from '../controllers/cliente_controller.js'
+import { getSoporteTecnico,getLibroReclamaciones,postMicroClienteController,putMicroClienteController,actualizarPerfilCliente,postLibroReclamacionesController,postSoporteTecnicoController,getPromedioValoracionesPromocionId,getPromedioValoracionesProductoId,getConteoValoracionesPromocionControllerId,getConteoValoracionesProductoControllerId,postMicroValoracionController,getUsuariosPorDiaMes,getUsuariosTotalesMes,deleteClienteController,getClienteController_Id ,getClienteController, getClienteControllerId, postClienteController, putClienteController, putClienteCalificationController,getValoracionesClientesLast,getValoracionesClientesPromoLast } from '../controllers/cliente_controller.js'
 import express from 'express'
 
 const routerCliente = express.Router()
@@ -37,6 +37,10 @@ routerCliente.post('/libro_reclamaciones',postLibroReclamacionesController)
 //MODIFICACION DE DATOS CLIENTE
 routerCliente.put('/actualizar_cliente/:id',actualizarPerfilCliente)
 //CREACION DE CLIENTE
-routerCliente.post('/cliente_micro', postMicroClienteController);    
+routerCliente.post('/cliente_micro', postMicroClienteController);
+//LIBRO RECLAMACIONES
+routerCliente.get('/libro_reclamaciones',getLibroReclamaciones)
+//SOPORTE TECNICO
+routerCliente.get('/soporte_tecnico',getSoporteTecnico)
 
 export default routerCliente

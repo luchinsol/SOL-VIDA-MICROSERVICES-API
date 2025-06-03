@@ -83,21 +83,19 @@ const modelAuth = {
   },
   createUser: async (credenciales) => {
     try {
+      console.log("/////// en login model");
+      console.log(credenciales);
       const userExist = await db_pool.oneOrNone(
-        `SELECT * FROM public.usuario WHERE firebase_uid=$1`,//Add commentMore actions
+        `SELECT * FROM public.usuario WHERE firebase_uid=$1`,
         [credenciales.firebase_uid]
       );
 
       if (userExist) {
+        console.log("...exist en loginmodel");
         return { message: "User exist!" };
       } else {
-        const contrasenaEncript = await bcrypt.hash(
-          credenciales.contrasena,
-          10
-        );
-
         const newUser = await db_pool.one(
-          `INSERT INTO public.usuario (rol_id,email,telefono,firebase_uid)Add commentMore actions
+          `INSERT INTO public.usuario (rol_id,email,telefono,firebase_uid)
                     VALUES ($1,$2,$3,$4) RETURNING *`,
           [
             credenciales.rol_id,
@@ -107,13 +105,12 @@ const modelAuth = {
           ]
         );
 
-        return newUser
+        return newUser;
       }
     } catch (error) {
       throw new Error(`Error post user ${error}`);
     }
   },
-
     upsertMicroUser: async (credenciales) => {
   try {
     const existingUser = await db_pool.oneOrNone(
@@ -259,7 +256,8 @@ createMicroUser: async (credenciales) => {
       throw new Error(`Error en la peticion: ${error}`);
     }
   },
-   getFirebaseuid: async (firebaseUid) => {//Add commentMore actions
+   // nuevo método
+  getFirebaseuid: async (firebaseUid) => {
     try {
       console.log(".......firebase....");
       const usuario = await db_pool.oneOrNone(
@@ -274,7 +272,6 @@ createMicroUser: async (credenciales) => {
       throw new Error(`Error en el servidor ${error}`);
     }
   },
-
 };
 
 export default modelAuth;

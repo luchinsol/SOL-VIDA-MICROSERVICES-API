@@ -143,7 +143,8 @@ export const putTelefono = async (req,res) =>{//Add commentMore actions
     }
 };
 
-export const getFirebaseuid = async (req,res) => {//Add commentMore actions
+// nuevo
+export const getFirebaseuid = async (req,res) => {
     try {
         const {firebaseUID} = req.params
         const response = await modelAuth.getFirebaseuid(firebaseUID)
