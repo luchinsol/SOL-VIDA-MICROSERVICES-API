@@ -1,4 +1,4 @@
-import { actualizarPerfilClienteControllerGW,postLibroReclamacionesGW,postSoporteControllerGW,getClientesControllerGW,putClienteCalificationControllerGw, getClientesControllerIdGW, postClienteControllerGW, putClienteControllerGW,deleteClienteControllerGW,postValoracionControllerGW,getPerfilCliente } from '../controllers/gw_cliente_controllers.js'
+import {getSoporteTecnico,getLibroReclamaciones, actualizarPerfilClienteControllerGW,postLibroReclamacionesGW,postSoporteControllerGW,getClientesControllerGW,putClienteCalificationControllerGw, getClientesControllerIdGW, postClienteControllerGW, putClienteControllerGW,deleteClienteControllerGW,postValoracionControllerGW,getPerfilCliente } from '../controllers/gw_cliente_controllers.js'
 import express from 'express'
 
 const routerGWCliente = express.Router()
@@ -19,5 +19,9 @@ routerGWCliente.post('/apigw/v1/soporte_tecnico',postSoporteControllerGW)
 routerGWCliente.post('/apigw/v1/libro_reclamaciones',postLibroReclamacionesGW)
 //ENDPOINT PARA ACTUALIZAR EL PERFIL DEL CLIENTE
 routerGWCliente.put('/apigw/v1/actualizar_cliente/:id',actualizarPerfilClienteControllerGW)
+//ENDPOINT PARA TRAER TODAS LAS RECLAMACIONES
+routerGWCliente.get('/apigw/v1/libro_reclamaciones',getLibroReclamaciones)
+//ENDPOINT PARA TRAER TODOS LOS REGISTROS DE SOPORTE TECNICO
+routerGWCliente.get('/apigw/v1/soporte_tecnico',getSoporteTecnico)
 
 export default routerGWCliente

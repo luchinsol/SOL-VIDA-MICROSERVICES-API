@@ -10,7 +10,7 @@ routerGWLogin.post('/apigw/v1/register_cliente',postNewUserCLienteControllerGW) 
 routerGWLogin.put('/apigw/v1/register_micro_cliente',putOrPostUserClienteControllerGW)
 //POST PARA EL FORMULARIO
 routerGWLogin.post('/apigw/v1/cliente_registro', postUserClienteControllerGW);
-routerGWLogin.get('/apigw/v1/userfirebase/:firebaseUID',getUserFirebaseGW)//Add commentMore actions
+routerGWLogin.get('/apigw/v1/userfirebase/:firebaseUID',getUserFirebaseGW)
 routerGWLogin.put('/apigw/v1/userfirebase_phone/:firebaseUID',putPhoneFirebaseGW)
 
 

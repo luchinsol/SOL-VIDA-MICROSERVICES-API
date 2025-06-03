@@ -458,7 +458,39 @@ ORDER BY valoracion_cliente.calificacion DESC
     throw new Error(`Error creating cliente: ${error}`);
   }
 },
+getLibroReclamaciones: async () => {
+        try {
+            const resultado = await db_pool.any(`
+                SELECT 
+                * FROM public.libro_reclamaciones ORDER BY id DESC;
+            `);
 
+            return resultado;
+        } catch (error) {
+            throw new Error(`Error get data: ${error}`);
+        }
+    },
+
+getSoporteTecnico: async () => {
+    try {
+        const resultado = await db_pool.any(`
+            SELECT 
+                st.*, 
+                c.nombres, 
+                c.apellidos
+            FROM 
+                public.soporte_tecnico st
+            INNER JOIN 
+                public.cliente c ON st.cliente_id = c.id
+            ORDER BY 
+                st.id DESC;
+        `);
+
+        return resultado;
+    } catch (error) {
+        throw new Error(`Error get data: ${error}`);
+    }
+},
 
 
 
