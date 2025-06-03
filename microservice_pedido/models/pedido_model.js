@@ -520,7 +520,7 @@ AND DATE(fecha) = CURRENT_DATE;
             console.log('[MODEL] Emitiendo pedido_anulado:', resultado.id);
             console.log('[MODEL] Instancia de io disponible?', !!io); // Debe ser true
 
-            socket.emit('pedido_anulado', resultado); // <-- Emite el evento
+            io.emit('pedido_anulado', resultado); // <-- Emite el evento
 
             return resultado;
         } catch (error) {

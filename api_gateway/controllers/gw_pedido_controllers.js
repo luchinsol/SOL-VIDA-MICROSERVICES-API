@@ -1573,25 +1573,73 @@ export const UpdatePedidoDistribuidorAlmacenControllerGW = async (req, res) => {
 export const getPedidoClienteControllerGW = async (req, res) => {
   try {
     const { id } = req.params;
-
     const response = await axios.get(`${service_pedido}/pedido_history_cliente/${id}`);
 
-    // Verificamos que la respuesta exista y contenga datos
     if (response && response.data) {
-      res.status(200).json(response.data);
+      const transformedData = await Promise.all(response.data.map(async (pedido) => {
+        // Separar detalles en productos y promociones (solo ID y foto)
+        const productos = [];
+        const promociones = [];
+
+        // Procesar detalles en paralelo
+        await Promise.all(pedido.detalles.map(async (detalle) => {
+          try {
+            if (detalle.promocion_id === null) {
+              // Obtener solo ID y foto del producto
+              const productoResponse = await axios.get(`${service_producto}/producto/${detalle.producto_id}`);
+              productos.push({
+                id: productoResponse.data.id,
+                foto: productoResponse.data.foto
+              });
+            } else {
+              // Obtener solo ID y foto de la promoción
+              const promocionResponse = await axios.get(`${service_producto}/promocion/${detalle.promocion_id}`);
+              promociones.push({
+                id: promocionResponse.data.id,
+                foto: promocionResponse.data.foto
+              });
+            }
+          } catch (error) {
+            console.error(`Error obteniendo detalle: ${error.message}`);
+          }
+        }));
+
+        // Obtener solo direccion de la ubicación
+        let direccion = "";
+        try {
+          const ubicacionResponse = await axios.get(`${service_ubicacion}/ubicacion/${pedido.ubicacion_id}`);
+          direccion = ubicacionResponse.data.direccion || "";
+        } catch (error) {
+          console.error(`Error obteniendo ubicación: ${error.message}`);
+        }
+
+        // Crear objeto final simplificado
+        return {
+          pedido_id: pedido.pedido_id,
+          cliente_id: pedido.cliente_id,
+          fecha: pedido.fecha,
+          estado: pedido.estado,
+          total: pedido.total,
+          productos,
+          promociones,
+          ubicacion: {
+            ubicacion_id: pedido.ubicacion_id,
+            direccion
+          }
+        };
+      }));
+
+      res.status(200).json(transformedData);
     } else {
       res.status(404).json({ error: 'No se encontraron datos para el cliente indicado.' });
     }
-
   } catch (error) {
     if (error.response) {
-      // Error desde el microservicio
       res.status(error.response.status).json({
         error: `Microservicio error: ${error.response.statusText}`,
         status: error.response.status
       });
     } else {
-      // Error de red u otro
       res.status(500).json({ error: `Error en la solicitud: ${error.message}` });
     }
   }
