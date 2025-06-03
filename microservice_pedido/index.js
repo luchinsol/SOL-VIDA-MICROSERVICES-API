@@ -421,6 +421,7 @@ async function setupQueuesAndExchanges() {
         await channel.assertExchange(DRIVERS_EXCHANGE_2, 'fanout', {
             durable: true
         });*/
+
         await channel.assertExchange(DRIVERS_EXCHANGE_3, 'fanout', {
             durable: true
         });
@@ -479,12 +480,7 @@ function getArchiveQueueByAlmacenId(almacenId) {
                 queue: ARCHIVE_QUEUE_1,
                 routingKey: `${ARCHIVE_ROUTING_KEY}.1`
             };
-         /*   
-        case 2:
-            return {
-                queue: ARCHIVE_QUEUE_2,
-                routingKey: `${ARCHIVE_ROUTING_KEY}.2`
-            };*/    
+
         case 3:
             return {
                 queue: ARCHIVE_QUEUE_3,
@@ -619,7 +615,7 @@ async function setupConsumer() {
         await setupQueuesAndExchanges();
         console.log('Esperando pedidos...');
 
-        const ORDER_TIMEOUT = 3 * 60 * 1000; // 20 minutos
+        const ORDER_TIMEOUT = 20 * 60 * 1000; // 20 minutos
 
         channel.consume(EXPIRED_ORDERS_QUEUE, async (msg) => {
             if (msg !== null) {
