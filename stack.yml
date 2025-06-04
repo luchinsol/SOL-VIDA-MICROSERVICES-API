@@ -6,8 +6,8 @@ services:
     ports:
       - "8082:3000"
     depends_on:
-      - redis
-      - rabbitmq
+      #- redis
+      #- rabbitmq
       - microservice_auth
       - microservice_cliente
       - microservice_pedido
@@ -21,32 +21,33 @@ services:
       - microservice_categoria
       - microservice_novedades
       - microservice_publicidad
+      - microservice_codigo
     networks:
       - microservices_network
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    #environment:
+    #  - REDIS_HOST=redis
+    #  - REDIS_PORT=6379
+      #- RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     env_file:
       - ./api_gateway/.env  # Ruta del archivo .env para api_gateway
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672" # Puerto para comunicación AMQP
-      - "15672:15672" # Puerto para la interfaz de administración
-    networks:
-      - microservices_network
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-
-  redis:
-    image: redis:7.0
-    ports:
-      - "6379:6379"
-    networks:
-      - microservices_network
+  #rabbitmq:
+  #  image: rabbitmq:3-management
+  #  ports:
+  #    - "5672:5672" # Puerto para comunicación AMQP
+  #    - "15672:15672" # Puerto para la interfaz de administración
+  #  networks:
+  #    - microservices_network
+  #  environment:
+  #    - RABBITMQ_DEFAULT_USER=guest
+  #    - RABBITMQ_DEFAULT_PASS=guest
+#
+  #redis:
+  #  image: redis:7.0
+  #  ports:
+  #    - "6379:6379"
+  #  networks:
+  #    - microservices_network
 
   microservice_notificacion:
     image: luis101590/demo_microservice_notificacion:latest
@@ -220,6 +221,19 @@ services:
       - microservices_network
     env_file:
       - ./microservice_publicidad/.env 
+
+  microservice_codigo:
+    image: luis101590/demo_microservice_codigo:latest  
+    ports:
+      - "5016:5016" 
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_codigo/.env 
 
 networks:
   microservices_network:
