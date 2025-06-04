@@ -368,11 +368,13 @@ export const getPedidoCondControllerGW = async (req, res) => {
 
 
 export const postInfoPedido = async (req, res) => {
+  const fechaActual = new Date();
   try {
+    const fechaISO = fechaActual.toISOString();
     let {
       cliente_id,
       //descuento,
-      fecha,
+      //fecha,
       //tipo,
       estado,
       observacion,
@@ -498,7 +500,7 @@ let deliveryCost = 0;  // Inicializamos costo de delivery
       axios.post(`${service_pedido}/pedido`, {
         cliente_id,
         descuento: 0, // Inicializamos descuento en 0
-        fecha,
+        fecha: fechaISO,
         estado,
         observacion,
         tipo_pago,
