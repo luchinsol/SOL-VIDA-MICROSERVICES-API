@@ -20,7 +20,7 @@ import routerGWCategoria from "./routes/gw_categoria_routes.js";
 import routerGWProducto from "./routes/gw_producto_routes.js";
 import routerGWCodigo from "./routes/gw_cupon_route.js";
 import routerGWNovedades from "./routes/gw_novedades_router.js";
-import { createClient } from "redis";
+//import { createClient } from "redis";
 
 import dotenv from 'dotenv';
 
@@ -28,6 +28,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Configuración de Redis
+/*
 const redisClient = createClient({
   url: `redis://${process.env.REDIS_HOST || "localhost"}:${
     process.env.REDIS_PORT || 6379
@@ -57,7 +58,7 @@ async function connectRedis() {
     // Intentar reconectar en caso de error inicial
     setTimeout(connectRedis, 3000);
   }
-}
+}*/
 //connectRedis();
 
 const app = express();
@@ -118,6 +119,6 @@ app.listen(PORT, async () => {
     console.log(`API Gateway running http://localhost:${PORT}`);
 
 });
-export default redisClient;
+//export default redisClient;
 
 

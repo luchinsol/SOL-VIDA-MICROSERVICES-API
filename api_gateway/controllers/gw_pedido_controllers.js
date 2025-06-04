@@ -17,7 +17,7 @@ const service_auth = process.env.MICRO_AUTH;
 const service_conductor = process.env.MICRO_CONDUCTOR;
 const service_codigo = process.env.MICRO_CUPON;
 const MAIN_QUEUE = "micro_pedidos";
-const RABBITMQ_URL = 'amqp://localhost'; // Cambia esta URL si RabbitMQ está en otro host
+const RABBITMQ_URL = 'amqp://admin:admin123@rabbitmq:5673'; // Cambia esta URL si RabbitMQ está en otro host
 //const RABBITMQ_URL = process.env.RABBITMQ_URL;
 
 const sendToQueue = async (pedido) => {
