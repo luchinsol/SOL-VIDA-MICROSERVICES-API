@@ -369,7 +369,7 @@ export const getPedidoCondControllerGW = async (req, res) => {
 
 export const postInfoPedido = async (req, res) => {
   try {
-    const {
+    let {
       cliente_id,
       //descuento,
       fecha,
@@ -389,7 +389,33 @@ export const postInfoPedido = async (req, res) => {
 //cuando tomas el cupon_id consultas la siguiente ${service_codigo}/cupon/${cupon_id} dependiendo de lo que ingrese ese endpoint solo extraes descuento alli tiene un valor numerico que tu lo vas a tomar como si fuera un porcentaje
 //eso afecta en los calculos finales cuando se quiere hacer un descuento  entonces al total le sacas un porcentaje de esto depnedneindo de lo que extraigas en descuento y sacas por ejemplo si es el 20 entonces sacas el 20% del total y al final le restas
 //finalmente ya no necesitamos el campo de descuento por ahora ya que no es necesario ya que el descuento se hara por cupon_id por favor eso nomas
-    let deliveryCost = 0;  // Inicializamos costo de delivery
+// Preprocesar detalles: reemplazar producto_id null usando promocion_id
+    detalles = await Promise.all(
+      detalles.map(async (detalle) => {
+        if (detalle.producto_id === null && detalle.promocion_id) {
+          try {
+            const response = await axios.get(
+              `${service_producto}/get_producto_id/${detalle.promocion_id}`
+            );
+            // Actualizamos el producto_id con el valor obtenido
+            return {
+              ...detalle,
+              producto_id: response.data.producto_id
+            };
+          } catch (error) {
+            console.error("Error obteniendo producto de promoción:", error);
+            return detalle; // Devolvemos el detalle original si hay error
+          }
+        }
+        return detalle; // No es necesario modificar
+      })
+    );    
+console.log("------DETALLES--------------------------->>>>>")
+console.log(detalles)
+
+
+
+let deliveryCost = 0;  // Inicializamos costo de delivery
     if (delivery_id) {
       try {
         const deliveryRes = await axios.get(
