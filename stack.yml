@@ -49,7 +49,7 @@ services:
       - microservices_network
 
   microservice_notificacion:
-    image: luis101590/microservice_notificacion:latest
+    image: luis101590/demo_microservice_notificacion:latest
     ports:
       - "5013:5013"
     deploy:
@@ -62,7 +62,7 @@ services:
       - ./microservice_notificacion/.env
 
   microservice_almacen:
-    image: luis101590/microservice_almacen:latest
+    image: luis101590/demo_microservice_almacen:latest
     ports:
       - "5003:5003"
     deploy:
@@ -75,7 +75,7 @@ services:
       - ./microservice_almacen/.env
 
   microservice_ubicacion:
-    image: luis101590/microservice_ubicacion:latest
+    image: luis101590/demo_microservice_ubicacion:latest
     ports:
       - "5005:5005"
     deploy:
@@ -88,7 +88,7 @@ services:
       - ./microservice_ubicacion/.env
 
   microservice_pedido:
-    image: luis101590/microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5010:5010"
     depends_on:
@@ -105,7 +105,7 @@ services:
       - ./microservice_pedido/.env
 
   microservice_producto:
-    image: luis101590/microservice_producto:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_producto:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5004:5004"
     deploy:
@@ -118,7 +118,7 @@ services:
       - ./microservice_producto/.env
 
   microservice_zonaproducto:
-    image: luis101590/microservice_zonaproducto:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_zonaproducto:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5006:5006"
     deploy:
@@ -131,7 +131,7 @@ services:
       - ./microservice_zonaproducto/.env
 
   microservice_zonapromocion:
-    image: luis101590/microservice_zonapromocion:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_zonapromocion:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5007:5007"
     deploy:
@@ -144,7 +144,7 @@ services:
       - ./microservice_zonapromocion/.env
 
   microservice_cliente:
-    image: luis101590/microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_cliente:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5002:5002"
     deploy:
@@ -157,7 +157,7 @@ services:
       - ./microservice_cliente/.env
 
   microservice_conductor:
-    image: luis101590/microservice_conductor:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_conductor:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5009:5009"
     deploy:
@@ -170,7 +170,7 @@ services:
       - ./microservice_conductor/.env
 
   microservice_auth:
-    image: luis101590/microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_microservice_auth:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5001:5001" # HOST : CONTENEDOR -> También puede ser - 5004 para resumir, por la igualdad de puertos
     deploy:
@@ -183,7 +183,7 @@ services:
       - ./microservice_auth/.env
 
   microservice_categoria:
-    image: luis101590/microservice_categoria:latest  
+    image: luis101590/demo_microservice_categoria:latest  
     ports:
       - "5011:5011" 
     deploy:
@@ -196,7 +196,7 @@ services:
       - ./microservice_categoria/.env 
 
   microservice_novedades:
-    image: luis101590/microservice_novedades:latest  
+    image: luis101590/demo_microservice_novedades:latest  
     ports:
       - "5017:5017" 
     deploy:
@@ -209,7 +209,7 @@ services:
       - ./microservice_novedades/.env 
 
   microservice_publicidad:
-    image: luis101590/microservice_publicidad:latest  
+    image: luis101590/demo_microservice_publicidad:latest  
     ports:
       - "5014:5014" 
     deploy:
