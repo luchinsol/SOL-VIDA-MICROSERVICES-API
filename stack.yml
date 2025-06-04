@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   api_gateway:
-    image: luis101590/api_gateway:latest  # Apunta a la imagen subida a Docker Hub
+    image: luis101590/demo_api_gateway:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "8082:3000"
     depends_on:
