@@ -453,7 +453,7 @@ export const getTemperaturaController = async (req, res) => {
     const response = await axios.get(url);
     const data = response.data;
 
-    const temp = data.main.temp;
+    const temp = Math.round(data.main.temp); // 👈 Cambio clave aquí
     let mensaje = '';
 
     if (temp >= 30) {

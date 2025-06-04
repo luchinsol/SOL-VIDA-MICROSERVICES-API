@@ -110,6 +110,17 @@ const modelProducto = {
         }
     },
 
+    getProductoIdByPromocion: async (id) => {
+    try {
+        const resultado = await db_pool.oneOrNone(`
+            SELECT producto_id FROM public.producto_promocion WHERE promocion_id = $1
+        `, [id]);
+        return resultado;
+    } catch (error) {
+        throw new Error(`Error get data: ${error}`);
+    }
+},
+
 }
 
 export default modelProducto
