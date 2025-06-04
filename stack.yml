@@ -18,6 +18,9 @@ services:
       - microservice_ubicacion
       - microservice_notificacion
       - microservice_almacen
+      - microservice_categoria
+      - microservice_novedades
+      - microservice_publicidad
     networks:
       - microservices_network
     environment:
@@ -178,6 +181,45 @@ services:
       - microservices_network
     env_file:
       - ./microservice_auth/.env
+
+  microservice_categoria:
+    image: luis101590/microservice_categoria:latest  
+    ports:
+      - "5011:5011" 
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_categoria/.env 
+
+  microservice_novedades:
+    image: luis101590/microservice_novedades:latest  
+    ports:
+      - "5017:5017" 
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_novedades/.env 
+
+  microservice_publicidad:
+    image: luis101590/microservice_publicidad:latest  
+    ports:
+      - "5014:5014" 
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - microservices_network
+    env_file:
+      - ./microservice_publicidad/.env 
 
 networks:
   microservices_network:
