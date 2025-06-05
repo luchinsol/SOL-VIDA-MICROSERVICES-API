@@ -1,5 +1,5 @@
 import axios from 'axios';
-import redisClient from '../index.js';
+//import redisClient from '../index.js';
 import amqp from 'amqplib';
 import dotenv from 'dotenv'
 dotenv.config()
@@ -12,32 +12,34 @@ const service_auth = process.env.MICRO_AUTH;
 console.log(service_cliente)
 
 export const getClientesControllerGW = async (req, res) => {
-    const cacheKey = 'clientes_cache'
+ //   const cacheKey = 'clientes_cache'
 
     // REDIS    
+    /*
     let cacheData;
     try {
         cacheData = await redisClient.get(cacheKey)
         console.log("Dato de caché", cacheData)
     } catch (redisError) {
         console.error("Error al obtener datos de Redis:", redisError.message)
-    }
+    }*/
 
     //VERIFICAR DATA CACHE
-    if (cacheData) {
-        return res.status(200).json(JSON.parse(cacheData))
-    }
+    //if (cacheData) {
+    //    return res.status(200).json(JSON.parse(cacheData))
+    //}
 
 
 
     try {
         const response = await axios.get(`${service_cliente}/cliente`);
         if (response && response.data) {
+            /*
             try {
                 await redisClient.setEx(cacheKey, 3600, JSON.stringify(response.data))
             } catch (redisSetError) {
                 console.error("Error al guardar datos en Redis:", redisSetError.message)
-            }
+            }*/
             res.status(200).json(response.data);
         } else {
             res.status(404).json({ message: 'Not Found' });
@@ -50,7 +52,7 @@ export const getClientesControllerGW = async (req, res) => {
 export const getClientesControllerIdGW = async (req,res) => {
     
     // REDIS
-    const cacheKey = `cliente_id_cache`; // Clave específica por ID
+    /*const cacheKey = `cliente_id_cache`; // Clave específica por ID
     let cacheData; 
     
     try {
@@ -63,21 +65,21 @@ export const getClientesControllerIdGW = async (req,res) => {
     if(cacheData){
         return res.status(200).json(JSON.parse(cacheData))
     }
-
+*/
     // AXIOS - BD
     try {
         const { id } = req.params
         console.log(id,".....id")
-        console.log(`${service_cliente}/cliente/${id}`)
+       // console.log(`${service_cliente}/cliente/${id}`)
         const response = await axios.get(`${service_cliente}/cliente/${id}`)
         console.log(response.data,"---------------client id")
         if(response && response.data){
-
+/*
             try {
                 await redisClient.setEx(cacheKey,3600,JSON.stringify(response.data))
             } catch (redisSetError) {
                 console.error("Error al guardar datos en Redis:",redisSetError.message)
-            }
+            }*/
           //  await sendToQueue('clientes_queue', response.data);
             res.status(200).json(response.data);
         }else{
