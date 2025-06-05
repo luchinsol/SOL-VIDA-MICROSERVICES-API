@@ -643,7 +643,7 @@ export const getCategoriaSubcategoriaControllerIdGW = async (req, res) => {
     const enrichedData = {
       id: categoriaData.id,
       nombre: categoriaData.nombre,
-      zona_trabajo_id,
+      zona_trabajo_id: Number(zona_trabajo_id),
     };
     //let sinProductosDisponibles = false;
     enrichedData.subcategorias = await Promise.all(categoriaData.subcategorias.map(async (subcategoria) => {
