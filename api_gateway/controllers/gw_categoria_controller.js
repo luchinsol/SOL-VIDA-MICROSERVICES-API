@@ -467,6 +467,7 @@ export const getAllProductosSubcategoriaGW = async (req, res) => {
             tipo_empaque: productoDetalle?.tipo_empaque || null,
             cantidad_unidad: productoDetalle?.cantidad_unidad || null,
             unidad_medida: productoDetalle?.unidad_medida || null,
+            volumen_unidad: productoDetalle?.volumen_unidad || null,
             foto: productoDetalle?.foto,
             valoracion: productoDetalle?.valoracion || null,
             precio_regular: precioZonaProducto?.precio_regular || null,
