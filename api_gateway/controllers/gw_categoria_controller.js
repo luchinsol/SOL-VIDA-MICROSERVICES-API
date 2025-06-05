@@ -445,10 +445,11 @@ export const getAllProductosSubcategoriaGW = async (req, res) => {
           const totalValoraciones = totalValoracionesResp.data?.total_valoraciones || 0;
           const calificaciones = calificacionesResp.data || [];
 
+          /*
           let porcentajeDescuento = null;
           if (precioZonaProducto?.descuento > 0 && precioZonaProducto?.precio > 0) {
             porcentajeDescuento = Math.round((precioZonaProducto.descuento / precioZonaProducto.precio) * 100);
-          }
+          }*/
 
           const estiloModificado = precioZonaProducto ? {
             id: precioZonaProducto.estilo_id,
@@ -463,18 +464,22 @@ export const getAllProductosSubcategoriaGW = async (req, res) => {
             id: productoId,
             nombre: productoDetalle?.nombre || null,
             descripcion: productoDetalle?.descripcion || null,
+            tipo_empaque: productoDetalle?.tipo_empaque || null,
+            cantidad_unidad: productoDetalle?.cantidad_unidad || null,
+            unidad_medida: productoDetalle?.unidad_medida || null,
             foto: productoDetalle?.foto,
             valoracion: productoDetalle?.valoracion || null,
-            precio: precioZonaProducto?.precio || null,
+            precio_regular: precioZonaProducto?.precio_regular || null,
             descuento: precioZonaProducto?.descuento || 0,
+            precio_normal: precioZonaProducto?.precio_normal || null,
             total_cliente_calificacion: Number(totalValoraciones),
             estilo: estiloModificado,
             calificaciones: calificaciones
           };
-
+          /*
           if (porcentajeDescuento !== null) {
             productoEnriquecido.porcentaje_descuento = porcentajeDescuento;
-          }
+          }*/
 
           return productoEnriquecido;
         } catch (error) {
@@ -504,11 +509,11 @@ export const getAllProductosSubcategoriaGW = async (req, res) => {
           const precioZonaPromocion = precioPromoResp.data || null;
           const totalValoracion = totalValoracionResp.data?.total_valoraciones || 0;
           const calificaciones = calificacionResp.data || [];
-
+          /*
           let porcentajeDescuento = null;
           if (precioZonaPromocion?.descuento > 0 && precioZonaPromocion?.precio > 0) {
             porcentajeDescuento = Math.round((precioZonaPromocion.descuento / precioZonaPromocion.precio) * 100);
-          }
+          }*/
 
           const estiloModificado = precioZonaPromocion ? {
             id: precioZonaPromocion.estilo_id,
@@ -525,16 +530,17 @@ export const getAllProductosSubcategoriaGW = async (req, res) => {
             descripcion: promocionDetalle?.descripcion || null,
             foto: promocionDetalle?.foto,
             valoracion: promocionDetalle?.valoracion || null,
-            precio: precioZonaPromocion?.precio || null,
+            precio_regular: precioZonaPromocion?.precio_regular || null,
             descuento: precioZonaPromocion?.descuento || 0,
+            precio_normal: precioZonaPromocion?.precio_normal || null,
             total_cliente_calificacion: Number(totalValoracion),
             estilo: estiloModificado,
             calificaciones: calificaciones
           };
-
+          /*
           if (porcentajeDescuento !== null) {
             promocionEnriquecida.porcentaje_descuento = porcentajeDescuento;
-          }
+          }*/
 
           return promocionEnriquecida;
         } catch (error) {

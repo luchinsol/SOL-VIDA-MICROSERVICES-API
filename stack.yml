@@ -92,8 +92,8 @@ services:
     image: luis101590/demo_microservice_pedido:latest  # Apunta a la imagen subida a Docker Hub
     ports:
       - "5010:5010"
-    depends_on:
-      - rabbitmq
+    #depends_on:
+    #  - rabbitmq
     deploy:
       replicas: 1 # Se definen 3 réplicas para este servicio
       restart_policy:
@@ -101,7 +101,7 @@ services:
     networks:
       - microservices_network
     environment:
-      - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5673
+      - RABBITMQ_URL=amqp://admin:admin123@64.23.206.83:5673
     env_file:
       - ./microservice_pedido/.env
 
