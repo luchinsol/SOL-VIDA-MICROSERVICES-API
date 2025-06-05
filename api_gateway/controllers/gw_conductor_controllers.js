@@ -1,5 +1,5 @@
 import axios from "axios";
-import redisClient from "../index.js";
+//import redisClient from "../index.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -12,8 +12,9 @@ const service_auth = process.env.MICRO_AUTH;
 
 export const getConductoresControllerGW = async (req, res) => {
   console.log("......get conductor controller");
-  const cacheKey = "conductores_cache";
+  //const cacheKey = "conductores_cache";
   try {
+    /*
     console.log("........Intentando obtener datos de Redis");
     let cachedData;
     try {
@@ -26,11 +27,12 @@ export const getConductoresControllerGW = async (req, res) => {
     if (cachedData) {
       return res.status(200).json(JSON.parse(cachedData));
     }
-
+*/
     const response = await axios.get(`${service_conductor}/conductor`);
     console.log("Respuesta de la API de conductor:", response.data);
 
     if (response && response.data) {
+      /*
       try {
         await redisClient.setEx(cacheKey, 3600, JSON.stringify(response.data));
       } catch (redisSetError) {
@@ -38,7 +40,7 @@ export const getConductoresControllerGW = async (req, res) => {
           "Error al guardar datos en Redis:",
           redisSetError.message
         );
-      }
+      }*/
       res.status(200).json(response.data);
     } else {
       res.status(404).json({ message: "Not Found" });
@@ -51,6 +53,7 @@ export const getConductoresControllerGW = async (req, res) => {
 //Info Conductor
 export const getConductoresControllerIdGW = async (req, res) => {
   // REDIS
+  /*
   const cacheKey = `conductor_id_cache`; // Clave específica por ID
   let cacheData;
 
@@ -63,7 +66,7 @@ export const getConductoresControllerIdGW = async (req, res) => {
 
   if (cacheData) {
     return res.status(200).json(JSON.parse(cacheData));
-  }
+  }*/
 
   // AXIOS - BD
   try {
@@ -73,6 +76,7 @@ export const getConductoresControllerIdGW = async (req, res) => {
     const response = await axios.get(`${service_conductor}/conductor/${id}`);
     console.log(response.data, "---------------client id");
     if (response && response.data) {
+      /*
       try {
         await redisClient.setEx(cacheKey, 3600, JSON.stringify(response.data));
       } catch (redisSetError) {
@@ -80,7 +84,7 @@ export const getConductoresControllerIdGW = async (req, res) => {
           "Error al guardar datos en Redis:",
           redisSetError.message
         );
-      }
+      }*/
       res.status(200).json(response.data);
     } else {
       res.status(404).json({ message: "Not found " });

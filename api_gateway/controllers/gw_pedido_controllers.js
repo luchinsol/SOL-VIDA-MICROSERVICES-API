@@ -1,5 +1,5 @@
 import axios from "axios";
-import redisClient from "../index.js";
+//import redisClient from "../index.js";
 import amqp from "amqplib";
 import * as turf from "@turf/turf";
 import { v4 as uuidv4 } from "uuid";
@@ -305,8 +305,10 @@ export const getPedidoSemanalGW = async (req,res) => {
 
 export const getPedidosControllerGW = async (req, res) => {
   console.log("......get pedido controller");
+  
   const cacheKey = "pedidos_cache";
   try {
+    /*
     console.log("........Intentando obtener datos de Redis");
 
     // Intentar obtener datos de Redis con manejo de errores
@@ -322,21 +324,21 @@ export const getPedidosControllerGW = async (req, res) => {
     if (cachedData) {
       return res.status(200).json(JSON.parse(cachedData));
     }
-
+*/
     // Si no hay datos en caché, hacer la solicitud a la API
     const response = await axios.get(`${service_pedido}/pedido`);
     console.log("Respuesta de la API de pedidos:", response.data);
 
     if (response && response.data) {
       // Guardar en caché los datos de respuesta (opcional si Redis funciona)
-      try {
+    /*  try {
         await redisClient.setEx(cacheKey, 3600, JSON.stringify(response.data));
       } catch (redisSetError) {
         console.error(
           "Error al guardar datos en Redis:",
           redisSetError.message
         );
-      }
+      }*/
       res.status(200).json(response.data);
     } else {
       res.status(404).json({ message: "Not Found" });

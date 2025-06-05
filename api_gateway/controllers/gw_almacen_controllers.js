@@ -1,5 +1,5 @@
 import axios from "axios";
-import redisClient from "../index.js";
+//import redisClient from "../index.js";
 import dotenv from 'dotenv'
 
 dotenv.config()
