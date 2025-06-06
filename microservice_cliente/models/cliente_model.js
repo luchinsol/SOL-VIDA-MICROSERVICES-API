@@ -322,7 +322,7 @@ WHERE producto_id = $1;`, [id]);
     },
 
     //MODELO QUE ME SIRVE PARA VER EL PROMEDIO DE LA CALIFICACION DE TODOS LOS CLIENTES de un promedio
-    getPromedioValoracionProductoId: async (id) => {
+    getPromedioValoracionPromocionId: async (id) => {
         try {
             const resultado = await db_pool.one(`
                 SELECT ROUND(AVG(calificacion)::numeric, 1) AS promedio_calificacion

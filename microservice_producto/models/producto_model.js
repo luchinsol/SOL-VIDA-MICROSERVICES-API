@@ -59,9 +59,6 @@ const modelProducto = {
                 //ACTUALIZAMOS LA DIRECCIÓN QUE SELECCIONO EL CLIENTE
                 const resultado = await db_pool.oneOrNone(`UPDATE public.producto SET valoracion=$1
                     WHERE id=$2 RETURNING *`, [producto.valoracion, id])
-                if (!resultado) {
-                    return null;
-                }
                 return resultado;
             }catch(error){
                 throw new Error(`Error put data: ${error}`);
@@ -74,9 +71,6 @@ const modelProducto = {
             //ACTUALIZAMOS LA DIRECCIÓN QUE SELECCIONO EL CLIENTE
             const resultado = await db_pool.oneOrNone(`UPDATE public.promocion SET valoracion=$1
                 WHERE id=$2 RETURNING *`, [promocion.valoracion, id])
-            if (!resultado) {
-                return null;
-            }
             return resultado;
         }catch(error){
             throw new Error(`Error put data: ${error}`);

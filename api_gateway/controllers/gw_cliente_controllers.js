@@ -187,19 +187,23 @@ export const postValoracionControllerGW = async (req, res) => {
       // 2. Consultar promedio dependiendo del tipo
       if (resultado.data.producto_id) {
         const resProm = await axios.get(`${service_cliente}/calificacion_promedio_producto/${resultado.data.producto_id}`);
-        promedio = resProm.data.promedio_calificacion;
-        const actualizarProducto = await axios.put(`${service_producto}/actualizar_valoracion_producto/${resultado.data.producto_id}`,promedio)
+        promedio = resProm.data.promedio_calificacion !== null 
+        ? parseFloat(resProm.data.promedio_calificacion) 
+        : null;
+        await axios.put(`${service_producto}/actualizar_valoracion_producto/${resultado.data.producto_id}`,{ valoracion: promedio })
 
     } else if (resultado.data.promocion_id) {
         const resProm = await axios.get(`${service_cliente}/calificacion_promedio_promocion/${resultado.data.promocion_id}`);
-        promedio = resProm.data.promedio_calificacion;
-        const actualizarPromocion = await axios.put(`${service_producto}/actualizar_valoracion_promocion/${resultado.data.promocion_id}`,promedio)    
+        promedio = resProm.data.promedio_calificacion !== null 
+        ? parseFloat(resProm.data.promedio_calificacion) 
+        : null;
+        await axios.put(`${service_producto}/actualizar_valoracion_promocion/${resultado.data.promocion_id}`,{ valoracion: promedio } )    
     }
   
       // 3. Retornar valoración y promedio
       res.status(201).json({
         ...resultado.data,
-        promedio: promedio ?? null
+        promedio: promedio
       });
   
     } catch (error) {
