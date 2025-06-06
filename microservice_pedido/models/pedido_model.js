@@ -736,6 +736,9 @@ ORDER BY almacen_id;
 
     getPedidoClienteHistorialId: async (id) => {
     try {
+        const hora_backend =  new Date();
+        const fechaInicio = new Date(hora_backend);
+        fechaInicio.setDate(hora_backend.getDate() - 1);
         const resultado = await db_pool.any(`
             SELECT 
                 p.id AS pedido_id,
@@ -753,10 +756,12 @@ ORDER BY almacen_id;
             INNER JOIN 
                 public.detalle_pedido dp ON p.id = dp.pedido_id
             WHERE 
-                p.cliente_id = $1
+                p.cliente_id = $1 
+                AND p.fecha >= $2 
+                AND fecha <= $3
             ORDER BY 
                 p.id DESC;
-        `, [id]);
+        `, [id,fechaInicio,hora_backend]);
 
         const pedidosMap = new Map();
 
