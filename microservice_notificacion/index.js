@@ -25,7 +25,7 @@ app_micro_notificacion.use(express.json())
 
 app_micro_notificacion.use('/api/v1',routerNotificacion)
 
-app_micro_notificacion.listen(PORT,()=>{
+server.listen(PORT,()=>{
     console.log(`Microservice NOTIFICACION running http://localhost:${PORT}`)
 })
 

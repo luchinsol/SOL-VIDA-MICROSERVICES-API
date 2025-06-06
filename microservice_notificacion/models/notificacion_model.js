@@ -59,7 +59,7 @@ const modelNotificaciones = {
                 notificacion.fecha,
                 notificacion.descripcion
             ])
-            io.emit('pedido_anulado', resultado); 
+            io.emit('notify_cliente', resultado); 
             return resultado;
         } catch (error) {
             throw new Error(`Error post data ${error}`);
