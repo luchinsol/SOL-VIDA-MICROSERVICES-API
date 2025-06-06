@@ -195,7 +195,7 @@ export const getPromedioValoracionesProductoId = async (req, res) => {
 export const getPromedioValoracionesPromocionId = async (req, res) => {
   try {
     const { id } = req.params
-    const resultado = await modelCliente.getPromedioValoracionProductoId(id)
+    const resultado = await modelCliente.getPromedioValoracionPromocionId(id)
 
     if (!resultado) {
       return res.status(404).json({ message: "Data not found" });
