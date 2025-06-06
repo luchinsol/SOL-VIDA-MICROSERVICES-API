@@ -1608,8 +1608,7 @@ export const getPedidoClienteControllerGW = async (req, res) => {
     if (response && response.data) {
       const transformedData = await Promise.all(response.data.map(async (pedido) => {
         // Separar detalles en productos y promociones (solo ID y foto)
-        const productos = [];
-        const promociones = [];
+        const fotos = [];
 
         // Procesar detalles en paralelo
         await Promise.all(pedido.detalles.map(async (detalle) => {
@@ -1617,17 +1616,15 @@ export const getPedidoClienteControllerGW = async (req, res) => {
             if (detalle.promocion_id === null) {
               // Obtener solo ID y foto del producto
               const productoResponse = await axios.get(`${service_producto}/producto/${detalle.producto_id}`);
-              productos.push({
-                id: productoResponse.data.id,
-                foto: productoResponse.data.foto
-              });
+              if (productoResponse.data.foto.length > 0) {
+                fotos.push(productoResponse.data.foto[0]);
+              }
             } else {
               // Obtener solo ID y foto de la promoción
               const promocionResponse = await axios.get(`${service_producto}/promocion/${detalle.promocion_id}`);
-              promociones.push({
-                id: promocionResponse.data.id,
-                foto: promocionResponse.data.foto
-              });
+              if (promocionResponse.data.foto.length > 0) {
+                fotos.push(promocionResponse.data.foto[0]);
+              }
             }
           } catch (error) {
             console.error(`Error obteniendo detalle: ${error.message}`);
@@ -1650,12 +1647,8 @@ export const getPedidoClienteControllerGW = async (req, res) => {
           fecha: pedido.fecha,
           estado: pedido.estado,
           total: pedido.total,
-          productos,
-          promociones,
-          ubicacion: {
-            ubicacion_id: pedido.ubicacion_id,
-            direccion
-          }
+          fotos, // Array de strings con las fotos
+          direccion
         };
       }));
 
