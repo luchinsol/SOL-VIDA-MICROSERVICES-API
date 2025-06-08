@@ -22,11 +22,11 @@ const RABBITMQ_URL = process.env.RABBITMQ_URL;
 
 const sendToQueue = async (pedido) => {
   try {
-    //console.log(" dentro de la funcion")
+    console.log(" dentro de la funcion")
     const connection = await amqp.connect(RABBITMQ_URL);
-    //console.log(connection)
+    console.log(connection)
     const channel = await connection.createChannel();
-    //console.log("---------------->>>")
+    console.log("---------------->>>")
     const msg = JSON.stringify(pedido); // Convertir el pedido a JSON
 
     // Asegurarse de que la cola exista
@@ -844,7 +844,7 @@ else if (cupon_id && codigo_id) {
     }
     console.log("ENVIANDO EN LA COLA ----------------------->>>>")
     console.log(response)
-    await sendToQueue(response);
+    //await sendToQueue(response);
     res.status(201).json(response);
   } catch (error) {
     console.error("Error:", error);
