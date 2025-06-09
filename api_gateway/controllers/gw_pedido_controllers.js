@@ -665,15 +665,15 @@ let deliveryCost = 0;  // Inicializamos costo de delivery
       
       if (productoConDescuento) {
         // Calcular descuento solo sobre el total de ese producto
-        discountAmount = productoConDescuento.total * (discountPercentage / 100);
+        discountAmount = parseFloat((productoConDescuento.total * (discountPercentage / 100)).toFixed(2));
       }
     }
     else if (!cupon_id && codigo_id) {
-  discountAmount = subTotal * (codigoDiscountPercentage / 100);
+  discountAmount = parseFloat((subTotal * (codigoDiscountPercentage / 100)).toFixed(2));
 }
 else if (cupon_id && codigo_id) {
   let cuponDiscount = 0;
-  let codigoDiscount = subTotal * (codigoDiscountPercentage / 100);
+  let codigoDiscount = parseFloat((subTotal * (codigoDiscountPercentage / 100)).toFixed(2));
   
   // Calculamos descuento del cupón (solo para el producto)
   const productoConDescuento = detallesProcessed.find(detail => 
@@ -681,16 +681,16 @@ else if (cupon_id && codigo_id) {
   );
   
   if (productoConDescuento) {
-    cuponDiscount = productoConDescuento.total * (discountPercentage / 100);
+    cuponDiscount = parseFloat((productoConDescuento.total * (discountPercentage / 100)).toFixed(2));
   }
   
   // Calculamos el promedio de ambos descuentos
-  discountAmount = (cuponDiscount + codigoDiscount) / 2;
+  discountAmount = parseFloat(((cuponDiscount + codigoDiscount) / 2).toFixed(2));
 }
-
+  
     //LOG DISCOCUNT AMOUNT
- //   console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-  //  console.log(discountAmount)
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%DESCUENTOOOOOOOO")
+    console.log(discountAmount)
 
     // 2. Descuento por código (aplica al subtotal general)
     /*
