@@ -149,7 +149,7 @@ export const getFirebaseuid = async (req,res) => {
         const {firebaseUID} = req.params
         const response = await modelAuth.getFirebaseuid(firebaseUID)
         if(!response){
-            return res.status(404).json({message:response.message})
+            return res.status(404).json({message:"Data not found"})
         }
         res.status(200).json(response)
     } catch (error) {
