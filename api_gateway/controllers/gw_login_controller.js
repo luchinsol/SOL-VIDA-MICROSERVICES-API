@@ -81,7 +81,7 @@ export const getUserFirebaseGW = async (req, res) => {
   }
 };
 
-
+// ENDPOINT CORREGIDO
 export const postNewUserCLienteControllerGW = async (req, res) => {
   try {
     console.log(`${req.body} ......AQUIESTOY`);
