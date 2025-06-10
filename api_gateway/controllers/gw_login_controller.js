@@ -39,30 +39,48 @@ export const putPhoneFirebaseGW = async (req,res) =>{
 
 //nuevoAdd commentMore actions
 export const getUserFirebaseGW = async (req, res) => {
-  console.log("....FIREBASE NUEVO")
+  console.log("....FIREBASE NUEVO");
   try {
     const { firebaseUID } = req.params;
-    const response = await axios.get(
-      `${service_auth}/userfirebase/${firebaseUID}`
-    );
-    if (response && response.data) {
-      const id = response.data.id;
-      const responseCliente = await axios.get(
-        `${service_cliente}/cliente_user/${id}`
-      );
-      // res.status(200).json(response.data)
-      const clienteCompleto = {
-        user: response.data,
-        cliente: responseCliente.data,
-      };
-      res.status(200).json(clienteCompleto);
-    } else {
-      res.status(404).json({ message: "Not Found" });
+
+    // Hacemos la llamada al servicio de auth
+    let authResponse;
+    try {
+      authResponse = await axios.get(`${service_auth}/userfirebase/${firebaseUID}`);
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        // Usuario no encontrado en auth
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+      throw err; // Otro error más grave
     }
+
+    const userData = authResponse.data;
+    const id = userData.id;
+
+    // Ahora vamos al servicio cliente
+    let clienteResponse;
+    try {
+      clienteResponse = await axios.get(`${service_cliente}/cliente_user/${id}`);
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        return res.status(404).json({ message: "Cliente no encontrado" });
+      }
+      throw err;
+    }
+
+    const clienteCompleto = {
+      user: userData,
+      cliente: clienteResponse.data,
+    };
+
+    res.status(200).json(clienteCompleto);
   } catch (error) {
-    res.status(500).send("Error fetching clients");
+    console.error("❌ Error en getUserFirebaseGW:", error.message);
+    res.status(500).json({ error: "Error al recuperar cliente completo" });
   }
 };
+
 
 export const postNewUserCLienteControllerGW = async (req, res) => {
   try {
