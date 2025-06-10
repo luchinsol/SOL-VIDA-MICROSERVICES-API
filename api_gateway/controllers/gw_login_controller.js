@@ -93,7 +93,7 @@ export const postNewUserCLienteControllerGW = async (req, res) => {
       newUserCredencial.user
     );
     if (response.data.message === "User exist!") {
-      return res.status(400).json({ message: response.data.message });
+      return res.status(400).json({ message: 'Data not found' });
     }
 
     const usuarioId = response.data.id;
@@ -106,9 +106,9 @@ export const postNewUserCLienteControllerGW = async (req, res) => {
       }
     );
     if(responseCliente.data.message === 'Invalid input data'){
-      return res.status(400).json({message:responseCliente.data.message})
+      return res.status(400).json({message:'Data not found'})
     }
-    res.status(201).json({user:response.data,conductor:responseCliente.data})
+    res.status(201).json({user:response.data,cliente:responseCliente.data})
   } catch (error) {
     res.status(500).json({error:error.message})
   }
